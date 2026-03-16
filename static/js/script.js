@@ -1,0 +1,770 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadContent = document.getElementById('uploadContent');
+    const results = document.getElementById('results');
+    const resultsContent = document.getElementById('resultsContent');
+    const notificationContainer = document.getElementById('notification-container');
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    const ratingDisplay = document.getElementById('ratingDisplay');
+    const copyGlobalAll = document.getElementById('copyGlobalAll');
+    const copyGlobalConfident = document.getElementById('copyGlobalConfident');
+    const formatE621 = document.getElementById('formatE621');
+    const formatPosty = document.getElementById('formatPosty');
+
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsMenu = document.getElementById('settingsMenu');
+    const closeSettings = document.getElementById('closeSettings');
+    const presetBtns = document.querySelectorAll('.preset-btn');
+    const customPresetBtn = document.getElementById('customPresetBtn');
+    const customPanel = document.getElementById('customThresholdsPanel');
+    const customAllInput = document.getElementById('customAll');
+    const customConfidentInput = document.getElementById('customConfident');
+    const applyCustom = document.getElementById('applyCustom');
+    const formatOptions = document.querySelectorAll('.format-option');
+    const resetBtn = document.getElementById('resetSettings');
+    const themeOptions = document.querySelectorAll('.theme-option');
+
+    const eggContainer = document.getElementById('eggContainer');
+    const eggCreature = document.getElementById('eggCreature');
+
+    const MAX_FILE_SIZE = 20 * 1024 * 1024;
+
+    let allTags = [];
+    let currentFormat = 'e621';
+    let savedFormat = 'e621';
+    let allThreshold = 0.55;
+    let confidentThreshold = 0.75;
+    let currentTheme = 'system';
+    let activePreset = 'standard';
+    let addedTags = new Set();
+    let removedTags = new Set();
+
+    const ratingTags = new Set(['safe', 'questionable', 'explicit']);
+
+    const creaturePaths = [
+        '/static/f1.png',
+        '/static/f2.png',
+        '/static/f3.png',
+        '/static/f4.png',
+        '/static/f5.png',
+        '/static/f6.png',
+        '/static/f7.png',
+        '/static/f8.png',
+        '/static/f9.png'
+    ];
+
+    function preloadCreatures() {
+        creaturePaths.forEach(path => {
+            const img = new Image();
+            img.src = path;
+        });
+    }
+    preloadCreatures();
+
+    eggContainer.addEventListener('click', () => {
+        const isOpen = eggContainer.classList.contains('open');
+        if (!isOpen) {
+            const randomIndex = Math.floor(Math.random() * creaturePaths.length);
+            eggCreature.src = creaturePaths[randomIndex];
+        }
+        eggContainer.classList.toggle('open');
+    });
+
+    function loadSettings() {
+        const saved = localStorage.getItem('e621tagger-settings');
+        if (saved) {
+            try {
+                const settings = JSON.parse(saved);
+                allThreshold = settings.allThreshold ?? 0.55;
+                confidentThreshold = settings.confidentThreshold ?? 0.75;
+                savedFormat = settings.defaultFormat ?? 'e621';
+                currentFormat = savedFormat;
+                currentTheme = settings.theme ?? 'system';
+                activePreset = settings.activePreset ?? 'standard';
+                updateTheme(currentTheme);
+                updateLocalFormatUI();
+                updateSettingsFormatUI();
+                updateThresholdUI();
+            } catch (e) {
+                console.warn('Failed to load settings', e);
+            }
+        } else {
+            activePreset = 'standard';
+            updateThresholdUI();
+        }
+    }
+
+    function saveSettings() {
+        const settings = {
+            allThreshold,
+            confidentThreshold,
+            defaultFormat: savedFormat,
+            theme: currentTheme,
+            activePreset,
+        };
+        localStorage.setItem('e621tagger-settings', JSON.stringify(settings));
+    }
+
+    function updateTheme(theme) {
+        currentTheme = theme;
+        document.body.classList.remove('theme-light', 'theme-dark');
+        if (theme === 'light') {
+            document.body.classList.add('theme-light');
+        } else if (theme === 'dark') {
+            document.body.classList.add('theme-dark');
+        }
+        themeOptions.forEach(opt => {
+            if (opt.dataset.theme === theme) {
+                opt.classList.add('active');
+            } else {
+                opt.classList.remove('active');
+            }
+        });
+    }
+
+    function updateLocalFormatUI() {
+        if (currentFormat === 'e621') {
+            formatE621.classList.add('active');
+            formatPosty.classList.remove('active');
+        } else {
+            formatPosty.classList.add('active');
+            formatE621.classList.remove('active');
+        }
+    }
+
+    function updateSettingsFormatUI() {
+        formatOptions.forEach(opt => {
+            if (opt.dataset.format === savedFormat) {
+                opt.classList.add('active');
+            } else {
+                opt.classList.remove('active');
+            }
+        });
+    }
+
+    function updateThresholdUI() {
+        presetBtns.forEach(btn => {
+            const preset = btn.dataset.preset;
+            if (preset === activePreset) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        if (activePreset === 'custom') {
+            customPanel.classList.add('open');
+        } else {
+            customPanel.classList.remove('open');
+        }
+        customAllInput.value = allThreshold.toFixed(2);
+        customConfidentInput.value = confidentThreshold.toFixed(2);
+    }
+
+    function refreshTagClasses() {
+        document.querySelectorAll('.tag').forEach(el => {
+            const tagName = el.dataset.tag;
+            const tagObj = allTags.find(t => t.tag === tagName);
+            if (!tagObj) return;
+            el.classList.remove('confident', 'all');
+            if (tagObj.prob >= confidentThreshold) {
+                el.classList.add('confident');
+            } else if (tagObj.prob >= allThreshold) {
+                el.classList.add('all');
+            }
+            el.classList.remove('added', 'removed');
+            if (addedTags.has(tagName)) {
+                el.classList.add('added');
+            } else if (removedTags.has(tagName)) {
+                el.classList.add('removed');
+            }
+        });
+        updateCategoryButtonsDisabled();
+    }
+
+    function applyThresholds() {
+        if (allTags.length > 0) {
+            refreshTagClasses();
+            setupCategoryCopyButtons();
+        }
+        updateThresholdUI();
+        saveSettings();
+    }
+
+    presetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const preset = btn.dataset.preset;
+            if (preset === 'custom') {
+                activePreset = 'custom';
+                updateThresholdUI();
+                saveSettings();
+                return;
+            }
+            activePreset = preset;
+            switch (preset) {
+                case 'conservative':
+                    allThreshold = 0.65;
+                    confidentThreshold = 0.85;
+                    break;
+                case 'standard':
+                    allThreshold = 0.55;
+                    confidentThreshold = 0.75;
+                    break;
+                case 'liberal':
+                    allThreshold = 0.45;
+                    confidentThreshold = 0.65;
+                    break;
+            }
+            customAllInput.value = allThreshold.toFixed(2);
+            customConfidentInput.value = confidentThreshold.toFixed(2);
+            applyThresholds();
+        });
+    });
+
+    applyCustom.addEventListener('click', () => {
+        const all = parseFloat(customAllInput.value);
+        const conf = parseFloat(customConfidentInput.value);
+        if (isNaN(all) || isNaN(conf) || all < 0 || all > 1 || conf < 0 || conf > 1) {
+            showNotification('Please enter valid numbers between 0 and 1.', 'error');
+            return;
+        }
+        allThreshold = all;
+        confidentThreshold = conf;
+        activePreset = 'custom';
+        applyThresholds();
+    });
+
+    formatOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+            const format = opt.dataset.format;
+            savedFormat = format;
+            updateSettingsFormatUI();
+            saveSettings();
+        });
+    });
+
+    themeOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+            const theme = opt.dataset.theme;
+            updateTheme(theme);
+            saveSettings();
+        });
+    });
+
+    resetBtn.addEventListener('click', () => {
+        allThreshold = 0.55;
+        confidentThreshold = 0.75;
+        savedFormat = 'e621';
+        currentFormat = savedFormat;
+        currentTheme = 'system';
+        activePreset = 'standard';
+        updateTheme('system');
+        updateLocalFormatUI();
+        updateSettingsFormatUI();
+        applyThresholds();
+        saveSettings();
+    });
+
+    function toggleSettings(show) {
+        if (show) {
+            settingsMenu.classList.add('show');
+            settingsToggle.classList.add('open');
+            positionSettingsMenu();
+        } else {
+            settingsMenu.classList.remove('show');
+            settingsToggle.classList.remove('open');
+        }
+    }
+
+    function positionSettingsMenu() {
+        const toggleRect = settingsToggle.getBoundingClientRect();
+        const containerRect = document.querySelector('.container').getBoundingClientRect();
+        let left = toggleRect.left - containerRect.left;
+        let top = toggleRect.bottom - containerRect.top + 5;
+        settingsMenu.style.left = left + 'px';
+        settingsMenu.style.top = top + 'px';
+    }
+
+    settingsToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSettings(!settingsMenu.classList.contains('show'));
+    });
+
+    closeSettings.addEventListener('click', () => {
+        toggleSettings(false);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) {
+            toggleSettings(false);
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (settingsMenu.classList.contains('show')) {
+            positionSettingsMenu();
+        }
+    });
+
+    formatE621.addEventListener('click', () => {
+        currentFormat = 'e621';
+        updateLocalFormatUI();
+    });
+    formatPosty.addEventListener('click', () => {
+        currentFormat = 'posty';
+        updateLocalFormatUI();
+    });
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) handleFiles(files);
+    });
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+    document.addEventListener('paste', (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.type.startsWith('image/')) {
+                const file = item.getAsFile();
+                if (file) {
+                    handleFiles([file]);
+                    e.preventDefault();
+                    break;
+                }
+            }
+        }
+    });
+
+    function handleFiles(files) {
+        if (files.length === 0) return;
+        const file = files[0];
+        if (!file.type.startsWith('image/')) {
+            showNotification('Please select an image file.', 'error');
+            return;
+        }
+        if (file.size > MAX_FILE_SIZE) {
+            showNotification(`File too large. Maximum size is ${MAX_FILE_SIZE / (1024*1024)}MB.`, 'error');
+            return;
+        }
+        uploadImage(file);
+    }
+
+    function showPreview(file) {
+        const existingImg = dropZone.querySelector('img');
+        if (existingImg) existingImg.remove();
+        uploadContent.style.display = 'none';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.alt = 'Preview';
+        img.style.opacity = '0';
+        dropZone.appendChild(img);
+        dropZone.classList.add('has-image');
+        setTimeout(() => { img.style.opacity = '1'; }, 10);
+    }
+
+    async function hideResults() {
+        if (!results.classList.contains('visible')) return Promise.resolve();
+        results.classList.remove('visible');
+        return new Promise(resolve => {
+            const onTransitionEnd = () => {
+                results.style.display = 'none';
+                results.removeEventListener('transitionend', onTransitionEnd);
+                resolve();
+            };
+            results.addEventListener('transitionend', onTransitionEnd, { once: true });
+        });
+    }
+
+    async function showResults() {
+        if (results.classList.contains('visible')) return Promise.resolve();
+        results.style.display = 'block';
+        results.offsetHeight;
+        results.classList.add('visible');
+        return Promise.resolve();
+    }
+
+    async function uploadImage(file) {
+        showPreview(file);
+        dropZone.classList.add('uploading');
+
+        const wasVisible = results.classList.contains('visible');
+        if (wasVisible) {
+            await hideResults();
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+            const response = await fetch('/predict', { method: 'POST', body: formData });
+            if (!response.ok) {
+                let errorMsg = 'Server error. Please try again later.';
+                try {
+                    const data = await response.json();
+                    errorMsg = data.error || errorMsg;
+                } catch (e) {
+                }
+                throw new Error(errorMsg);
+            }
+            const data = await response.json();
+            if (data.success) {
+                allTags = data.tags;
+                addedTags.clear();
+                removedTags.clear();
+                currentFormat = savedFormat;
+                updateLocalFormatUI();
+                displayTags(allTags);
+                await showResults();
+            } else {
+                showNotification(data.error || 'Failed to generate tags.', 'error');
+            }
+        } catch (err) {
+            const errorMsg = err.message || 'Network error. Please try again.';
+            showNotification(errorMsg, 'error');
+        } finally {
+            dropZone.classList.remove('uploading');
+        }
+    }
+
+    function getTagCategory(prob) {
+        if (prob >= confidentThreshold) return 'confident';
+        if (prob >= allThreshold) return 'all';
+        return 'low';
+    }
+
+    function isTagIncluded(tagObj, threshold) {
+        const tag = tagObj.tag;
+        if (removedTags.has(tag)) return false;
+        if (addedTags.has(tag)) return true;
+        return tagObj.prob >= threshold;
+    }
+
+    function filterTags(threshold) {
+        return allTags.filter(t => !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
+    }
+
+    function filterTagsByCategory(category, threshold) {
+        return allTags.filter(t => t.category === category && !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
+    }
+
+    function handleTagClick(tagObj, element) {
+        const tag = tagObj.tag;
+        const prob = tagObj.prob;
+        const category = getTagCategory(prob);
+
+        const wasAdded = addedTags.has(tag);
+        const wasRemoved = removedTags.has(tag);
+
+        if (category === 'confident') {
+            if (!wasAdded && !wasRemoved) {
+                removedTags.add(tag);
+            } else if (wasRemoved) {
+                removedTags.delete(tag);
+            } else if (wasAdded) {
+                addedTags.delete(tag);
+            }
+        } else if (category === 'all') {
+            if (!wasAdded && !wasRemoved) {
+                addedTags.add(tag);
+            } else if (wasAdded) {
+                addedTags.delete(tag);
+                removedTags.add(tag);
+            } else if (wasRemoved) {
+                removedTags.delete(tag);
+            }
+        } else {
+            if (!wasAdded && !wasRemoved) {
+                addedTags.add(tag);
+            } else if (wasAdded) {
+                addedTags.delete(tag);
+            } else if (wasRemoved) {
+                removedTags.delete(tag);
+            }
+        }
+
+        document.querySelectorAll(`.tag[data-tag="${tag}"]`).forEach(el => {
+            updateTagElement(el, tagObj);
+        });
+
+        updateCategoryButtonsDisabled();
+    }
+
+    function updateTagElement(el, tagObj) {
+        el.classList.remove('added', 'removed');
+        if (addedTags.has(tagObj.tag)) {
+            el.classList.add('added');
+        } else if (removedTags.has(tagObj.tag)) {
+            el.classList.add('removed');
+        }
+    }
+
+    function updateCategoryButtonsDisabled() {
+        document.querySelectorAll('.cat-copy-btn').forEach(btn => {
+            const category = btn.dataset.category;
+            const type = btn.dataset.type;
+            const threshold = type === 'confident' ? confidentThreshold : allThreshold;
+            const categoryTags = allTags.filter(t => t.category === category && !ratingTags.has(t.tag));
+            const hasAny = categoryTags.some(t => isTagIncluded(t, threshold));
+            btn.disabled = !hasAny;
+        });
+    }
+
+    function displayTags(tags) {
+        let rating = null;
+        const nonRatingTags = [];
+        tags.forEach(t => {
+            if (ratingTags.has(t.tag)) {
+                if (!rating || t.prob > rating.prob) {
+                    rating = t;
+                }
+            } else {
+                nonRatingTags.push(t);
+            }
+        });
+
+        if (rating) {
+            ratingDisplay.textContent = `Rating: ${rating.tag}`;
+            ratingDisplay.className = 'rating-display ' + rating.tag;
+            ratingDisplay.style.display = 'inline-block';
+        } else {
+            ratingDisplay.style.display = 'none';
+        }
+
+        const grouped = {};
+        nonRatingTags.sort((a, b) => b.prob - a.prob);
+        nonRatingTags.forEach(item => {
+            const cat = item.category || 'Other';
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(item);
+        });
+
+        const order = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+        const sortedCategories = Object.keys(grouped).sort((a, b) => {
+            const ia = order.indexOf(a);
+            const ib = order.indexOf(b);
+            if (ia !== -1 && ib !== -1) return ia - ib;
+            if (ia !== -1) return -1;
+            if (ib !== -1) return 1;
+            return a.localeCompare(b);
+        });
+
+        categoriesContainer.innerHTML = '';
+        sortedCategories.forEach(cat => {
+            const catTags = grouped[cat];
+            const catDiv = document.createElement('div');
+            catDiv.className = 'category-block';
+
+            const header = document.createElement('div');
+            header.className = 'category-header';
+
+            const categoryName = document.createElement('span');
+            categoryName.className = 'category-name';
+            categoryName.textContent = cat;
+
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.className = 'category-buttons';
+
+            const confidentBtn = document.createElement('button');
+            confidentBtn.className = 'cat-copy-btn confident';
+            confidentBtn.dataset.category = cat;
+            confidentBtn.dataset.type = 'confident';
+            confidentBtn.title = 'Copy confident tags';
+            confidentBtn.textContent = 'C';
+
+            const allBtn = document.createElement('button');
+            allBtn.className = 'cat-copy-btn all';
+            allBtn.dataset.category = cat;
+            allBtn.dataset.type = 'all';
+            allBtn.title = 'Copy all tags';
+            allBtn.textContent = 'A';
+
+            const hasConfident = catTags.some(t => isTagIncluded(t, confidentThreshold));
+            const hasAll = catTags.some(t => isTagIncluded(t, allThreshold));
+            confidentBtn.disabled = !hasConfident;
+            allBtn.disabled = !hasAll;
+
+            buttonsDiv.appendChild(confidentBtn);
+            buttonsDiv.appendChild(allBtn);
+
+            header.appendChild(categoryName);
+            header.appendChild(buttonsDiv);
+
+            const tagsContainer = document.createElement('div');
+            tagsContainer.className = 'category-tags';
+
+            catTags.forEach(item => {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'tag';
+                tagEl.setAttribute('data-tag', item.tag);
+                tagEl.textContent = item.tag;
+
+                if (item.prob >= confidentThreshold) {
+                    tagEl.classList.add('confident');
+                } else if (item.prob >= allThreshold) {
+                    tagEl.classList.add('all');
+                }
+
+                if (addedTags.has(item.tag)) {
+                    tagEl.classList.add('added');
+                } else if (removedTags.has(item.tag)) {
+                    tagEl.classList.add('removed');
+                }
+
+                tagEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleTagClick(item, tagEl);
+                });
+                tagsContainer.appendChild(tagEl);
+            });
+
+            catDiv.appendChild(header);
+            catDiv.appendChild(tagsContainer);
+            categoriesContainer.appendChild(catDiv);
+        });
+
+        results.style.animation = 'fadeIn 0.3s ease';
+        setupCategoryCopyButtons();
+    }
+
+    function showNotification(message, type = 'error', duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        notificationContainer.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease forwards';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, duration);
+    }
+
+    function formatTags(tags) {
+        if (currentFormat === 'e621') {
+            const grouped = {};
+            tags.forEach(t => {
+                const cat = t.category || 'Other';
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(t.tag);
+            });
+            const order = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+            const sortedCats = Object.keys(grouped).sort((a,b) => {
+                const ia = order.indexOf(a);
+                const ib = order.indexOf(b);
+                if (ia !== -1 && ib !== -1) return ia - ib;
+                if (ia !== -1) return -1;
+                if (ib !== -1) return 1;
+                return a.localeCompare(b);
+            });
+            return sortedCats.map(cat => grouped[cat].join(' ')).join('\n');
+        } else {
+            return tags.map(t => t.tag.replace(/_/g, ' ')).join(', ');
+        }
+    }
+
+    function setupGlobalCopyButton(btn, getThreshold) {
+        btn.addEventListener('click', async () => {
+            const threshold = getThreshold();
+            const filtered = filterTags(threshold);
+            if (filtered.length === 0) {
+                showNotification('No tags meet the threshold.', 'error');
+                return;
+            }
+            const text = formatTags(filtered);
+            await copyToClipboard(text, filtered.length, currentFormat, btn);
+        });
+    }
+
+    function setupCategoryCopyButtons() {
+        document.querySelectorAll('.cat-copy-btn').forEach(btn => {
+            btn.removeEventListener('click', btn._handler);
+            const category = btn.dataset.category;
+            const type = btn.dataset.type;
+            const threshold = type === 'confident' ? confidentThreshold : allThreshold;
+            const handler = async () => {
+                if (btn.disabled) return;
+                const filtered = filterTagsByCategory(category, threshold);
+                if (filtered.length === 0) {
+                    showNotification(`No ${type} tags in ${category}.`, 'error');
+                    return;
+                }
+                const text = formatTags(filtered);
+                await copyToClipboard(text, filtered.length, currentFormat, btn);
+            };
+            btn._handler = handler;
+            btn.addEventListener('click', handler);
+        });
+    }
+
+    async function copyToClipboard(text, count, format, btn) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showCopySuccess(btn, count, format);
+            } catch {
+                fallbackCopy(text, btn, count, format);
+            }
+        } else {
+            fallbackCopy(text, btn, count, format);
+        }
+    }
+
+    function showCopySuccess(btn, count, format) {
+        if (btn._copyTimeout) clearTimeout(btn._copyTimeout);
+        btn.classList.add('copied');
+        const emoji = format === 'e621' ? '📋' : '🐦';
+        const displayName = format === 'e621' ? 'e621' : 'PostyBirb';
+        const message = `${emoji} Copied ${count} ${count === 1 ? 'tag' : 'tags'} • ${displayName}`;
+        showNotification(message, 'success');
+        btn._copyTimeout = setTimeout(() => {
+            btn.classList.remove('copied');
+        }, 1000);
+    }
+
+    function fallbackCopy(text, btn, count, format) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            if (document.execCommand('copy')) {
+                showCopySuccess(btn, count, format);
+            } else {
+                showNotification('Unable to copy. Please copy manually.', 'error');
+            }
+        } catch {
+            showNotification('Copy failed. Please copy manually.', 'error');
+        }
+        document.body.removeChild(textarea);
+    }
+
+    results.style.display = 'none';
+    loadSettings();
+    setupGlobalCopyButton(copyGlobalConfident, () => confidentThreshold);
+    setupGlobalCopyButton(copyGlobalAll, () => allThreshold);
+});

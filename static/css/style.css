@@ -1,0 +1,1016 @@
+:root {
+    --bg-color: #f9fafb;
+    --text-color: #1a1e24;
+    --primary-color: #6b4aff;
+    --secondary-color: #eef2f6;
+    --border-color: #d2d9e2;
+    --success-color: #2e9a5c;
+    --confident-bg: #8b4aff;
+    --confident-text: #ffffff;
+    --all-bg: #3c6b8f;
+    --all-text: #ffffff;
+    --low-bg: #e0e5ec;
+    --low-text: #4a5568;
+    --animation-duration: 0.3s;
+    --error-bg: #fde7e9;
+    --error-text: #b91c1c;
+    --error-border: #f5b3b7;
+    --safe-bg: #1f9d55;
+    --safe-text: #ffffff;
+    --questionable-bg: #d69e2e;
+    --questionable-text: #ffffff;
+    --explicit-bg: #c53030;
+    --explicit-text: #ffffff;
+    --disabled-bg: #a0aec0;
+    --disabled-text: #f7fafc;
+    --menu-bg: var(--secondary-color);
+    --menu-border: var(--border-color);
+    --added-bg: #2e9a5c;
+    --added-text: #ffffff;
+    --removed-bg: #c53030;
+    --removed-text: #ffffff;
+    --success-bg: #2e9a5c;
+    --success-text: #ffffff;
+    --success-border: #1e7e34;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not(.theme-light):not(.theme-dark) {
+        --bg-color: #0a0c10;
+        --text-color: #e5e7eb;
+        --primary-color: #8b5cf6;
+        --secondary-color: #1f2937;
+        --border-color: #374151;
+        --success-color: #10b981;
+        --confident-bg: #c084fc;
+        --confident-text: #0a0c10;
+        --all-bg: #3b5b7a;
+        --all-text: #f3f4f6;
+        --low-bg: #2d2f36;
+        --low-text: #9ca3af;
+        --error-bg: #521822;
+        --error-text: #f8d7da;
+        --error-border: #a12b3a;
+        --safe-bg: #1e7e34;
+        --safe-text: #ffffff;
+        --questionable-bg: #b8860b;
+        --questionable-text: #ffffff;
+        --explicit-bg: #a71d2a;
+        --explicit-text: #ffffff;
+        --disabled-bg: #4a4e54;
+        --disabled-text: #9ca3af;
+        --menu-bg: #1e2328;
+        --menu-border: #374151;
+        --added-bg: #1e7e34;
+        --added-text: #ffffff;
+        --removed-bg: #a71d2a;
+        --removed-text: #ffffff;
+        --success-bg: #1e7e34;
+        --success-text: #ffffff;
+        --success-border: #16632a;
+    }
+}
+
+.theme-dark {
+    --bg-color: #0a0c10;
+    --text-color: #e5e7eb;
+    --primary-color: #8b5cf6;
+    --secondary-color: #1f2937;
+    --border-color: #374151;
+    --success-color: #10b981;
+    --confident-bg: #c084fc;
+    --confident-text: #0a0c10;
+    --all-bg: #3b5b7a;
+    --all-text: #f3f4f6;
+    --low-bg: #2d2f36;
+    --low-text: #9ca3af;
+    --error-bg: #521822;
+    --error-text: #f8d7da;
+    --error-border: #a12b3a;
+    --safe-bg: #1e7e34;
+    --safe-text: #ffffff;
+    --questionable-bg: #b8860b;
+    --questionable-text: #ffffff;
+    --explicit-bg: #a71d2a;
+    --explicit-text: #ffffff;
+    --disabled-bg: #4a4e54;
+    --disabled-text: #9ca3af;
+    --menu-bg: #1e2328;
+    --menu-border: #374151;
+    --added-bg: #1e7e34;
+    --added-text: #ffffff;
+    --removed-bg: #a71d2a;
+    --removed-text: #ffffff;
+    --success-bg: #1e7e34;
+    --success-text: #ffffff;
+    --success-border: #16632a;
+}
+
+.theme-light {
+    --bg-color: #f9fafb;
+    --text-color: #1a1e24;
+    --primary-color: #6b4aff;
+    --secondary-color: #eef2f6;
+    --border-color: #d2d9e2;
+    --success-color: #2e9a5c;
+    --confident-bg: #8b4aff;
+    --confident-text: #ffffff;
+    --all-bg: #3c6b8f;
+    --all-text: #ffffff;
+    --low-bg: #e0e5ec;
+    --low-text: #4a5568;
+    --error-bg: #fde7e9;
+    --error-text: #b91c1c;
+    --error-border: #f5b3b7;
+    --safe-bg: #1f9d55;
+    --safe-text: #ffffff;
+    --questionable-bg: #d69e2e;
+    --questionable-text: #ffffff;
+    --explicit-bg: #c53030;
+    --explicit-text: #ffffff;
+    --disabled-bg: #a0aec0;
+    --disabled-text: #f7fafc;
+    --menu-bg: #eef2f6;
+    --menu-border: #d2d9e2;
+    --added-bg: #2e9a5c;
+    --added-text: #ffffff;
+    --removed-bg: #c53030;
+    --removed-text: #ffffff;
+    --success-bg: #2e9a5c;
+    --success-text: #ffffff;
+    --success-border: #1e7e34;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.container {
+    max-width: 800px;
+    width: 90%;
+    margin: 2rem auto 0;
+    padding: 2rem;
+    position: relative;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.header-left, .header-right {
+    flex: 1;
+}
+
+.header-left {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.header-right {
+    display: flex;
+    justify-content: flex-end;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--confident-bg);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.settings-toggle {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    touch-action: manipulation;
+}
+
+.settings-toggle.open {
+    transform: scale(1.1);
+}
+
+.egg-container {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.2s ease;
+}
+
+.egg-container:active {
+    transform: scale(0.95);
+}
+
+.egg-top,
+.egg-bottom,
+.egg-creature {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+    image-rendering: crisp-edges;
+    object-fit: contain;
+}
+
+.egg-top {
+    transform: translateY(0);
+    z-index: 3;
+}
+
+.egg-bottom {
+    transform: translateY(0);
+    z-index: 2;
+}
+
+.egg-creature {
+    opacity: 0;
+    transform: scale(0.8);
+    z-index: 1;
+}
+
+.egg-container.open .egg-top {
+    transform: translateY(-16px);
+}
+
+.egg-container.open .egg-bottom {
+    transform: translateY(16px);
+}
+
+.egg-container.open .egg-creature {
+    opacity: 1;
+    transform: scale(1);
+    z-index: 4;
+}
+
+.settings-menu {
+    position: absolute;
+    width: 300px;
+    background-color: var(--menu-bg);
+    border: 1px solid var(--menu-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    padding: 1rem;
+    z-index: 100;
+    opacity: 0;
+    transform: translateY(-10px);
+    visibility: hidden;
+    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+}
+
+.settings-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--confident-bg);
+}
+
+.theme-toggle-group {
+    display: flex;
+    gap: 0.2rem;
+    background-color: var(--bg-color);
+    padding: 0.15rem;
+    border-radius: 30px;
+    margin-left: 0.5rem;
+}
+
+.theme-option {
+    border: none;
+    background: none;
+    padding: 0.2rem 0.4rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-color);
+    transition: background-color 0.2s;
+    border: 1px solid transparent;
+    touch-action: manipulation;
+}
+
+.theme-option.active {
+    background-color: var(--confident-bg);
+    color: white;
+    border-color: var(--confident-bg);
+}
+
+.close-settings {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--text-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    touch-action: manipulation;
+}
+
+.close-settings:hover {
+    background-color: var(--border-color);
+}
+
+.settings-section {
+    margin-bottom: 1.2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.settings-section h3 {
+    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+    color: var(--confident-bg);
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.preset-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.preset-btn {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.5rem 0.8rem;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: center;
+    transition: background-color 0.2s, border-color 0.2s, transform 0.15s ease, opacity 0.15s ease;
+    touch-action: manipulation;
+}
+
+.preset-btn.active {
+    background-color: var(--confident-bg);
+    color: white;
+    border-color: var(--confident-bg);
+}
+
+.custom-thresholds-panel {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    max-height: 0;
+    margin-top: 0;
+}
+
+.custom-thresholds-panel.open {
+    max-height: 150px;
+    margin-top: 0.8rem;
+}
+
+.custom-inputs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+}
+
+.input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.input-group label {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+
+.input-group input {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.4rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.apply-btn {
+    background-color: var(--confident-bg);
+    color: white;
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    width: 100%;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    touch-action: manipulation;
+}
+
+.format-toggle-group {
+    display: flex;
+    gap: 0.3rem;
+    background-color: var(--bg-color);
+    padding: 0.2rem;
+    border-radius: 30px;
+    width: 100%;
+}
+
+.format-option {
+    border: none;
+    background: none;
+    padding: 0.4rem 0;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-color);
+    transition: background-color 0.2s;
+    flex: 1;
+    text-align: center;
+    border: 1px solid transparent;
+    touch-action: manipulation;
+}
+
+.format-option.active {
+    background-color: var(--confident-bg);
+    color: white;
+    border-color: var(--confident-bg);
+}
+
+.reset-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    width: 100%;
+    transition: background-color 0.2s, transform 0.15s ease, opacity 0.15s ease;
+    touch-action: manipulation;
+}
+
+.reset-btn:active {
+    background-color: var(--error-bg);
+    color: var(--error-text);
+    border-color: var(--error-border);
+}
+
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.notification {
+    max-width: 300px;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: white;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateX(20px);
+    animation: slideIn 0.3s ease forwards;
+    pointer-events: auto;
+}
+
+.notification.error {
+    background-color: var(--error-bg);
+    color: var(--error-text);
+    border: 1px solid var(--error-border);
+}
+
+.notification.success {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+}
+
+.notification.info {
+    background-color: var(--primary-color);
+    color: white;
+    border: 1px solid var(--confident-bg);
+}
+
+@keyframes slideIn {
+    0% { opacity: 0; transform: translateX(20px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOut {
+    0% { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(20px); }
+}
+
+#dropZone {
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--animation-duration) ease, box-shadow 0.3s ease;
+    margin-bottom: 2rem;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: var(--secondary-color);
+    touch-action: manipulation;
+}
+
+#dropZone.dragover {
+    border-color: var(--confident-bg);
+    background-color: rgba(139, 92, 246, 0.2);
+    transform: scale(1.02);
+}
+
+#dropZone.has-image {
+    padding: 0;
+    border-style: solid;
+}
+
+#dropZone.uploading {
+    animation: pulseGlow 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 30px 10px rgba(139, 92, 246, 0.5);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.3);
+    }
+}
+
+#dropZone img {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: 8px;
+    display: block;
+    animation: fadeInScale 0.2s ease;
+}
+
+.upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.upload-icon {
+    stroke: var(--border-color);
+    margin-bottom: 1rem;
+}
+
+.small {
+    font-size: 0.875rem;
+    color: var(--border-color);
+    margin-top: 0.5rem;
+}
+
+.results {
+    background-color: var(--secondary-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    min-height: 200px;
+    position: relative;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.results.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.results-content {
+    transition: opacity 0.2s ease;
+}
+
+.results.loading .results-content {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.results-header h2 {
+    font-weight: 400;
+    color: var(--confident-bg);
+}
+
+.format-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toggle-label {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.toggle-btn {
+    border: none;
+    background: none;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-color);
+    transition: background-color 0.2s;
+    min-width: 60px;
+    border: 1px solid var(--border-color);
+    touch-action: manipulation;
+}
+
+.toggle-btn.active {
+    background-color: var(--confident-bg);
+    color: white;
+    border-color: var(--confident-bg);
+}
+
+.global-buttons {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+}
+
+.global-copy-btn {
+    border: none;
+    padding: 0.8rem 1.2rem;
+    border-radius: 40px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 240px;
+    text-align: center;
+    transition: background-color 0.2s, box-shadow 0.2s, transform 0.15s ease;
+    white-space: nowrap;
+    touch-action: manipulation;
+}
+
+.global-copy-btn.confident {
+    background-color: var(--confident-bg);
+    color: var(--confident-text);
+}
+
+.global-copy-btn.all {
+    background-color: var(--all-bg);
+    color: var(--all-text);
+}
+
+.global-copy-btn.copied {
+    background-color: var(--success-color);
+}
+
+.rating-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 1rem;
+}
+
+.rating-display {
+    font-size: 0.85rem;
+    padding: 0.2rem 1rem;
+    border-radius: 30px;
+    color: white;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    border: none;
+    display: inline-block;
+}
+
+.rating-display.safe {
+    background-color: var(--safe-bg);
+    color: var(--safe-text);
+}
+
+.rating-display.questionable {
+    background-color: var(--questionable-bg);
+    color: var(--questionable-text);
+}
+
+.rating-display.explicit {
+    background-color: var(--explicit-bg);
+    color: var(--explicit-text);
+}
+
+.categories-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.category-block {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.5rem;
+    background-color: var(--bg-color);
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.category-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--confident-bg);
+    text-transform: uppercase;
+}
+
+.category-buttons {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.cat-copy-btn {
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s, transform 0.15s ease, background-color 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    touch-action: manipulation;
+}
+
+.cat-copy-btn.confident {
+    background-color: var(--confident-bg);
+    color: var(--confident-text);
+}
+
+.cat-copy-btn.all {
+    background-color: var(--all-bg);
+    color: var(--all-text);
+}
+
+.cat-copy-btn:disabled {
+    background-color: var(--disabled-bg);
+    color: var(--disabled-text);
+    cursor: not-allowed;
+    opacity: 0.5;
+    box-shadow: none;
+    pointer-events: none;
+}
+
+.cat-copy-btn:disabled:hover,
+.cat-copy-btn:disabled:active {
+    transform: none;
+    opacity: 0.5;
+}
+
+.cat-copy-btn.copied {
+    background-color: var(--success-color) !important;
+    transform: scale(0.95);
+}
+
+.category-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.tag {
+    background-color: var(--low-bg);
+    color: var(--low-text);
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    border: 1px solid transparent;
+    transition: background-color 0.2s, opacity 0.2s, transform 0.1s;
+    opacity: 0.6;
+    animation: fadeInScale 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    line-height: 1.2;
+    touch-action: manipulation;
+}
+
+.tag:active {
+    transform: scale(0.97);
+}
+
+.tag.all {
+    background-color: var(--all-bg);
+    color: var(--all-text);
+    opacity: 1;
+    border-color: transparent;
+}
+
+.tag.confident {
+    background-color: var(--confident-bg);
+    color: var(--confident-text);
+    font-weight: 600;
+    border-color: var(--confident-bg);
+    opacity: 1;
+}
+
+.tag.added {
+    background-color: var(--added-bg);
+    color: var(--added-text);
+    opacity: 1;
+    border-color: var(--success-color);
+}
+
+.tag.removed {
+    background-color: var(--removed-bg);
+    color: var(--removed-text);
+    text-decoration: line-through;
+    opacity: 0.7;
+    border-color: var(--error-border);
+}
+
+.site-info {
+    text-align: center;
+    margin-top: 2rem;
+    color: var(--border-color);
+    font-size: 0.875rem;
+}
+
+a {
+    color: var(--confident-bg);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    header {
+        gap: 0.5rem;
+    }
+    h1 {
+        font-size: 2rem;
+    }
+    .settings-toggle {
+        width: 40px;
+        height: 40px;
+        font-size: 1.5rem;
+    }
+    .egg-container {
+        width: 60px;
+        height: 60px;
+    }
+    .results-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .global-buttons {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .global-copy-btn {
+        width: 100%;
+    }
+    .category-header {
+        flex-wrap: wrap;
+    }
+    .settings-menu {
+        left: 0.5rem;
+        width: calc(100% - 1rem);
+        max-width: 300px;
+    }
+}
+
+.preset-btn:active:not(:disabled),
+.apply-btn:active:not(:disabled),
+.reset-btn:active:not(:disabled),
+.global-copy-btn:active:not(:disabled),
+.settings-toggle:active:not(:disabled),
+.close-settings:active:not(:disabled) {
+    transform: scale(0.98);
+    opacity: 0.9;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.theme-option:active,
+.format-option:active,
+.toggle-btn:active {
+    transform: none;
+    opacity: 1;
+}
+
+@media (hover: hover) {
+    .settings-toggle:hover {
+        transform: scale(1.1);
+    }
+    .close-settings:hover {
+        background-color: var(--border-color);
+    }
+    .preset-btn:hover {
+        background-color: var(--confident-bg);
+        color: white;
+        border-color: var(--confident-bg);
+    }
+    .global-copy-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .cat-copy-btn:hover:not(:disabled) {
+        transform: scale(1.1);
+        opacity: 0.9;
+    }
+    #dropZone:hover {
+        border-color: var(--confident-bg);
+        background-color: rgba(139, 92, 246, 0.1);
+    }
+}

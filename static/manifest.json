@@ -1,0 +1,21 @@
+{
+  "name": "e621tagger",
+  "short_name": "e621tagger",
+  "description": "Image tagger for e621 using JTP-3 Hydra model",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0c10",
+  "theme_color": "#8b4aff",
+  "icons": [
+    {
+      "src": "/static/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
