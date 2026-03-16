@@ -54,7 +54,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - TZ=Europe/Moscow           # optional, adjust to your timezone
+      - TZ=Europe/Moscow            # optional, adjust to your timezone
       - SAVE_UPLOADS=true           # set to false to disable file saving
     volumes:
       - ./uploads:/app/uploads      # where uploaded images are saved (if enabled)
