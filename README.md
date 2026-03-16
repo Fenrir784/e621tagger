@@ -9,6 +9,8 @@ e621tagger is a web-based tool that automatically generates relevant tags for fu
 
 ## ✨ Features
 
+- **Mobile-friendly** – Works great on desktop and mobile screens with adjustable layout.
+- **PWA Ready** – Install as a standalone app on mobile and desktop; works offline after first visit.
 - **Automatic Tagging** – Upload an image and get up to 250 relevant e621 tags, complete with confidence scores.
 - **Two Copy Formats** – Copy tags in **e621** (space‑separated) or **PostyBirb** (comma‑separated) format with one click.
 - **Threshold Presets & Custom Values** – Choose between Conservative, Standard, Liberal presets or set your own confidence thresholds for “All” and “Confident” tags.
@@ -16,7 +18,6 @@ e621tagger is a web-based tool that automatically generates relevant tags for fu
 - **Category Grouping** – Tags are grouped into categories like *Copyright, Character, Species, Meta, General, Lore* for easier browsing.
 - **Theme Support** – Automatically follows your system theme (dark/light) with a manual override in settings.
 - **Drag & Drop / Paste** – Drop an image anywhere on the page or paste from clipboard (Ctrl+V).
-- **PWA Ready** – Install as a standalone app on mobile and desktop; works offline after first visit.
 - **Smooth Animations** – Polished transitions for loading, showing/hiding results, and interacting with tags.
 
 ---
@@ -24,7 +25,7 @@ e621tagger is a web-based tool that automatically generates relevant tags for fu
 ## 🚀 How to Use
 
 1. Go to **[tagger.fenrir784.ru](https://tagger.fenrir784.ru)**.
-2. Drag & drop an image onto the drop zone, or click to select a file (supports PNG, JPG, GIF, WebP, BMP, TIFF, max 20 MB).
+2. Drag & drop an image onto the drop zone, Paste, or click to select a file (supports PNG, JPG, GIF, WebP, BMP, TIFF, max 20 MB).
 3. Wait a moment – the image is processed locally on the server (CPU‑based, usually under 2 seconds).
 4. Browse the generated tags, grouped by category.
    - **Confident** tags (≥ 0.75 by default) are highlighted in purple.
