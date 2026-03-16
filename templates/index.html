@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
+    <meta name="darkreader" content="disabled">
+    <meta name="theme-color" content="#8b4aff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="e621tagger">
+    <title>e621tagger</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<body>
+    <div class="container">
+        <div id="notification-container"></div>
+        <header>
+            <div class="header-left">
+                <button id="settingsToggle" class="settings-toggle">⚙️</button>
+            </div>
+            <h1>e621tagger</h1>
+            <div class="header-right">
+                <div class="egg-container" id="eggContainer">
+                    <img src="/static/egg_top.png" class="egg-top" alt="" draggable="false">
+                    <img src="/static/egg_bottom.png" class="egg-bottom" alt="" draggable="false">
+                    <img src="" class="egg-creature" id="eggCreature" alt="" draggable="false">
+                </div>
+            </div>
+        </header>
+        <div id="settingsMenu" class="settings-menu">
+            <div class="settings-header">
+                <span>Settings</span>
+                <div class="theme-toggle-group">
+                    <button class="theme-option active" data-theme="system">💻</button>
+                    <button class="theme-option" data-theme="light">☀️</button>
+                    <button class="theme-option" data-theme="dark">🌙</button>
+                </div>
+                <button id="closeSettings" class="close-settings">✕</button>
+            </div>
+            <div class="settings-section">
+                <h3>Thresholds</h3>
+                <div class="preset-buttons">
+                    <button class="preset-btn" data-preset="conservative">Conservative</button>
+                    <button class="preset-btn active" data-preset="standard">Standard</button>
+                    <button class="preset-btn" data-preset="liberal">Liberal</button>
+                    <button class="preset-btn" data-preset="custom" id="customPresetBtn">Custom</button>
+                </div>
+                <div class="custom-thresholds-panel" id="customThresholdsPanel">
+                    <div class="custom-inputs">
+                        <div class="input-group">
+                            <label for="customAll">All ≥</label>
+                            <input type="number" id="customAll" min="0" max="1" step="0.01" value="0.55">
+                        </div>
+                        <div class="input-group">
+                            <label for="customConfident">Confident ≥</label>
+                            <input type="number" id="customConfident" min="0" max="1" step="0.01" value="0.75">
+                        </div>
+                    </div>
+                    <button id="applyCustom" class="apply-btn">Apply</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3>Default format</h3>
+                <div class="format-toggle-group">
+                    <button class="format-option active" data-format="e621">e621</button>
+                    <button class="format-option" data-format="posty">PostyBirb</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <button id="resetSettings" class="reset-btn">Reset to defaults</button>
+            </div>
+        </div>
+        <main>
+            <div id="dropZone">
+                <div class="upload-content" id="uploadContent">
+                    <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    <p>Drag & drop image here, Ctrl+V or click to select</p>
+                    <p class="small">Supports: PNG, JPG, GIF, WebP, BMP, TIFF (max 20MB)</p>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" hidden>
+            </div>
+            <div class="results" id="results">
+                <div class="results-content" id="resultsContent">
+                    <div class="results-header">
+                        <h2>Generated Tags</h2>
+                        <div class="format-toggle">
+                            <span class="toggle-label">Format:</span>
+                            <button class="toggle-btn active" id="formatE621">e621</button>
+                            <button class="toggle-btn" id="formatPosty">PostyBirb</button>
+                        </div>
+                    </div>
+                    <div class="global-buttons">
+                        <button class="global-copy-btn confident" id="copyGlobalConfident">Copy Confident Tags</button>
+                        <button class="global-copy-btn all" id="copyGlobalAll">Copy All Tags</button>
+                    </div>
+                    <div class="rating-container">
+                        <div class="rating-display" id="ratingDisplay"></div>
+                    </div>
+                    <div class="categories-container" id="categoriesContainer"></div>
+                </div>
+            </div>
+            <div class="site-info">
+                <p>Model: <a href="https://huggingface.co/RedRocket/JTP-3" target="_blank">RedRocket/JTP-3</a></p>
+                <p>Created by <a href="https://fenrir784.ru" target="_blank">fenrir784.ru</a></p>
+            </div>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').then(reg => {
+                    console.log('Service Worker registered:', reg);
+                }).catch(err => {
+                    console.error('Service Worker registration failed:', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
