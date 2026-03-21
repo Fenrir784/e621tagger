@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
     const ALLOWED_MAX_TAGS = [50, 75, 100, 150, 200, 250];
-    const LONG_PRESS_DURATION = 500; // ms
+    const LONG_PRESS_DURATION = 500;
 
     let allTags = [];
     let currentFormat = 'e621';
@@ -505,6 +505,43 @@ document.addEventListener('DOMContentLoaded', () => {
         return allTags.filter(t => t.category === category && !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
     }
 
+    const tagDescriptionCache = new Map();
+
+    async function fetchTagDescription(tagName) {
+        if (tagDescriptionCache.has(tagName)) {
+            return tagDescriptionCache.get(tagName);
+        }
+        const url = `https://e621.net/wiki_pages.json?search[title_matches]=${encodeURIComponent(tagName)}&limit=1`;
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'User-Agent': 'e621tagger/1.0 (https://tagger.fenrir784.ru)'
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const data = await response.json();
+            if (data.wiki_pages && data.wiki_pages.length > 0) {
+                const wiki = data.wiki_pages[0];
+                const result = {
+                    exists: true,
+                    title: wiki.title || tagName,
+                    body: wiki.body || 'No description available.'
+                };
+                tagDescriptionCache.set(tagName, result);
+                return result;
+            } else {
+                const result = { exists: false, title: tagName, body: 'No description found on e621.' };
+                tagDescriptionCache.set(tagName, result);
+                return result;
+            }
+        } catch (err) {
+            console.warn(`Failed to fetch description for ${tagName}:`, err);
+            return { exists: false, title: tagName, body: 'Failed to load description. Please check your internet connection.' };
+        }
+    }
+
     let longPressTimer = null;
     let isLongPressTriggered = false;
 
@@ -517,7 +554,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function showTagPopup(tagObj, targetElement) {
         const tagName = tagObj.tag;
 
-        // Remove existing popup if any
         const existingPopup = document.querySelector('.tag-popup');
         if (existingPopup) existingPopup.remove();
 
@@ -535,10 +571,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         popup.appendChild(header);
         popup.appendChild(content);
-
         document.body.appendChild(popup);
 
-        // Position popup near the target element
         const rect = targetElement.getBoundingClientRect();
         const popupRect = popup.getBoundingClientRect();
         let top = rect.top - popupRect.height - 8;
@@ -551,27 +585,20 @@ document.addEventListener('DOMContentLoaded', () => {
         popup.style.top = `${top + window.scrollY}px`;
         popup.style.left = `${left + window.scrollX}px`;
 
-        // Fetch description
-        fetch(`/tag_info/${encodeURIComponent(tagName)}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.exists) {
-                    // Simple formatting: replace newlines with <br>, preserve links etc.
-                    const formatted = data.body.replace(/\n/g, '<br>');
-                    content.innerHTML = `<div class="tag-popup-text">${formatted}</div>`;
-                } else {
-                    content.innerHTML = `<div class="tag-popup-error">${escapeHtml(data.body)}</div>`;
-                }
-            })
-            .catch(err => {
-                console.error('Error fetching tag info:', err);
-                content.innerHTML = '<div class="tag-popup-error">Failed to load description.</div>';
-            });
-
-        // Close button
         const closeBtn = popup.querySelector('.close-popup');
         closeBtn.addEventListener('click', () => {
             popup.remove();
+        });
+
+        fetchTagDescription(tagName).then(desc => {
+            if (desc.exists) {
+                const formatted = desc.body.replace(/\n/g, '<br>');
+                content.innerHTML = `<div class="tag-popup-text">${formatted}</div>`;
+            } else {
+                content.innerHTML = `<div class="tag-popup-error">${escapeHtml(desc.body)}</div>`;
+            }
+        }).catch(() => {
+            content.innerHTML = '<div class="tag-popup-error">Failed to load description.</div>';
         });
     }
 
@@ -592,7 +619,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             pressTimer = setTimeout(() => {
                 handleTagLongPress(tagObj, element);
-                // Prevent the click event from firing after long press
                 element.removeEventListener('click', element._clickHandler);
                 setTimeout(() => {
                     element.addEventListener('click', element._clickHandler);
@@ -613,7 +639,6 @@ document.addEventListener('DOMContentLoaded', () => {
         element.addEventListener('touchstart', startPress, { passive: false });
         element.addEventListener('touchend', cancelPress);
         element.addEventListener('touchcancel', cancelPress);
-        // Prevent context menu on long press
         element.addEventListener('contextmenu', (e) => e.preventDefault());
     }
 
@@ -784,7 +809,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     tagEl.classList.add('removed');
                 }
 
-                // Attach click handler for normal tap
                 const clickHandler = (e) => {
                     e.stopPropagation();
                     handleTagClick(item, tagEl);
@@ -792,7 +816,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 tagEl._clickHandler = clickHandler;
                 tagEl.addEventListener('click', clickHandler);
 
-                // Attach long press handlers
                 attachLongPressHandlers(tagEl, item);
 
                 tagsContainer.appendChild(tagEl);
@@ -922,7 +945,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(textarea);
     }
 
-    // Close popup when clicking outside
     document.addEventListener('click', (e) => {
         const popup = document.querySelector('.tag-popup');
         if (popup && !popup.contains(e.target)) {
