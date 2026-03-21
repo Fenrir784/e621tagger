@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN mkdir -p models data
 RUN wget -O models/jtp-3-hydra.safetensors \
     https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors && \
     wget -O data/jtp-3-hydra-tags.csv \
