@@ -99,3 +99,11 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+        
+      - name: Delete Package Versions
+        uses: actions/delete-package-versions@v5.0.0
+        with:
+          package-name: e621tagger
+          package-type: container
+          num-old-versions-to-delete: 100 # optional, default is 1
+          min-versions-to-keep: 10 # optional, default is -1
