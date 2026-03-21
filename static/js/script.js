@@ -522,8 +522,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP ${response.status}`);
             }
             const data = await response.json();
-            if (data.wiki_pages && data.wiki_pages.length > 0) {
-                const wiki = data.wiki_pages[0];
+            if (data && data.length > 0) {
+                const wiki = data[0];
                 const result = {
                     exists: true,
                     title: wiki.title || tagName,
@@ -573,15 +573,30 @@ document.addEventListener('DOMContentLoaded', () => {
         popup.appendChild(content);
         document.body.appendChild(popup);
 
+        // Position popup
         const rect = targetElement.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        popup.style.visibility = 'hidden';
+        popup.style.position = 'absolute';
+        document.body.appendChild(popup);
         const popupRect = popup.getBoundingClientRect();
-        let top = rect.top - popupRect.height - 8;
+        popup.style.visibility = '';
+
+        let top = rect.bottom + 8;
         let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
-        if (top < 10) top = rect.bottom + 8;
-        if (left < 10) left = 10;
-        if (left + popupRect.width > window.innerWidth - 10) {
-            left = window.innerWidth - popupRect.width - 10;
+
+        if (top + popupRect.height > viewportHeight - 10) {
+            top = rect.top - popupRect.height - 8;
         }
+        if (left < 10) {
+            left = 10;
+        }
+        if (left + popupRect.width > viewportWidth - 10) {
+            left = viewportWidth - popupRect.width - 10;
+        }
+
         popup.style.top = `${top + window.scrollY}px`;
         popup.style.left = `${left + window.scrollX}px`;
 
