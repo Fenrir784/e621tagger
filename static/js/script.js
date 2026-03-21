@@ -24,11 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatOptions = document.querySelectorAll('.format-option');
     const resetBtn = document.getElementById('resetSettings');
     const themeOptions = document.querySelectorAll('.theme-option');
+    const maxTagBtns = document.querySelectorAll('.max-tag-option');
 
     const eggContainer = document.getElementById('eggContainer');
     const eggCreature = document.getElementById('eggCreature');
 
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
+    const ALLOWED_MAX_TAGS = [50, 75, 100, 150, 200, 250];
 
     let allTags = [];
     let currentFormat = 'e621';
@@ -39,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let activePreset = 'standard';
     let addedTags = new Set();
     let removedTags = new Set();
+    let maxTags = 200;
 
     const ratingTags = new Set(['safe', 'questionable', 'explicit']);
 
@@ -82,16 +85,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentFormat = savedFormat;
                 currentTheme = settings.theme ?? 'system';
                 activePreset = settings.activePreset ?? 'standard';
+                maxTags = settings.maxTags ?? 200;
+                if (!ALLOWED_MAX_TAGS.includes(maxTags)) maxTags = 200;
                 updateTheme(currentTheme);
                 updateLocalFormatUI();
                 updateSettingsFormatUI();
                 updateThresholdUI();
+                updateMaxTagsUI();
             } catch (e) {
                 console.warn('Failed to load settings', e);
             }
         } else {
             activePreset = 'standard';
+            maxTags = 200;
             updateThresholdUI();
+            updateMaxTagsUI();
         }
     }
 
@@ -102,8 +110,20 @@ document.addEventListener('DOMContentLoaded', () => {
             defaultFormat: savedFormat,
             theme: currentTheme,
             activePreset,
+            maxTags,
         };
         localStorage.setItem('e621tagger-settings', JSON.stringify(settings));
+    }
+
+    function updateMaxTagsUI() {
+        maxTagBtns.forEach(btn => {
+            const val = parseInt(btn.dataset.max);
+            if (val === maxTags) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     }
 
     function updateTheme(theme) {
@@ -251,6 +271,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    maxTagBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const val = parseInt(btn.dataset.max);
+            if (ALLOWED_MAX_TAGS.includes(val)) {
+                maxTags = val;
+                updateMaxTagsUI();
+                saveSettings();
+            }
+        });
+    });
+
     resetBtn.addEventListener('click', () => {
         allThreshold = 0.55;
         confidentThreshold = 0.75;
@@ -258,9 +289,11 @@ document.addEventListener('DOMContentLoaded', () => {
         currentFormat = savedFormat;
         currentTheme = 'system';
         activePreset = 'standard';
+        maxTags = 200;
         updateTheme('system');
         updateLocalFormatUI();
         updateSettingsFormatUI();
+        updateMaxTagsUI();
         applyThresholds();
         saveSettings();
     });
@@ -417,6 +450,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
         formData.append('image', file);
+        formData.append('top_k', maxTags.toString());
+
         try {
             const response = await fetch('/predict', { method: 'POST', body: formData });
             if (!response.ok) {

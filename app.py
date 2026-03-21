@@ -46,7 +46,8 @@ TAGS_PATH = os.getenv('TAGS_PATH', 'data/jtp-3-hydra-tags.csv')
 DEVICE = os.getenv('DEVICE', 'cuda' if torch.cuda.is_available() else 'cpu')
 MAX_SEQ_LEN = int(os.getenv('MAX_SEQ_LEN', '1024'))
 PATCH_SIZE = 16
-TOP_K = 250
+DEFAULT_TOP_K = 200
+ALLOWED_TOP_K = {50, 75, 100, 150, 200, 250}
 
 SAVE_UPLOADS = os.getenv('SAVE_UPLOADS', 'false').lower() == 'true'
 UPLOAD_DIR = os.getenv('UPLOAD_DIR', '/app/uploads')
@@ -60,12 +61,10 @@ if SAVE_UPLOADS:
 logger.info(f"Loading e621tagger model on {DEVICE}...")
 model, tag_list, ext_info = load_model(MODEL_PATH, device=DEVICE)
 
-# Convert model to appropriate dtype for CPU/GPU
 if DEVICE == 'cpu':
     model = model.float()
     logger.info("Converted model to float32 for CPU inference")
 else:
-    # Keep bfloat16 for GPU (more efficient)
     model = model.to(dtype=torch.bfloat16)
 
 model.requires_grad_(False)
@@ -154,6 +153,15 @@ def predict():
         return jsonify({'error': 'Invalid or corrupted image file'}), 400
     logger.info(f"IP={ip}: uploading file '{filename}'")
     saved_path = save_upload(file, filename)
+
+    top_k_str = request.form.get('top_k', str(DEFAULT_TOP_K))
+    try:
+        top_k = int(top_k_str)
+    except ValueError:
+        top_k = DEFAULT_TOP_K
+    if top_k not in ALLOWED_TOP_K:
+        top_k = DEFAULT_TOP_K
+
     with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
         file.seek(0)
         file.save(tmp.name)
@@ -169,19 +177,17 @@ def predict():
         pc_d = patch_coords.unsqueeze(0).to(DEVICE)
         pv_d = patch_valid.unsqueeze(0).to(DEVICE)
 
-        # Convert input to appropriate dtype based on device
         if DEVICE == 'cpu':
             p_d = p_d.to(dtype=torch.float32).div_(127.5).sub_(1.0)
         else:
             p_d = p_d.to(dtype=torch.bfloat16).div_(127.5).sub_(1.0)
-
         pc_d = pc_d.to(dtype=torch.int32)
 
         with torch.no_grad():
             logits = model(p_d, pc_d, pv_d)
 
         probs = torch.sigmoid(logits[0].float()).cpu()
-        values, indices = probs.topk(TOP_K)
+        values, indices = probs.topk(top_k)
         tags_with_probs = []
         for idx, val in zip(indices, values):
             tag = tag_list[idx.item()]
