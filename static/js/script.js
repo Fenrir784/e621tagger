@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyGlobalConfident = document.getElementById('copyGlobalConfident');
     const formatE621 = document.getElementById('formatE621');
     const formatPosty = document.getElementById('formatPosty');
-
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsMenu = document.getElementById('settingsMenu');
     const closeSettings = document.getElementById('closeSettings');
