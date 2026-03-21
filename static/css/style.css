@@ -613,7 +613,7 @@ h1 {
 }
 
 .upload-icon {
-    stroke: var(--border-color);
+    stroke: var(--text-color);
     margin-bottom: 1rem;
 }
 
@@ -1015,18 +1015,36 @@ a {
     }
 }
 
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    opacity: 1;
-}
-
 input[type="number"] {
     -moz-appearance: textfield;
 }
 
-input[type="number"]:focus {
-    outline: none;
-    border-color: var(--confident-bg);
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    padding-right: 0;
+}
+
+@media (hover: hover) {
+    input[type="number"]:hover::-webkit-inner-spin-button,
+    input[type="number"]:hover::-webkit-outer-spin-button {
+        -webkit-appearance: inner-spin-button;
+        appearance: auto;
+        opacity: 0.5;
+    }
+}
+
+.theme-light input[type="number"]::-webkit-inner-spin-button,
+.theme-light input[type="number"]::-webkit-outer-spin-button {
+    filter: invert(0);
+}
+
+.theme-dark input[type="number"]::-webkit-inner-spin-button,
+.theme-dark input[type="number"]::-webkit-outer-spin-button {
+    filter: invert(1);
 }
