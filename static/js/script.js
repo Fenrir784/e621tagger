@@ -27,6 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const eggContainer = document.getElementById('eggContainer');
     const eggCreature = document.getElementById('eggCreature');
+    const tagPopup = document.getElementById('tag-popup');
+    const popupName = tagPopup.querySelector('.tag-popup-name');
+    const popupDescription = tagPopup.querySelector('.tag-popup-description');
+    const popupCategory = tagPopup.querySelector('.tag-popup-category');
+    const popupCount = tagPopup.querySelector('.tag-popup-count');
+    const popupClose = tagPopup.querySelector('.tag-popup-close');
 
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
@@ -53,6 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
         '/static/f8.png',
         '/static/f9.png'
     ];
+
+    let popupTimeout = null;
+    let currentPopupTag = null;
+    let currentLongPressTimer = null;
+    let pendingTagElement = null;
 
     function preloadCreatures() {
         creaturePaths.forEach(path => {
@@ -298,11 +309,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) {
             toggleSettings(false);
         }
+        if (!tagPopup.contains(e.target)) {
+            hidePopup();
+        }
     });
 
     window.addEventListener('resize', () => {
         if (settingsMenu.classList.contains('show')) {
             positionSettingsMenu();
+        }
+        if (tagPopup.classList.contains('visible')) {
+            positionPopup(currentPopupTag);
         }
     });
 
@@ -636,6 +653,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     handleTagClick(item, tagEl);
                 });
+
+                tagEl.addEventListener('mousedown', (e) => {
+                    startLongPress(item, tagEl, e);
+                });
+                tagEl.addEventListener('touchstart', (e) => {
+                    startLongPress(item, tagEl, e);
+                });
+                tagEl.addEventListener('mouseup', () => cancelLongPress());
+                tagEl.addEventListener('touchend', () => cancelLongPress());
+                tagEl.addEventListener('touchcancel', () => cancelLongPress());
+
                 tagsContainer.appendChild(tagEl);
             });
 
@@ -646,6 +674,94 @@ document.addEventListener('DOMContentLoaded', () => {
 
         results.style.animation = 'fadeIn 0.3s ease';
         setupCategoryCopyButtons();
+    }
+
+    function startLongPress(tagObj, element, event) {
+        event.stopPropagation();
+        if (currentLongPressTimer) clearTimeout(currentLongPressTimer);
+        currentLongPressTimer = setTimeout(() => {
+            currentLongPressTimer = null;
+            showTagDescription(tagObj.tag, element);
+        }, 1000);
+    }
+
+    function cancelLongPress() {
+        if (currentLongPressTimer) {
+            clearTimeout(currentLongPressTimer);
+            currentLongPressTimer = null;
+        }
+    }
+
+    async function showTagDescription(tagName, targetElement) {
+        const rect = targetElement.getBoundingClientRect();
+        currentPopupTag = tagName;
+        popupName.textContent = tagName;
+        popupDescription.innerHTML = '<div style="text-align:center; padding:1rem;">Loading...</div>';
+        popupCategory.textContent = '';
+        popupCount.textContent = '';
+
+        try {
+            const response = await fetch(`https://e621.net/wiki_pages.json?search[title]=${encodeURIComponent(tagName)}`, {
+                headers: {
+                    'User-Agent': 'e621tagger (https://tagger.fenrir784.ru)'
+                }
+            });
+            if (!response.ok) throw new Error('Network error');
+            const data = await response.json();
+            if (data.length > 0 && data[0].body) {
+                const wiki = data[0];
+                let description = wiki.body.slice(0, 2000);
+                description = parseDText(description);
+                popupDescription.innerHTML = description;
+                const categoryId = wiki.category_id;
+                const categoryMap = {0:'General',1:'Artist',3:'Copyright',4:'Character',5:'Species',7:'Meta',8:'Lore'};
+                popupCategory.textContent = categoryMap[categoryId] || 'Unknown';
+                popupCount.textContent = wiki.post_count ? `${wiki.post_count} posts` : '';
+            } else {
+                popupDescription.innerHTML = '<em>No wiki page available.</em>';
+            }
+        } catch (err) {
+            console.error('Failed to fetch tag description:', err);
+            popupDescription.innerHTML = '<em>Failed to load description.</em>';
+        }
+
+        positionPopup(tagName);
+        tagPopup.classList.add('visible');
+    }
+
+    function positionPopup(tagName) {
+        const tagElements = document.querySelectorAll(`.tag[data-tag="${tagName}"]`);
+        if (tagElements.length === 0) return;
+        const rect = tagElements[0].getBoundingClientRect();
+        let left = rect.left + window.scrollX;
+        let top = rect.bottom + window.scrollY + 8;
+        const popupRect = tagPopup.getBoundingClientRect();
+        if (top + popupRect.height > window.innerHeight + window.scrollY) {
+            top = rect.top + window.scrollY - popupRect.height - 8;
+        }
+        if (left + popupRect.width > window.innerWidth + window.scrollX) {
+            left = window.innerWidth + window.scrollX - popupRect.width - 8;
+        }
+        tagPopup.style.left = `${Math.max(8, left)}px`;
+        tagPopup.style.top = `${Math.max(8, top)}px`;
+    }
+
+    function hidePopup() {
+        tagPopup.classList.remove('visible');
+        currentPopupTag = null;
+    }
+
+    function parseDText(text) {
+        if (!text) return '';
+        let result = text.replace(/\n/g, '<br>');
+        result = result.replace(/\[b\](.*?)\[\/b\]/gi, '<strong>$1</strong>');
+        result = result.replace(/\[i\](.*?)\[\/i\]/gi, '<em>$1</em>');
+        result = result.replace(/\[u\](.*?)\[\/u\]/gi, '<u>$1</u>');
+        result = result.replace(/\[s\](.*?)\[\/s\]/gi, '<s>$1</s>');
+        result = result.replace(/\[url=(.*?)\](.*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>');
+        result = result.replace(/\[url\](.*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+        result = result.replace(/\[quote\](.*?)\[\/quote\]/gis, '<blockquote>$1</blockquote>');
+        return result;
     }
 
     function showNotification(message, type = 'error', duration = 3000) {
@@ -763,6 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(textarea);
     }
 
+    popupClose.addEventListener('click', hidePopup);
     results.style.display = 'none';
     loadSettings();
     setupGlobalCopyButton(copyGlobalConfident, () => confidentThreshold);
