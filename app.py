@@ -2,6 +2,7 @@ import os
 import tempfile
 import logging
 import time
+import requests
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from werkzeug.utils import secure_filename
@@ -75,6 +76,45 @@ logger.info("Loading tag metadata...")
 metadata = load_metadata(TAGS_PATH)
 logger.info(f"Metadata loaded, {len(metadata)} entries")
 
+# Simple in-memory cache for tag descriptions
+tag_cache = {}
+
+def get_tag_description(tag_name: str) -> dict:
+    """Fetch tag description from e621 API, return dict with 'body' and 'exists'."""
+    if tag_name in tag_cache:
+        return tag_cache[tag_name]
+
+    url = "https://e621.net/wiki_pages.json"
+    params = {
+        "search[title_matches]": tag_name,
+        "limit": 1
+    }
+    headers = {
+        "User-Agent": "e621tagger/1.0 (https://tagger.fenrir784.ru)"
+    }
+    try:
+        resp = requests.get(url, params=params, headers=headers, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get("wiki_pages"):
+                wiki = data["wiki_pages"][0]
+                # e621 returns body as plain text (DText), we'll store it as is
+                result = {
+                    "exists": True,
+                    "body": wiki.get("body", "No description available."),
+                    "title": wiki.get("title", tag_name)
+                }
+            else:
+                result = {"exists": False, "body": "No description found on e621.", "title": tag_name}
+        else:
+            result = {"exists": False, "body": f"Failed to fetch description (HTTP {resp.status_code}).", "title": tag_name}
+    except Exception as e:
+        logger.warning(f"Error fetching tag info for '{tag_name}': {e}")
+        result = {"exists": False, "body": "Network error. Please try again later.", "title": tag_name}
+
+    tag_cache[tag_name] = result
+    return result
+
 def is_valid_image(file):
     try:
         file.seek(0)
@@ -131,6 +171,12 @@ def favicon():
 @app.route('/service-worker.js')
 def service_worker():
     return send_from_directory('static', 'service-worker.js')
+
+@app.route('/tag_info/<tag_name>')
+def tag_info(tag_name):
+    """Return tag description from e621."""
+    data = get_tag_description(tag_name)
+    return jsonify(data)
 
 @app.route('/predict', methods=['POST'])
 @limiter.limit("20 per minute")
