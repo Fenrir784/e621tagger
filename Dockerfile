@@ -12,9 +12,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN mkdir -p models data
-RUN wget -O models/jtp-3-hydra.safetensors \
+RUN wget --no-verbose -O models/jtp-3-hydra.safetensors \
     https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors && \
-    wget -O data/jtp-3-hydra-tags.csv \
+    wget --no-verbose -O data/jtp-3-hydra-tags.csv \
     https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv
 
 COPY *.py ./
