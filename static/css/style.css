@@ -1,27 +1,27 @@
 :root {
-    --bg-color: #f9fafb;
-    --text-color: #1a1e24;
+    --bg-color: #f5f7fa;
+    --text-color: #2d3748;
     --primary-color: #6b4aff;
     --secondary-color: #eef2f6;
-    --border-color: #d2d9e2;
+    --border-color: #e2e8f0;
     --success-color: #2e9a5c;
     --confident-bg: #8b4aff;
     --confident-text: #ffffff;
     --all-bg: #3c6b8f;
     --all-text: #ffffff;
     --low-bg: #e0e5ec;
-    --low-text: #4a5568;
+    --low-text: #5a6b7c;
     --animation-duration: 0.3s;
-    --error-bg: #fde7e9;
+    --error-bg: #fef2f2;
     --error-text: #b91c1c;
-    --error-border: #f5b3b7;
+    --error-border: #fecaca;
     --safe-bg: #1f9d55;
     --safe-text: #ffffff;
     --questionable-bg: #d69e2e;
     --questionable-text: #ffffff;
     --explicit-bg: #c53030;
     --explicit-text: #ffffff;
-    --disabled-bg: #a0aec0;
+    --disabled-bg: #cbd5e1;
     --disabled-text: #f7fafc;
     --menu-bg: var(--secondary-color);
     --menu-border: var(--border-color);
@@ -107,31 +107,31 @@
 }
 
 .theme-light {
-    --bg-color: #f9fafb;
-    --text-color: #1a1e24;
+    --bg-color: #f5f7fa;
+    --text-color: #2d3748;
     --primary-color: #6b4aff;
     --secondary-color: #eef2f6;
-    --border-color: #d2d9e2;
+    --border-color: #e2e8f0;
     --success-color: #2e9a5c;
     --confident-bg: #8b4aff;
     --confident-text: #ffffff;
     --all-bg: #3c6b8f;
     --all-text: #ffffff;
     --low-bg: #e0e5ec;
-    --low-text: #4a5568;
-    --error-bg: #fde7e9;
+    --low-text: #5a6b7c;
+    --error-bg: #fef2f2;
     --error-text: #b91c1c;
-    --error-border: #f5b3b7;
+    --error-border: #fecaca;
     --safe-bg: #1f9d55;
     --safe-text: #ffffff;
     --questionable-bg: #d69e2e;
     --questionable-text: #ffffff;
     --explicit-bg: #c53030;
     --explicit-text: #ffffff;
-    --disabled-bg: #a0aec0;
+    --disabled-bg: #cbd5e1;
     --disabled-text: #f7fafc;
     --menu-bg: #eef2f6;
-    --menu-border: #d2d9e2;
+    --menu-border: #e2e8f0;
     --added-bg: #2e9a5c;
     --added-text: #ffffff;
     --removed-bg: #c53030;
@@ -613,13 +613,13 @@ h1 {
 }
 
 .upload-icon {
-    stroke: var(--border-color);
+    stroke: var(--text-color);
     margin-bottom: 1rem;
 }
 
 .small {
     font-size: 0.875rem;
-    color: var(--border-color);
+    color: var(--low-text);
     margin-top: 0.5rem;
 }
 
@@ -905,8 +905,8 @@ h1 {
 .site-info {
     text-align: center;
     margin-top: 2rem;
-    color: var(--border-color);
     font-size: 0.875rem;
+    color: var(--low-text);
 }
 
 a {
@@ -1013,4 +1013,38 @@ a {
         border-color: var(--confident-bg);
         background-color: rgba(139, 92, 246, 0.1);
     }
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    padding-right: 0;
+}
+
+@media (hover: hover) {
+    input[type="number"]:hover::-webkit-inner-spin-button,
+    input[type="number"]:hover::-webkit-outer-spin-button {
+        -webkit-appearance: inner-spin-button;
+        appearance: auto;
+        opacity: 0.5;
+    }
+}
+
+.theme-light input[type="number"]::-webkit-inner-spin-button,
+.theme-light input[type="number"]::-webkit-outer-spin-button {
+    filter: invert(0);
+}
+
+.theme-dark input[type="number"]::-webkit-inner-spin-button,
+.theme-dark input[type="number"]::-webkit-outer-spin-button {
+    filter: invert(1);
 }
