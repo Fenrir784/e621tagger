@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <meta name="color-scheme" content="dark light">
     <meta name="darkreader" content="disabled">
     <meta name="theme-color" content="#8b4aff">
@@ -113,6 +113,19 @@
                 <p>Created by <a href="https://fenrir784.ru" target="_blank">fenrir784.ru</a></p>
             </div>
         </main>
+    </div>
+    <div id="tag-popup" class="tag-popup" style="display: none;">
+        <div class="tag-popup-content">
+            <div class="tag-popup-header">
+                <span class="tag-popup-name"></span>
+                <button class="tag-popup-close">&times;</button>
+            </div>
+            <div class="tag-popup-description"></div>
+            <div class="tag-popup-footer">
+                <span class="tag-popup-category"></span>
+                <span class="tag-popup-count"></span>
+            </div>
+        </div>
     </div>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <script>
