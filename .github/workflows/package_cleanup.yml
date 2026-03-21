@@ -1,0 +1,5 @@
+- uses: actions/delete-package-versions@v5
+  with:
+    package-name: 'e621tagger'
+    package-type: 'npm'
+    min-versions-to-keep: 5
