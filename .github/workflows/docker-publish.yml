@@ -1,9 +1,8 @@
-name: Docker
+name: Docker Build
 
 on:
   push:
-    branches: [ "*" ]
-    tags: [ 'v*.*.*' ]
+    branches: [ "latest" ]
   pull_request:
     branches: [ "latest" ]
 
