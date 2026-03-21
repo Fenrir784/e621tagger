@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyGlobalConfident = document.getElementById('copyGlobalConfident');
     const formatE621 = document.getElementById('formatE621');
     const formatPosty = document.getElementById('formatPosty');
-
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsMenu = document.getElementById('settingsMenu');
     const closeSettings = document.getElementById('closeSettings');
@@ -25,10 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('resetSettings');
     const themeOptions = document.querySelectorAll('.theme-option');
     const maxTagBtns = document.querySelectorAll('.max-tag-option');
-
     const eggContainer = document.getElementById('eggContainer');
     const eggCreature = document.getElementById('eggCreature');
-
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
     const ALLOWED_MAX_TAGS = [50, 75, 100, 150, 200, 250];
     const LONG_PRESS_DURATION = 500;
@@ -542,8 +539,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function parseDText(dtext) {
+        let html = dtext;
+
+        // Remove thumb #12345 lines (и thumb с несколькими номерами)
+        html = html.replace(/thumb\s+#\d+(?:\s+#\d+)*/g, '');
+
+        // Remove entire [section]...[/section] blocks (including content)
+        html = html.replace(/\[section[^\]]*\]([\s\S]*?)\[\/section\]/g, '');
+
+        // Convert [b]...[/b] to <strong>
+        html = html.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
+        // Convert [i]...[/i] to <em>
+        html = html.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
+        // Convert [u]...[/u] to <u>
+        html = html.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
+
+        // Convert [[wiki_link]] to <a> links
+        html = html.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
+            const linkText = p1.trim();
+            const href = `https://e621.net/wiki_pages?title=${encodeURIComponent(linkText)}`;
+            return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(linkText)}</a>`;
+        });
+
+        // Replace newlines with <br>
+        html = html.replace(/\n/g, '<br>');
+
+        // Trim multiple <br> at start/end
+        html = html.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
+
+        // Limit length to avoid huge content
+        if (html.length > 4000) {
+            html = html.slice(0, 4000) + '…';
+        }
+
+        return html;
+    }
+
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return unsafe.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
     let longPressTimer = null;
     let isLongPressTriggered = false;
+    let currentPopup = null;
 
     function handleTagLongPress(tagObj, element) {
         if (isLongPressTriggered) return;
@@ -551,11 +596,22 @@ document.addEventListener('DOMContentLoaded', () => {
         showTagPopup(tagObj, element);
     }
 
-    function showTagPopup(tagObj, targetElement) {
-        const tagName = tagObj.tag;
+    function closePopup() {
+        if (currentPopup) {
+            currentPopup.remove();
+            currentPopup = null;
+        }
+        isLongPressTriggered = false;
+        if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        }
+    }
 
-        const existingPopup = document.querySelector('.tag-popup');
-        if (existingPopup) existingPopup.remove();
+    function showTagPopup(tagObj, targetElement) {
+        if (currentPopup) closePopup();
+
+        const tagName = tagObj.tag;
 
         const popup = document.createElement('div');
         popup.className = 'tag-popup';
@@ -572,6 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
         popup.appendChild(header);
         popup.appendChild(content);
         document.body.appendChild(popup);
+        currentPopup = popup;
 
         // Position popup
         const rect = targetElement.getBoundingClientRect();
@@ -602,28 +659,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const closeBtn = popup.querySelector('.close-popup');
         closeBtn.addEventListener('click', () => {
-            popup.remove();
+            closePopup();
         });
 
         fetchTagDescription(tagName).then(desc => {
             if (desc.exists) {
-                const formatted = desc.body.replace(/\n/g, '<br>');
-                content.innerHTML = `<div class="tag-popup-text">${formatted}</div>`;
+                const parsed = parseDText(desc.body);
+                content.innerHTML = `<div class="tag-popup-text">${parsed}</div>`;
             } else {
                 content.innerHTML = `<div class="tag-popup-error">${escapeHtml(desc.body)}</div>`;
             }
         }).catch(() => {
             content.innerHTML = '<div class="tag-popup-error">Failed to load description.</div>';
-        });
-    }
-
-    function escapeHtml(unsafe) {
-        if (!unsafe) return '';
-        return unsafe.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
         });
     }
 
@@ -961,9 +1008,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('click', (e) => {
-        const popup = document.querySelector('.tag-popup');
-        if (popup && !popup.contains(e.target)) {
-            popup.remove();
+        if (currentPopup && !currentPopup.contains(e.target)) {
+            closePopup();
         }
     });
 
