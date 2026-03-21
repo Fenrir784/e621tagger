@@ -26,7 +26,8 @@ jobs:
       - name: Clean up docker images
         uses: dataaxiom/ghcr-cleanup-action@v1.0.16
         with:
-          keep-n-tagged: 10
+          keep-n-tagged: 4
+          keep-n-untagged: 4
           exclude-tags: latest
           delete-untagged: true
           delete-partial-images: true
