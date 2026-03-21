@@ -57,22 +57,42 @@ document.addEventListener('DOMContentLoaded', () => {
         '/static/f9.png'
     ];
 
+    let isAnimating = false;
+
     function preloadCreatures() {
         creaturePaths.forEach(path => {
             const img = new Image();
             img.src = path;
         });
     }
-    preloadCreatures();
 
-    eggContainer.addEventListener('click', () => {
+    function setRandomCreature() {
+        const randomIndex = Math.floor(Math.random() * creaturePaths.length);
+        eggCreature.src = creaturePaths[randomIndex];
+    }
+
+    function handleEggClick() {
+        if (isAnimating) return;
         const isOpen = eggContainer.classList.contains('open');
         if (!isOpen) {
-            const randomIndex = Math.floor(Math.random() * creaturePaths.length);
-            eggCreature.src = creaturePaths[randomIndex];
+            eggContainer.classList.add('open');
+            isAnimating = true;
+            setTimeout(() => {
+                isAnimating = false;
+            }, 300);
+        } else {
+            eggContainer.classList.remove('open');
+            isAnimating = true;
+            setTimeout(() => {
+                setRandomCreature();
+                isAnimating = false;
+            }, 300);
         }
-        eggContainer.classList.toggle('open');
-    });
+    }
+
+    preloadCreatures();
+    setRandomCreature();
+    eggContainer.addEventListener('click', handleEggClick);
 
     function loadSettings() {
         const saved = localStorage.getItem('e621tagger-settings');
