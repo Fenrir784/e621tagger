@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatOptions = document.querySelectorAll('.format-option');
     const resetBtn = document.getElementById('resetSettings');
     const themeOptions = document.querySelectorAll('.theme-option');
-    const maxTagBtns = document.querySelectorAll('.max-tag-btn');
+    const maxTagBtns = document.querySelectorAll('.max-tag-option');
 
     const eggContainer = document.getElementById('eggContainer');
     const eggCreature = document.getElementById('eggCreature');
