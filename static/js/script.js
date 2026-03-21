@@ -511,7 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tagDescriptionCache.has(tagName)) {
             return tagDescriptionCache.get(tagName);
         }
-        const url = `https://e621.net/wiki_pages.json?search[title_matches]=${encodeURIComponent(tagName)}&limit=1`;
+        const url = `https://e621.net/wiki_pages.json?search[title]=${encodeURIComponent(tagName)}&limit=1`;
         try {
             const response = await fetch(url, {
                 headers: {
