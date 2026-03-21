@@ -1048,3 +1048,34 @@ input[type="number"] {
 .theme-dark input[type="number"]::-webkit-outer-spin-button {
     filter: invert(1);
 }
+
+.max-tags-group {
+    display: flex;
+    gap: 0.3rem;
+    background-color: var(--bg-color);
+    padding: 0.2rem;
+    border-radius: 30px;
+    width: 100%;
+}
+
+.max-tag-option {
+    border: none;
+    background: none;
+    padding: 0.4rem 0;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-color);
+    transition: background-color 0.2s;
+    flex: 1;
+    text-align: center;
+    border: 1px solid transparent;
+    touch-action: manipulation;
+}
+
+.max-tag-option.active {
+    background-color: var(--confident-bg);
+    color: white;
+    border-color: var(--confident-bg);
+}
