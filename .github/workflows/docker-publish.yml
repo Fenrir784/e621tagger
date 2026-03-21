@@ -27,8 +27,7 @@ jobs:
         uses: dataaxiom/ghcr-cleanup-action@v1.0.16
         with:
           keep-n-tagged: 4
-          keep-n-untagged: 4
-          exclude-tags: latest
+          exclude-tags: latest, test
           delete-untagged: true
           delete-partial-images: true
 
