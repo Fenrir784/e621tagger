@@ -619,7 +619,7 @@ h1 {
 
 .small {
     font-size: 0.875rem;
-    color: var(--border-color);
+    color: var(--low-text);
     margin-top: 0.5rem;
 }
 
@@ -1013,4 +1013,20 @@ a {
         border-color: var(--confident-bg);
         background-color: rgba(139, 92, 246, 0.1);
     }
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    opacity: 1;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="number"]:focus {
+    outline: none;
+    border-color: var(--confident-bg);
 }
