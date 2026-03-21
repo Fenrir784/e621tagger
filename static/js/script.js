@@ -57,42 +57,28 @@ document.addEventListener('DOMContentLoaded', () => {
         '/static/f9.png'
     ];
 
-    let isAnimating = false;
-
     function preloadCreatures() {
         creaturePaths.forEach(path => {
             const img = new Image();
             img.src = path;
         });
     }
+    preloadCreatures();
 
     function setRandomCreature() {
         const randomIndex = Math.floor(Math.random() * creaturePaths.length);
         eggCreature.src = creaturePaths[randomIndex];
     }
 
-    function handleEggClick() {
-        if (isAnimating) return;
-        const isOpen = eggContainer.classList.contains('open');
-        if (!isOpen) {
-            eggContainer.classList.add('open');
-            isAnimating = true;
-            setTimeout(() => {
-                isAnimating = false;
-            }, 300);
-        } else {
-            eggContainer.classList.remove('open');
-            isAnimating = true;
-            setTimeout(() => {
-                setRandomCreature();
-                isAnimating = false;
-            }, 300);
-        }
-    }
-
-    preloadCreatures();
     setRandomCreature();
-    eggContainer.addEventListener('click', handleEggClick);
+
+    eggContainer.addEventListener('click', () => {
+        const wasOpen = eggContainer.classList.contains('open');
+        eggContainer.classList.toggle('open');
+        if (wasOpen) {
+            setRandomCreature();
+        }
+    });
 
     function loadSettings() {
         const saved = localStorage.getItem('e621tagger-settings');
