@@ -905,8 +905,8 @@ h1 {
 .site-info {
     text-align: center;
     margin-top: 2rem;
-    color: var(--border-color);
     font-size: 0.875rem;
+    color: var(--low-text);
 }
 
 a {
