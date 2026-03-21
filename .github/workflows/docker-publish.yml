@@ -27,9 +27,10 @@ jobs:
         uses: dataaxiom/ghcr-cleanup-action@v1.0.16
         with:
           keep-n-tagged: 4
-          exclude-tags: latest, test
+          exclude-tags: latest
           delete-untagged: true
           delete-partial-images: true
+          delete-orphaned-images: true
 
       - name: Install cosign
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
