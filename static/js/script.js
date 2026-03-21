@@ -1,3 +1,5 @@
+// static/js/script.js (обновленная версия с доработанным парсингом DText)
+
 document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
@@ -541,53 +543,101 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function processLists(text) {
+        const lines = text.split('\n');
+        const output = [];
+        let inList = false;
+        let currentLevel = 0;
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const match = line.match(/^(\s*)(\*+)\s+(.*)/);
+            if (match) {
+                const stars = match[2];
+                const content = match[3];
+                const level = stars.length;
+
+                if (!inList) {
+                    inList = true;
+                    currentLevel = level;
+                    output.push('<ul>');
+                    output.push(`<li>${content}`);
+                } else {
+                    if (level > currentLevel) {
+                        output.push('<ul>');
+                        output.push(`<li>${content}`);
+                        currentLevel = level;
+                    } else if (level < currentLevel) {
+                        while (currentLevel > level) {
+                            output.push('</li></ul>');
+                            currentLevel--;
+                        }
+                        output.push('</li>');
+                        output.push(`<li>${content}`);
+                    } else {
+                        output.push('</li>');
+                        output.push(`<li>${content}`);
+                    }
+                }
+            } else {
+                if (inList) {
+                    while (currentLevel > 0) {
+                        output.push('</li></ul>');
+                        currentLevel--;
+                    }
+                    inList = false;
+                }
+                if (line.trim() !== '') {
+                    output.push(line);
+                } else {
+                    output.push('');
+                }
+            }
+        }
+        if (inList) {
+            while (currentLevel > 0) {
+                output.push('</li></ul>');
+                currentLevel--;
+            }
+        }
+        return output.join('\n');
+    }
+
     function parseDText(dtext) {
         let html = dtext;
 
-        // Remove thumb lines completely (including surrounding whitespace)
-        html = html.replace(/thumb\s+#\d+(?:\s+#\d+)*\s*/g, '');
+        html = html.replace(/\[\/?quote\]/g, '');
 
-        // Remove [section]...[/section] blocks entirely
-        html = html.replace(/\[section[^\]]*\]([\s\S]*?)\[\/section\]/g, '');
+        html = html.replace(/\[\/?section(?:=[^\]]*)?\]/g, '');
 
-        // Convert [b]...[/b] to <strong>
-        html = html.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
-        // Convert [i]...[/i] to <em>
-        html = html.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
-        // Convert [u]...[/u] to <u>
-        html = html.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
+        html = html.replace(/\[\/?table\]|\[\/?tr\]|\[\/?td\]/g, '');
 
-        // Convert headings h1..h6 to bold text
-        html = html.replace(/^h[1-6]\.\s+(.*)$/gm, '<strong>$1</strong>');
-
-        // Convert bullet lists: lines starting with * (and optional spaces)
-        html = html.replace(/^\*\s+(.*)$/gm, '$1');
-
-        // Convert [[link|display]] to <a> with display text
         html = html.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => {
             const href = `https://e621.net/wiki_pages?title=${encodeURIComponent(target)}`;
             return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(display)}</a>`;
         });
-        // Convert [[link]] to <a>
-        html = html.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
-            const href = `https://e621.net/wiki_pages?title=${encodeURIComponent(p1)}`;
-            return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(p1)}</a>`;
+        html = html.replace(/\[\[([^\]]+)\]\]/g, (match, target) => {
+            const href = `https://e621.net/wiki_pages?title=${encodeURIComponent(target)}`;
+            return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(target)}</a>`;
         });
 
-        // Replace newlines with <br>
+        html = html.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
+        html = html.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
+        html = html.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
+        html = html.replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>');
+        html = html.replace(/\[s\]\[\/s\]/g, '');
+
+        html = html.replace(/^h([1-6])\.\s*(.*)$/gm, (match, level, content) => `<h${level}>${content}</h${level}>`);
+
+        html = processLists(html);
+
         html = html.replace(/\n/g, '<br>');
-
-        // Collapse multiple consecutive <br> into at most two
-        html = html.replace(/(<br>){3,}/g, '<br><br>');
-
-        // Trim leading/trailing <br>
+        html = html.replace(/(<br>)+/g, (match) => match.length > 3 ? '<br><br>' : match);
         html = html.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
 
-        // Limit length
         if (html.length > 4000) {
             html = html.slice(0, 4000) + '…';
         }
-
         return html;
     }
 
