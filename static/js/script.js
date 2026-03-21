@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
     const ALLOWED_MAX_TAGS = [50, 75, 100, 150, 200, 250];
+    const LONG_PRESS_DURATION = 500; // ms
 
     let allTags = [];
     let currentFormat = 'e621';
@@ -504,7 +505,123 @@ document.addEventListener('DOMContentLoaded', () => {
         return allTags.filter(t => t.category === category && !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
     }
 
+    let longPressTimer = null;
+    let isLongPressTriggered = false;
+
+    function handleTagLongPress(tagObj, element) {
+        if (isLongPressTriggered) return;
+        isLongPressTriggered = true;
+        showTagPopup(tagObj, element);
+    }
+
+    function showTagPopup(tagObj, targetElement) {
+        const tagName = tagObj.tag;
+
+        // Remove existing popup if any
+        const existingPopup = document.querySelector('.tag-popup');
+        if (existingPopup) existingPopup.remove();
+
+        const popup = document.createElement('div');
+        popup.className = 'tag-popup';
+
+        const header = document.createElement('div');
+        header.className = 'tag-popup-header';
+        header.innerHTML = `<span class="tag-popup-title">${escapeHtml(tagName)}</span>
+                            <button class="close-popup">✕</button>`;
+
+        const content = document.createElement('div');
+        content.className = 'tag-popup-content';
+        content.innerHTML = '<div class="tag-popup-loading">Loading description...</div>';
+
+        popup.appendChild(header);
+        popup.appendChild(content);
+
+        document.body.appendChild(popup);
+
+        // Position popup near the target element
+        const rect = targetElement.getBoundingClientRect();
+        const popupRect = popup.getBoundingClientRect();
+        let top = rect.top - popupRect.height - 8;
+        let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
+        if (top < 10) top = rect.bottom + 8;
+        if (left < 10) left = 10;
+        if (left + popupRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - popupRect.width - 10;
+        }
+        popup.style.top = `${top + window.scrollY}px`;
+        popup.style.left = `${left + window.scrollX}px`;
+
+        // Fetch description
+        fetch(`/tag_info/${encodeURIComponent(tagName)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.exists) {
+                    // Simple formatting: replace newlines with <br>, preserve links etc.
+                    const formatted = data.body.replace(/\n/g, '<br>');
+                    content.innerHTML = `<div class="tag-popup-text">${formatted}</div>`;
+                } else {
+                    content.innerHTML = `<div class="tag-popup-error">${escapeHtml(data.body)}</div>`;
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching tag info:', err);
+                content.innerHTML = '<div class="tag-popup-error">Failed to load description.</div>';
+            });
+
+        // Close button
+        const closeBtn = popup.querySelector('.close-popup');
+        closeBtn.addEventListener('click', () => {
+            popup.remove();
+        });
+    }
+
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return unsafe.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function attachLongPressHandlers(element, tagObj) {
+        let pressTimer = null;
+
+        const startPress = (e) => {
+            e.preventDefault();
+            pressTimer = setTimeout(() => {
+                handleTagLongPress(tagObj, element);
+                // Prevent the click event from firing after long press
+                element.removeEventListener('click', element._clickHandler);
+                setTimeout(() => {
+                    element.addEventListener('click', element._clickHandler);
+                }, 100);
+            }, LONG_PRESS_DURATION);
+        };
+
+        const cancelPress = () => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+        };
+
+        element.addEventListener('mousedown', startPress);
+        element.addEventListener('mouseup', cancelPress);
+        element.addEventListener('mouseleave', cancelPress);
+        element.addEventListener('touchstart', startPress, { passive: false });
+        element.addEventListener('touchend', cancelPress);
+        element.addEventListener('touchcancel', cancelPress);
+        // Prevent context menu on long press
+        element.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
+
     function handleTagClick(tagObj, element) {
+        if (isLongPressTriggered) {
+            isLongPressTriggered = false;
+            return;
+        }
         const tag = tagObj.tag;
         const prob = tagObj.prob;
         const category = getTagCategory(prob);
@@ -667,10 +784,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     tagEl.classList.add('removed');
                 }
 
-                tagEl.addEventListener('click', (e) => {
+                // Attach click handler for normal tap
+                const clickHandler = (e) => {
                     e.stopPropagation();
                     handleTagClick(item, tagEl);
-                });
+                };
+                tagEl._clickHandler = clickHandler;
+                tagEl.addEventListener('click', clickHandler);
+
+                // Attach long press handlers
+                attachLongPressHandlers(tagEl, item);
+
                 tagsContainer.appendChild(tagEl);
             });
 
@@ -797,6 +921,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.body.removeChild(textarea);
     }
+
+    // Close popup when clicking outside
+    document.addEventListener('click', (e) => {
+        const popup = document.querySelector('.tag-popup');
+        if (popup && !popup.contains(e.target)) {
+            popup.remove();
+        }
+    });
 
     results.style.display = 'none';
     loadSettings();
