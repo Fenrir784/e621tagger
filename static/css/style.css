@@ -915,6 +915,104 @@ a {
     transition: color 0.2s;
 }
 
+.tag-popup {
+    position: fixed;
+    z-index: 2000;
+    max-width: 90vw;
+    width: 320px;
+    background: var(--bg-color);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: auto;
+}
+
+.tag-popup.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.tag-popup-content {
+    display: flex;
+    flex-direction: column;
+    max-height: 400px;
+}
+
+.tag-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--secondary-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tag-popup-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--confident-bg);
+}
+
+.tag-popup-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: var(--text-color);
+    padding: 0 0.25rem;
+    line-height: 1;
+    transition: opacity 0.2s;
+}
+
+.tag-popup-close:hover {
+    opacity: 0.7;
+}
+
+.tag-popup-description {
+    padding: 1rem;
+    overflow-y: auto;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-color);
+    word-break: break-word;
+}
+
+.tag-popup-description b, .tag-popup-description strong {
+    font-weight: 600;
+    color: var(--confident-bg);
+}
+
+.tag-popup-description i, .tag-popup-description em {
+    font-style: italic;
+}
+
+.tag-popup-description a {
+    color: var(--confident-bg);
+    text-decoration: underline;
+}
+
+.tag-popup-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: var(--secondary-color);
+    border-top: 1px solid var(--border-color);
+    font-size: 0.75rem;
+    color: var(--border-color);
+}
+
+.tag-popup-category,
+.tag-popup-count {
+    background: var(--bg-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -939,7 +1037,7 @@ a {
         gap: 0.5rem;
     }
     h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
     .settings-toggle {
         width: 40px;
@@ -968,6 +1066,10 @@ a {
         left: 0.5rem;
         width: calc(100% - 1rem);
         max-width: 300px;
+    }
+    .tag-popup {
+        width: 280px;
+        max-width: 85vw;
     }
 }
 
