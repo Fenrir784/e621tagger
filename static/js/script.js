@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyGlobalConfident = document.getElementById('copyGlobalConfident');
     const formatE621 = document.getElementById('formatE621');
     const formatPosty = document.getElementById('formatPosty');
+
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsMenu = document.getElementById('settingsMenu');
     const closeSettings = document.getElementById('closeSettings');
@@ -24,8 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('resetSettings');
     const themeOptions = document.querySelectorAll('.theme-option');
     const maxTagBtns = document.querySelectorAll('.max-tag-option');
+
     const eggContainer = document.getElementById('eggContainer');
     const eggCreature = document.getElementById('eggCreature');
+
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
     const ALLOWED_MAX_TAGS = [50, 75, 100, 150, 200, 250];
     const LONG_PRESS_DURATION = 500;
@@ -542,10 +545,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function parseDText(dtext) {
         let html = dtext;
 
-        // Remove thumb #12345 lines (и thumb с несколькими номерами)
-        html = html.replace(/thumb\s+#\d+(?:\s+#\d+)*/g, '');
+        // Remove thumb lines completely (including surrounding whitespace)
+        html = html.replace(/thumb\s+#\d+(?:\s+#\d+)*\s*/g, '');
 
-        // Remove entire [section]...[/section] blocks (including content)
+        // Remove [section]...[/section] blocks entirely
         html = html.replace(/\[section[^\]]*\]([\s\S]*?)\[\/section\]/g, '');
 
         // Convert [b]...[/b] to <strong>
@@ -555,20 +558,33 @@ document.addEventListener('DOMContentLoaded', () => {
         // Convert [u]...[/u] to <u>
         html = html.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
 
-        // Convert [[wiki_link]] to <a> links
+        // Convert headings h1..h6 to bold text
+        html = html.replace(/^h[1-6]\.\s+(.*)$/gm, '<strong>$1</strong>');
+
+        // Convert bullet lists: lines starting with * (and optional spaces)
+        html = html.replace(/^\*\s+(.*)$/gm, '$1');
+
+        // Convert [[link|display]] to <a> with display text
+        html = html.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => {
+            const href = `https://e621.net/wiki_pages?title=${encodeURIComponent(target)}`;
+            return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(display)}</a>`;
+        });
+        // Convert [[link]] to <a>
         html = html.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
-            const linkText = p1.trim();
-            const href = `https://e621.net/wiki_pages?title=${encodeURIComponent(linkText)}`;
-            return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(linkText)}</a>`;
+            const href = `https://e621.net/wiki_pages?title=${encodeURIComponent(p1)}`;
+            return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(p1)}</a>`;
         });
 
         // Replace newlines with <br>
         html = html.replace(/\n/g, '<br>');
 
-        // Trim multiple <br> at start/end
+        // Collapse multiple consecutive <br> into at most two
+        html = html.replace(/(<br>){3,}/g, '<br><br>');
+
+        // Trim leading/trailing <br>
         html = html.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
 
-        // Limit length to avoid huge content
+        // Limit length
         if (html.length > 4000) {
             html = html.slice(0, 4000) + '…';
         }
@@ -630,7 +646,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(popup);
         currentPopup = popup;
 
-        // Position popup
         const rect = targetElement.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
@@ -647,12 +662,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (top + popupRect.height > viewportHeight - 10) {
             top = rect.top - popupRect.height - 8;
         }
-        if (left < 10) {
-            left = 10;
-        }
-        if (left + popupRect.width > viewportWidth - 10) {
-            left = viewportWidth - popupRect.width - 10;
-        }
+
+        left = Math.max(10, Math.min(left, viewportWidth - popupRect.width - 10));
 
         popup.style.top = `${top + window.scrollY}px`;
         popup.style.left = `${left + window.scrollX}px`;
