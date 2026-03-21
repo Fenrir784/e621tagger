@@ -37,15 +37,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          lfs: true
-
 
       - name: Clean up docker images
         uses: dataaxiom/ghcr-cleanup-action@v1.0.16
         with:
-          dry-run: true
-          keep-n-tagged: 5
+          keep-n-tagged: 10
           exclude-tags: latest
           delete-untagged: true
           delete-partial-images: true
@@ -109,11 +105,3 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
-        
-      - name: Delete Package Versions
-        uses: actions/delete-package-versions@v5.0.0
-        with:
-          package-name: e621tagger
-          package-type: container
-          num-old-versions-to-delete: 100 # optional, default is 1
-          min-versions-to-keep: 10 # optional, default is -1
