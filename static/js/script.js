@@ -590,7 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (headerMatch) {
                 trimmed = `<strong>${headerMatch[2]}</strong>`;
             } else {
-                const bulletMatch = trimmed.match(/^(\*{1,6})\s+(.*)$/);
+                const bulletMatch = trimmed.match(/^\s*(\*{1,6})\s+(.*)$/);
                 if (bulletMatch) {
                     const stars = bulletMatch[1];
                     const content = bulletMatch[2];
@@ -603,6 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         text = processedLines.join('\n');
 
+        text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
         text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
         text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
         text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
@@ -615,6 +616,14 @@ document.addEventListener('DOMContentLoaded', () => {
         text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
             const href = `https://e621.net/wiki_pages?title=${encodeURIComponent(p1)}`;
             return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(p1)}</a>`;
+        });
+
+        text = text.replace(/"([^"]+)":(\S+)/g, (match, label, url) => {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
+        });
+
+        text = text.replace(/(https?:\/\/[^\s<>]+)/g, (match) => {
+            return `<a href="${match}" target="_blank" rel="noopener noreferrer">${match}</a>`;
         });
 
         text = text.replace(/\n/g, '<br>');
