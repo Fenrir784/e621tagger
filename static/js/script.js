@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
     const ALLOWED_MAX_TAGS = [50, 75, 100, 150, 200, 250];
-    const LONG_PRESS_DURATION = 500;
 
     let allTags = [];
     let currentFormat = 'e621';
