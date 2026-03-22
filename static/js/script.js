@@ -596,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
     text = text.replace(/(<br>){3,}/g, '<br><br>');
     text = text.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
 
-    if (dtext.length > 4000) {
+    if (dtext.length > 1000) {
         text += '…';
     }
 
