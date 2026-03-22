@@ -544,58 +544,61 @@ document.addEventListener('DOMContentLoaded', () => {
     function parseDText(dtext) {
     if (!dtext) return '';
 
-    let text = dtext;
+    let text = dtext.slice(0, 4000);
+
+    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
     text = text.replace(/thumb\s+#\d+\s*/g, '');
 
-    function removeBlockTags(tag) {
-        const openRegex = new RegExp(`\\[${tag}[^\\]]*\\]`, 'g');
-        let match;
-        while ((match = openRegex.exec(text)) !== null) {
-            const openIdx = match.index;
-            const closeIdx = text.indexOf(`[/${tag}]`, openIdx);
-            if (closeIdx === -1) break;
-            const before = text.slice(0, openIdx);
-            const content = text.slice(openIdx + match[0].length, closeIdx);
-            const after = text.slice(closeIdx + 3 + tag.length);
-            text = before + content + after;
-            openRegex.lastIndex = 0;
+    text = text.replace(/\[section[^\]]*\]([\s\S]*?)\[\/section\]/g, '$1');
+    text = text.replace(/\[quote[^\]]*\]([\s\S]*?)\[\/quote\]/g, '$1');
+    text = text.replace(/\[table[^\]]*\]([\s\S]*?)\[\/table\]/g, '$1');
+    text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
+
+    text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
+
+    text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText) => {
+        return `<span style="color: var(--confident-bg);">${escapeHtml(linkText)}</span>`;
+    });
+
+    text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => {
+        return `<span style="color: var(--confident-bg);">${escapeHtml(display)}</span>`;
+    });
+    text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
+        return `<span style="color: var(--confident-bg);">${escapeHtml(p1)}</span>`;
+    });
+
+    let lines = text.split('\n');
+    let processedLines = [];
+
+    for (let line of lines) {
+        let trimmed = line;
+
+        const headerMatch = trimmed.match(/^\s*h([1-6])(?:\.?\s*)(.*)$/i);
+        if (headerMatch) {
+            trimmed = `<strong style="color: var(--confident-bg);">${headerMatch[2]}</strong>`;
+        } else {
+            trimmed = trimmed.replace(/^(\*+)\s+/, '');
+        }
+
+        if (trimmed.trim() !== '') {
+            processedLines.push(trimmed);
         }
     }
 
-    removeBlockTags('section');
-    removeBlockTags('quote');
+    text = processedLines.join('\n');
 
-    text = text.replace(/\[table\][\s\S]*?\[\/table\]/g, '');
-    text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
-    text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
     text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
     text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
     text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
     text = text.replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>');
 
-    text = text.replace(/\[\[[^\]]+\]\]/g, '');
-    text = text.replace(/\[\[[^\]]+\|[^\]]+\]\]/g, '');
-    text = text.replace(/"([^"]+)"\s*:\s*\S+/g, '');
-
-    text = text.replace(/^\s*h[1-6]\.?\s*.*$/gm, '');
-
-    const lines = text.split('\n');
-    const processedLines = [];
-    for (let line of lines) {
-        line = line.replace(/^\*+\s+/, '');
-        if (line.trim()) {
-            processedLines.push(line);
-        }
-    }
-    text = processedLines.join('\n');
-
     text = text.replace(/\n/g, '<br>');
     text = text.replace(/(<br>){3,}/g, '<br><br>');
     text = text.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
 
-    if (text.length > 4000) {
-        text = text.slice(0, 4000) + '…';
+    if (dtext.length > 4000) {
+        text += '…';
     }
 
     return text;
