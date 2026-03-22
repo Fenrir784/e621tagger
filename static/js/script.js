@@ -577,6 +577,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return inner;
         });
 
+        text = text.replace(/thumb\s+#\d+\s*/g, '');
+
         text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
 
         let lines = text.split('\n');
@@ -584,11 +586,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let line of lines) {
             let trimmed = line;
-            const headerMatch = trimmed.match(/^h([1-6])\.\s*(.*)$/);
+            const headerMatch = trimmed.match(/^\s*h([1-6])\.\s*(.*)$/i);
             if (headerMatch) {
                 trimmed = `<strong>${headerMatch[2]}</strong>`;
             } else {
-                const bulletMatch = trimmed.match(/^(\*{1,3})\s+(.*)$/);
+                const bulletMatch = trimmed.match(/^(\*{1,6})\s+(.*)$/);
                 if (bulletMatch) {
                     const stars = bulletMatch[1];
                     const content = bulletMatch[2];
@@ -668,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const header = document.createElement('div');
         header.className = 'tag-popup-header';
-        header.innerHTML = `<span class="tag-popup-title">${escapeHtml(tagName)}</span>
+        header.innerHTML = `<a href="https://e621.net/wiki_pages?title=${encodeURIComponent(tagName)}" target="_blank" rel="noopener noreferrer" class="tag-popup-title" style="color: var(--confident-bg); text-decoration: none;">${escapeHtml(tagName)}</a>
                             <button class="close-popup">✕</button>`;
 
         const content = document.createElement('div');
