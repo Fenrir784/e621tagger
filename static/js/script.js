@@ -544,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function parseDText(dtext) {
     if (!dtext) return '';
 
-    let text = dtext.slice(0, 4000);
+    let text = dtext.slice(0, 1000);
 
     text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
