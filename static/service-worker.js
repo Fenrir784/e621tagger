@@ -1,4 +1,5 @@
-const CACHE_NAME = 'e621tagger-v1';
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `e621tagger-${CACHE_VERSION}`;
 const urlsToCache = [
   '/',
   '/static/css/style.css',
@@ -7,6 +8,9 @@ const urlsToCache = [
   '/static/android-chrome-192x192.png',
   '/static/android-chrome-512x512.png',
   '/static/favicon.ico',
+  '/static/apple-touch-icon.png',
+  '/static/favicon-32x32.png',
+  '/static/favicon-16x16.png',
   '/static/egg_top.png',
   '/static/egg_bottom.png',
   '/static/f1.png',
@@ -24,10 +28,35 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    }).then(() => {
+      return clients.claim();
+    }).then(() => {
+      clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ action: 'reload' });
+        });
+      });
+    })
+  );
 });
 
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
+    })
   );
 });

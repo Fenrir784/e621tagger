@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>e621tagger</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light">
@@ -9,7 +10,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="e621tagger">
-    <title>e621tagger</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
@@ -135,6 +135,12 @@
                 }).catch(err => {
                     console.error('Service Worker registration failed:', err);
                 });
+            });
+
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data && event.data.action === 'reload') {
+                    window.location.reload();
+                }
             });
         }
     </script>
