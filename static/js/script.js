@@ -638,25 +638,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    let longPressTimer = null;
-    let isLongPressTriggered = false;
     let currentPopup = null;
-
-    function handleTagLongPress(tagObj, element) {
-        if (isLongPressTriggered) return;
-        isLongPressTriggered = true;
-        showTagPopup(tagObj, element);
-    }
 
     function closePopup() {
         if (currentPopup) {
             currentPopup.remove();
             currentPopup = null;
-        }
-        isLongPressTriggered = false;
-        if (longPressTimer) {
-            clearTimeout(longPressTimer);
-            longPressTimer = null;
         }
     }
 
@@ -722,40 +709,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function attachLongPressHandlers(element, tagObj) {
-        let pressTimer = null;
-
-        const startPress = (e) => {
+        const handler = (e) => {
             e.preventDefault();
-            pressTimer = setTimeout(() => {
-                handleTagLongPress(tagObj, element);
-                element.removeEventListener('click', element._clickHandler);
-                setTimeout(() => {
-                    element.addEventListener('click', element._clickHandler);
-                }, 100);
-            }, LONG_PRESS_DURATION);
+            showTagPopup(tagObj, element);
         };
-
-        const cancelPress = () => {
-            if (pressTimer) {
-                clearTimeout(pressTimer);
-                pressTimer = null;
-            }
-        };
-
-        element.addEventListener('mousedown', startPress);
-        element.addEventListener('mouseup', cancelPress);
-        element.addEventListener('mouseleave', cancelPress);
-        element.addEventListener('touchstart', startPress, { passive: false });
-        element.addEventListener('touchend', cancelPress);
-        element.addEventListener('touchcancel', cancelPress);
-        element.addEventListener('contextmenu', (e) => e.preventDefault());
+        element.addEventListener('contextmenu', handler);
+        element._contextmenuHandler = handler;
     }
 
     function handleTagClick(tagObj, element) {
-        if (isLongPressTriggered) {
-            isLongPressTriggered = false;
-            return;
-        }
         const tag = tagObj.tag;
         const prob = tagObj.prob;
         const category = getTagCategory(prob);
