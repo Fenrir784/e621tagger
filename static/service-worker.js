@@ -4,11 +4,15 @@ const urlsToCache = [
   '/',
   '/static/css/style.css',
   '/static/js/script.js',
+  '/static/manifest.json',
+  '/static/android-chrome-192x192.png',
+  '/static/android-chrome-512x512.png',
+  '/static/favicon.ico',
   '/static/apple-touch-icon.png',
   '/static/favicon-32x32.png',
   '/static/favicon-16x16.png',
-  '/static/favicon.ico',
-  '/static/manifest.json',
+  '/static/egg_top.png',
+  '/static/egg_bottom.png',
   '/static/f1.png',
   '/static/f2.png',
   '/static/f3.png',
@@ -17,9 +21,7 @@ const urlsToCache = [
   '/static/f6.png',
   '/static/f7.png',
   '/static/f8.png',
-  '/static/f9.png',
-  '/static/egg_top.png',
-  '/static/egg_bottom.png'
+  '/static/f9.png'
 ];
 
 self.addEventListener('install', event => {
