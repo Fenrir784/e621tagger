@@ -542,95 +542,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function parseDText(dtext) {
-        if (!dtext) return '';
+    if (!dtext) return '';
 
-        let text = dtext;
+    let text = dtext;
 
-        function removeBlockTags(tag, keepContent = true) {
-            const openRegex = new RegExp(`\\[${tag}[^\\]]*\\]`, 'g');
-            const closeRegex = new RegExp(`\\[\\/${tag}\\]`, 'g');
-            if (keepContent) {
-                while (true) {
-                    let openMatch = openRegex.exec(text);
-                    if (!openMatch) break;
-                    let openIdx = openMatch.index;
-                    let closeIdx = text.indexOf(`[/${tag}]`, openIdx);
-                    if (closeIdx === -1) break;
-                    let before = text.slice(0, openIdx);
-                    let content = text.slice(openIdx + openMatch[0].length, closeIdx);
-                    let after = text.slice(closeIdx + 3 + tag.length);
-                    text = before + content + after;
-                }
-            } else {
-                text = text.replace(new RegExp(`\\[${tag}[^\\]]*\\][\\s\\S]*?\\[\\/${tag}\\]`, 'g'), '');
-            }
+    text = text.replace(/thumb\s+#\d+\s*/g, '');
+
+    function removeBlockTags(tag) {
+        const openRegex = new RegExp(`\\[${tag}[^\\]]*\\]`, 'g');
+        let match;
+        while ((match = openRegex.exec(text)) !== null) {
+            const openIdx = match.index;
+            const closeIdx = text.indexOf(`[/${tag}]`, openIdx);
+            if (closeIdx === -1) break;
+            const before = text.slice(0, openIdx);
+            const content = text.slice(openIdx + match[0].length, closeIdx);
+            const after = text.slice(closeIdx + 3 + tag.length);
+            text = before + content + after;
+            openRegex.lastIndex = 0;
         }
-
-        removeBlockTags('section', true);
-        removeBlockTags('quote', true);
-
-        text = text.replace(/\[table\][\s\S]*?\[\/table\]/g, (match) => {
-            let inner = match.replace(/\[table\]|\[\/table\]/g, '')
-                            .replace(/\[tr\]|\[\/tr\]/g, '')
-                            .replace(/\[td\]|\[\/td\]/g, '')
-                            .replace(/\[\/?th\]/g, '');
-            return inner;
-        });
-
-        text = text.replace(/thumb\s+#\d+\s*/g, '');
-        text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
-        text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
-        text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText, url) => {
-            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${escapeHtml(linkText)}</a>`;
-        });
-        text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => {
-            const href = `https://e621.net/wiki_pages?title=${encodeURIComponent(target)}`;
-            return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(display)}</a>`;
-        });
-        text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
-            const href = `https://e621.net/wiki_pages?title=${encodeURIComponent(p1)}`;
-            return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(p1)}</a>`;
-        });
-
-        let lines = text.split('\n');
-        let processedLines = [];
-
-        for (let line of lines) {
-            let trimmed = line;
-
-            const headerMatch = trimmed.match(/^\s*h([1-6])(?:\.?\s*)(.*)$/i);
-            if (headerMatch) {
-                trimmed = `<strong>${headerMatch[2]}</strong>`;
-            } else {
-                const bulletMatch = trimmed.match(/^(\*+)\s+(.*)$/);
-                if (bulletMatch) {
-                    trimmed = bulletMatch[2];
-                }
-            }
-
-            trimmed = trimmed.trim();
-            if (trimmed !== '') {
-                processedLines.push(trimmed);
-            }
-        }
-
-        text = processedLines.join('\n');
-
-        text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
-        text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
-        text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
-        text = text.replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>');
-
-        text = text.replace(/\n/g, '<br>');
-        text = text.replace(/(<br>){3,}/g, '<br><br>');
-        text = text.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
-
-        if (text.length > 4000) {
-            text = text.slice(0, 4000) + '…';
-        }
-
-        return text;
     }
+
+    removeBlockTags('section');
+    removeBlockTags('quote');
+
+    text = text.replace(/\[table\][\s\S]*?\[\/table\]/g, '');
+    text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
+    text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
+    text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
+    text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
+    text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
+    text = text.replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>');
+
+    text = text.replace(/\[\[[^\]]+\]\]/g, '');
+    text = text.replace(/\[\[[^\]]+\|[^\]]+\]\]/g, '');
+    text = text.replace(/"([^"]+)"\s*:\s*\S+/g, '');
+
+    text = text.replace(/^\s*h[1-6]\.?\s*.*$/gm, '');
+
+    const lines = text.split('\n');
+    const processedLines = [];
+    for (let line of lines) {
+        line = line.replace(/^\*+\s+/, '');
+        if (line.trim()) {
+            processedLines.push(line);
+        }
+    }
+    text = processedLines.join('\n');
+
+    text = text.replace(/\n/g, '<br>');
+    text = text.replace(/(<br>){3,}/g, '<br><br>');
+    text = text.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
+
+    if (text.length > 4000) {
+        text = text.slice(0, 4000) + '…';
+    }
+
+    return text;
+}
 
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
