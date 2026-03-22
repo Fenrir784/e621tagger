@@ -578,15 +578,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         text = text.replace(/thumb\s+#\d+\s*/g, '');
-
         text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
-
         text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
-
         text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText, url) => {
             return `<a href="${url}" target="_blank" rel="noopener noreferrer">${escapeHtml(linkText)}</a>`;
         });
-
         text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => {
             const href = `https://e621.net/wiki_pages?title=${encodeURIComponent(target)}`;
             return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(display)}</a>`;
@@ -601,21 +597,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let line of lines) {
             let trimmed = line;
-            const headerMatch = trimmed.match(/^\s*h([1-6])\.\s*(.*)$/i);
+
+            const headerMatch = trimmed.match(/^\s*h([1-6])(?:\.?\s*)(.*)$/i);
             if (headerMatch) {
                 trimmed = `<strong>${headerMatch[2]}</strong>`;
             } else {
-                const bulletMatch = trimmed.match(/^(\*{1,6})\s+(.*)$/);
+                const bulletMatch = trimmed.match(/^(\*+)\s+(.*)$/);
                 if (bulletMatch) {
-                    const stars = bulletMatch[1];
-                    const content = bulletMatch[2];
-                    const level = stars.length;
-                    const bulletSymbol = level === 1 ? '•' : '·';
-                    trimmed = `${bulletSymbol} ${content}`;
+                    trimmed = bulletMatch[2];
                 }
             }
-            processedLines.push(trimmed);
+
+            trimmed = trimmed.trim();
+            if (trimmed !== '') {
+                processedLines.push(trimmed);
+            }
         }
+
         text = processedLines.join('\n');
 
         text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
