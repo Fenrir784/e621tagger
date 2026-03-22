@@ -1079,3 +1079,118 @@ input[type="number"] {
     color: white;
     border-color: var(--confident-bg);
 }
+
+.tag-popup {
+    position: absolute;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    width: 280px;
+    max-width: 80vw;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    animation: fadeInScale 0.2s ease;
+}
+
+.tag-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    background-color: var(--secondary-color);
+    border-radius: 12px 12px 0 0;
+}
+
+.tag-popup-title {
+    color: var(--confident-bg);
+    word-break: break-word;
+}
+
+.close-popup {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--text-color);
+    padding: 0 0.25rem;
+    border-radius: 4px;
+    touch-action: manipulation;
+}
+
+.close-popup:hover {
+    background-color: var(--border-color);
+}
+
+.tag-popup-content {
+    padding: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+.tag-popup-loading,
+.tag-popup-error {
+    text-align: center;
+    color: var(--low-text);
+    font-style: italic;
+}
+
+.tag-popup-text {
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.tag-popup-text a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.tag-popup-text a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .tag-popup {
+        width: 260px;
+    }
+}
+
+.tag-popup-text {
+    word-break: break-word;
+    white-space: normal;
+    line-height: 1.5;
+}
+
+.tag-popup-text strong {
+    font-weight: 600;
+    color: var(--confident-bg);
+}
+
+.tag-popup-text em {
+    font-style: italic;
+}
+
+.tag-popup-text u {
+    text-decoration: underline;
+}
+
+.tag-popup-text a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.tag-popup-text a:hover {
+    text-decoration: underline;
+}
+
+.tag-popup-loading,
+.tag-popup-error {
+    text-align: center;
+    color: var(--low-text);
+    font-style: italic;
+}

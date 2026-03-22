@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyGlobalConfident = document.getElementById('copyGlobalConfident');
     const formatE621 = document.getElementById('formatE621');
     const formatPosty = document.getElementById('formatPosty');
-
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsMenu = document.getElementById('settingsMenu');
     const closeSettings = document.getElementById('closeSettings');
@@ -504,6 +503,195 @@ document.addEventListener('DOMContentLoaded', () => {
         return allTags.filter(t => t.category === category && !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
     }
 
+    const tagDescriptionCache = new Map();
+
+    async function fetchTagDescription(tagName) {
+        if (tagDescriptionCache.has(tagName)) {
+            return tagDescriptionCache.get(tagName);
+        }
+        const url = `https://e621.net/wiki_pages.json?search[title]=${encodeURIComponent(tagName)}&limit=1`;
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'User-Agent': 'e621tagger/1.0 (https://tagger.fenrir784.ru)'
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const wiki = data[0];
+                const result = {
+                    exists: true,
+                    title: wiki.title || tagName,
+                    body: wiki.body || 'No description available.'
+                };
+                tagDescriptionCache.set(tagName, result);
+                return result;
+            } else {
+                const result = { exists: false, title: tagName, body: 'No description found on e621.' };
+                tagDescriptionCache.set(tagName, result);
+                return result;
+            }
+        } catch (err) {
+            console.warn(`Failed to fetch description for ${tagName}:`, err);
+            return { exists: false, title: tagName, body: 'Failed to load description. Please check your internet connection.' };
+        }
+    }
+
+    function parseDText(dtext) {
+    if (!dtext) return '';
+
+    let text = dtext.slice(0, 1000);
+
+    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    text = text.replace(/thumb\s+#\d+\s*/g, '');
+
+    text = text.replace(/\[section[^\]]*\]([\s\S]*?)\[\/section\]/g, '$1');
+    text = text.replace(/\[quote[^\]]*\]([\s\S]*?)\[\/quote\]/g, '$1');
+    text = text.replace(/\[table[^\]]*\]([\s\S]*?)\[\/table\]/g, '$1');
+    text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
+
+    text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
+
+    text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText) => {
+        return `<span style="color: var(--confident-bg);">${escapeHtml(linkText)}</span>`;
+    });
+
+    text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => {
+        return `<span style="color: var(--confident-bg);">${escapeHtml(display)}</span>`;
+    });
+    text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
+        return `<span style="color: var(--confident-bg);">${escapeHtml(p1)}</span>`;
+    });
+
+    let lines = text.split('\n');
+    let processedLines = [];
+
+    for (let line of lines) {
+        let trimmed = line;
+
+        const headerMatch = trimmed.match(/^\s*h([1-6])(?:\.?\s*)(.*)$/i);
+        if (headerMatch) {
+            trimmed = `<strong style="color: var(--confident-bg);">${headerMatch[2]}</strong>`;
+        } else {
+            trimmed = trimmed.replace(/^(\*+)\s+/, '');
+        }
+
+        if (trimmed.trim() !== '') {
+            processedLines.push(trimmed);
+        }
+    }
+
+    text = processedLines.join('\n');
+
+    text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
+    text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
+    text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
+    text = text.replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>');
+
+    text = text.replace(/\n/g, '<br>');
+    text = text.replace(/(<br>){3,}/g, '<br><br>');
+    text = text.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
+
+    if (dtext.length > 1000) {
+        text += '…';
+    }
+
+    return text;
+}
+
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return unsafe.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    let currentPopup = null;
+
+    function closePopup() {
+        if (currentPopup) {
+            currentPopup.remove();
+            currentPopup = null;
+        }
+    }
+
+    function showTagPopup(tagObj, targetElement) {
+        if (currentPopup) closePopup();
+
+        const tagName = tagObj.tag;
+
+        const popup = document.createElement('div');
+        popup.className = 'tag-popup';
+
+        const header = document.createElement('div');
+        header.className = 'tag-popup-header';
+        header.innerHTML = `<a href="https://e621.net/wiki_pages?title=${encodeURIComponent(tagName)}" target="_blank" rel="noopener noreferrer" class="tag-popup-title" style="color: var(--confident-bg); text-decoration: none;">${escapeHtml(tagName)}</a>
+                            <button class="close-popup">✕</button>`;
+
+        const content = document.createElement('div');
+        content.className = 'tag-popup-content';
+        content.innerHTML = '<div class="tag-popup-loading">Loading description...</div>';
+
+        popup.appendChild(header);
+        popup.appendChild(content);
+        document.body.appendChild(popup);
+        currentPopup = popup;
+
+        const rect = targetElement.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        popup.style.visibility = 'hidden';
+        popup.style.position = 'absolute';
+        document.body.appendChild(popup);
+        const popupRect = popup.getBoundingClientRect();
+        popup.style.visibility = '';
+
+        let top = rect.bottom + 8;
+        let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
+
+        if (top + popupRect.height > viewportHeight - 10) {
+            top = rect.top - popupRect.height - 8;
+        }
+
+        left = Math.max(10, Math.min(left, viewportWidth - popupRect.width - 10));
+
+        popup.style.top = `${top + window.scrollY}px`;
+        popup.style.left = `${left + window.scrollX}px`;
+
+        const closeBtn = popup.querySelector('.close-popup');
+        closeBtn.addEventListener('click', () => {
+            closePopup();
+        });
+
+        fetchTagDescription(tagName).then(desc => {
+            if (desc.exists) {
+                const parsed = parseDText(desc.body);
+                content.innerHTML = `<div class="tag-popup-text">${parsed}</div>`;
+            } else {
+                content.innerHTML = `<div class="tag-popup-error">${escapeHtml(desc.body)}</div>`;
+            }
+        }).catch(() => {
+            content.innerHTML = '<div class="tag-popup-error">Failed to load description.</div>';
+        });
+    }
+
+    function attachLongPressHandlers(element, tagObj) {
+        const handler = (e) => {
+            e.preventDefault();
+            showTagPopup(tagObj, element);
+        };
+        element.addEventListener('contextmenu', handler);
+        element._contextmenuHandler = handler;
+    }
+
     function handleTagClick(tagObj, element) {
         const tag = tagObj.tag;
         const prob = tagObj.prob;
@@ -667,10 +855,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     tagEl.classList.add('removed');
                 }
 
-                tagEl.addEventListener('click', (e) => {
+                const clickHandler = (e) => {
                     e.stopPropagation();
                     handleTagClick(item, tagEl);
-                });
+                };
+                tagEl._clickHandler = clickHandler;
+                tagEl.addEventListener('click', clickHandler);
+
+                attachLongPressHandlers(tagEl, item);
+
                 tagsContainer.appendChild(tagEl);
             });
 
@@ -797,6 +990,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.body.removeChild(textarea);
     }
+
+    document.addEventListener('click', (e) => {
+        if (currentPopup && !currentPopup.contains(e.target)) {
+            closePopup();
+        }
+    });
 
     results.style.display = 'none';
     loadSettings();
