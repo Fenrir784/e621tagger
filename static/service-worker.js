@@ -1,6 +1,7 @@
-const CACHE_VERSION = 'v12';
+const CACHE_VERSION = 'v13';
 const CACHE_NAME = `e621tagger-${CACHE_VERSION}`;
 const STATIC_CACHE = `${CACHE_NAME}-static`;
+
 const urlsToCache = [
   '/',
   '/static/css/style.css',
@@ -57,8 +58,8 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  const isStatic = url.pathname.startsWith('/static/') || 
-                   url.pathname === '/favicon.ico' || 
+  const isStatic = url.pathname.startsWith('/static/') ||
+                   url.pathname === '/favicon.ico' ||
                    url.pathname === '/manifest.json';
 
   if (event.request.method !== 'GET') {

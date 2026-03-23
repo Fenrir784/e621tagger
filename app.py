@@ -206,7 +206,7 @@ def predict():
         })
     except Exception as e:
         logger.error(f"IP={ip}: error processing file '{filename}': {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Internal server error'}), 500
     finally:
         os.unlink(temp_path)
 
