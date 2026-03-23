@@ -71,7 +71,7 @@ services:
 
 - The backend uses **PyTorch** and the **JTP-3 Hydra** model, a fine‑tuned image classifier trained on e621 data.
 - When you upload an image, it is resized, converted to patches, and fed through the model.
-- The model outputs confidence scores for over 7,500 possible tags; the top 250 are returned.
+- The model outputs confidence scores for over 7,500 possible tags; the adjustable amount of tags from top 50 to 250 are returned.
 - All processing happens on the server; no data is sent to third parties.
 
 ---
