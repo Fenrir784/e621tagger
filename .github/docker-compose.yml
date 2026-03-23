@@ -1,0 +1,26 @@
+services:
+  e621tagger:
+    container_name: e621tagger
+    image: ghcr.io/fenrir784/e621tagger:latest
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: 12
+    expose:
+      - 5000
+    networks:
+      - lushway_web
+    environment:
+      - TZ=Europe/Moscow
+      - SAVE_UPLOADS=true
+    volumes:
+      - /home/fenrir784/e621tagger-saved/uploads:/app/uploads
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tagger.rule=Host(`www.tagger.fenrir784.ru`)
+      - traefik.http.routers.tagger.entrypoints=websecure
+networks:
+  lushway_web:
+    external: true
