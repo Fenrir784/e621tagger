@@ -40,7 +40,7 @@ jobs:
               APP_VERSION="latest"
             fi
           else
-            APP_VERSION="dev"
+            APP_VERSION="test"
           fi
           echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
           echo "Using version: $APP_VERSION"
