@@ -89,6 +89,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
+          build-summary: false
 
       - name: Sign the published Docker image
         env:
