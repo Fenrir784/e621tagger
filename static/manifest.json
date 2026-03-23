@@ -3,19 +3,56 @@
   "short_name": "e621tagger",
   "description": "Image tagger for e621 using JTP-3 Hydra model",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0a0c10",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
   "theme_color": "#8b4aff",
+  "background_color": "#0a0c10",
+  "categories": ["utilities", "productivity", "multimedia"],
   "icons": [
     {
       "src": "/static/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/static/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "/static/screenshots/desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop view with tag results"
+    },
+    {
+      "src": "/static/screenshots/mobile.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "label": "Mobile view with tag categories"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Upload",
+      "short_name": "Upload",
+      "description": "Upload a new image to tag",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/static/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }
