@@ -95,14 +95,13 @@ jobs:
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
 
-      - name: Clean up docker images
-        uses: dataaxiom/ghcr-cleanup-action@main
+      - name: Clean up old package versions
+        uses: actions/delete-package-versions@main
         with:
-          keep-n-tagged: 4
-          exclude-tags: latest
-          delete-untagged: true
-          delete-partial-images: true
-          delete-orphaned-images: true
+          package-name: ${{ env.IMAGE_NAME }}
+          package-type: 'container'
+          min-versions-to-keep: 4
+          ignore-versions: '^(latest|test)$'
 
       - name: Print published image info
         run: |
