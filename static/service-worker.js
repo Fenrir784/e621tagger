@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `e621tagger-${CACHE_VERSION}`;
 const urlsToCache = [
   '/',
