@@ -96,12 +96,14 @@ jobs:
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
 
       - name: Clean up old package versions
-        uses: actions/delete-package-versions@main
+        uses: actions/delete-package-versions@v5
         with:
-          package-name: ${{ env.IMAGE_NAME }}
+          owner: ${{ github.repository_owner }}
+          package-name: ${{ github.event.repository.name }}
           package-type: 'container'
           min-versions-to-keep: 4
           ignore-versions: '^(latest|test)$'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Print published image info
         run: |
