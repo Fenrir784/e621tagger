@@ -720,7 +720,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.addEventListener('message', event => {
             if (event.data && event.data.action === 'offline') {
-                showNotification('You are offline. Some features may be limited.', 'info', 5000);
+                showNotification('You are offline. Check your network connection.', 'info', 5000);
             }
         });
     }
