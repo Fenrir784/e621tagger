@@ -10,6 +10,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  DOCKER_BUILD_SUMMARY: false
 
 jobs:
   build:
@@ -21,11 +22,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
 
       - name: Cache model (JTP-3 hydra)
         id: cache-model
-        uses: actions/cache@v4
+        uses: actions/cache@main
         with:
           path: models
           key: ${{ runner.os }}-model-jtp3-hydra
@@ -34,11 +37,13 @@ jobs:
         if: steps.cache-model.outputs.cache-hit != 'true'
         run: |
           mkdir -p models
-          wget -q https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors -O models/jtp-3-hydra.safetensors
+          echo "Downloading model (this may take a while)..."
+          wget -q --progress=bar:force:noscroll https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors -O models/jtp-3-hydra.safetensors
+          echo "Model downloaded."
 
       - name: Cache tag data (CSV)
         id: cache-data
-        uses: actions/cache@v4
+        uses: actions/cache@main
         with:
           path: data
           key: ${{ runner.os }}-data-jtp3-hydra
@@ -50,15 +55,13 @@ jobs:
           wget -q https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv -O data/jtp-3-hydra-tags.csv
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20
-        with:
-          cosign-release: 'v2.2.4'
+        uses: sigstore/cosign-installer@main
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226
+        uses: docker/setup-buildx-action@master
 
       - name: Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+        uses: docker/login-action@master
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -66,7 +69,7 @@ jobs:
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934
+        uses: docker/metadata-action@master
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -76,7 +79,7 @@ jobs:
 
       - name: Build and push Docker image
         id: build-and-push
-        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09
+        uses: docker/build-push-action@master
         with:
           context: .
           push: true
@@ -84,6 +87,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: false
 
       - name: Sign the published Docker image
         env:
@@ -92,10 +96,10 @@ jobs:
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
 
       - name: Clean up docker images
-        uses: dataaxiom/ghcr-cleanup-action@v1.0.16
+        uses: dataaxiom/ghcr-cleanup-action@main
         with:
           keep-n-tagged: 4
-          exclude-tags: latest
+          exclude-tags: latest,test
           delete-untagged: true
           delete-partial-images: true
           delete-orphaned-images: true
@@ -103,5 +107,8 @@ jobs:
       - name: Print published image info
         run: |
           FIRST_TAG=$(echo "${{ steps.meta.outputs.tags }}" | cut -d' ' -f1)
-          echo "Built image: $FIRST_TAG" >> $GITHUB_STEP_SUMMARY
+          DIGEST="${{ steps.build-and-push.outputs.digest }}"
+          echo "## 🐳 Docker Image Built" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${FIRST_TAG}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Digest:** \`${DIGEST}\`" >> $GITHUB_STEP_SUMMARY
           echo "Built image: $FIRST_TAG"
