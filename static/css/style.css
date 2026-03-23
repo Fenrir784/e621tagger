@@ -1194,3 +1194,21 @@ input[type="number"] {
     color: var(--low-text);
     font-style: italic;
 }
+
+body {
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+h1, .site-info, .tag-popup .tag-popup-title, .tag-popup .tag-popup-text {
+    user-select: text;
+}
+
+.tag, .category-name, .rating-display, .toggle-label, .global-copy-btn, .cat-copy-btn, .settings-toggle, .preset-btn, .format-option, .max-tag-option, .reset-btn, .apply-btn, .close-settings, .theme-option {
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+input, textarea {
+    user-select: text;
+}
