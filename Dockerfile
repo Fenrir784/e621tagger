@@ -2,6 +2,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+ARG APP_VERSION=dev
+
 RUN apt-get update && apt-get install -y \
     libgl1 \
     libglib2.0-0 \
@@ -21,6 +23,8 @@ COPY data/ ./data/
 COPY *.py ./
 COPY templates/ ./templates/
 COPY static/ ./static/
+
+RUN sed -i "s/{{APP_VERSION}}/${APP_VERSION}/g" templates/index.html static/service-worker.js
 
 EXPOSE 5000
 
