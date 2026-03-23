@@ -717,6 +717,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     window.addEventListener('resize', () => { if (settingsMenu.classList.contains('show')) positionSettingsMenu(); });
 
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data && event.data.action === 'offline') {
+                showNotification('You are offline. Some features may be limited.', 'info', 5000);
+            }
+        });
+    }
+
     results.style.display = 'none';
     loadSettings();
     initHammer();
