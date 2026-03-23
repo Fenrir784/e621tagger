@@ -44,9 +44,15 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    }).then(() => clients.claim())
-  );
-});
+    }).then(() => {
+      return clients.claim();
+    }).then(() => {
+      clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ action: 'reload' });
+        });
+      });
+    })
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
