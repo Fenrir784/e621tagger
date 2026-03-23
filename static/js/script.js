@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tagDescriptionCache = new Map();
     let currentPopup = null;
+    let activePopupTagElement = null;
+    let pressBlockTap = false;
 
     function preloadCreatures() {
         creaturePaths.forEach(path => { new Image().src = path; });
@@ -278,10 +280,13 @@ document.addEventListener('DOMContentLoaded', () => {
             currentPopup.remove();
             currentPopup = null;
         }
+        activePopupTagElement = null;
     }
 
     function showTagPopup(tagObj, targetElement) {
+        if (currentPopup && activePopupTagElement === targetElement) return;
         if (currentPopup) closePopup();
+        activePopupTagElement = targetElement;
         const tagName = tagObj.tag;
         const popup = document.createElement('div');
         popup.className = 'tag-popup';
@@ -318,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleTagClick(tagObj, element) {
+        if (pressBlockTap) return;
         const tag = tagObj.tag;
         const prob = tagObj.prob;
         const category = prob >= confidentThreshold ? 'confident' : (prob >= allThreshold ? 'all' : 'low');
@@ -457,10 +463,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function attachTagEvents(tagEl, tagObj) {
+        let pressTimer = null;
         const hammer = new Hammer(tagEl);
-        hammer.on('tap', (e) => { e.srcEvent.stopPropagation(); handleTagClick(tagObj, tagEl); });
-        hammer.on('press', (e) => { e.srcEvent.preventDefault(); showTagPopup(tagObj, tagEl); });
-        tagEl.addEventListener('contextmenu', (e) => { e.preventDefault(); showTagPopup(tagObj, tagEl); });
+        hammer.on('tap', (e) => {
+            if (pressBlockTap) {
+                pressBlockTap = false;
+                return;
+            }
+            handleTagClick(tagObj, tagEl);
+        });
+        hammer.on('press', (e) => {
+            e.srcEvent.preventDefault();
+            if (pressTimer) clearTimeout(pressTimer);
+            pressBlockTap = true;
+            pressTimer = setTimeout(() => {
+                pressBlockTap = false;
+                pressTimer = null;
+            }, 500);
+            showTagPopup(tagObj, tagEl);
+        });
+        tagEl.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (!pressBlockTap) showTagPopup(tagObj, tagEl);
+        });
         tagEl._hammer = hammer;
     }
 
@@ -684,7 +709,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.type.startsWith('image/')) { const file = item.getAsFile(); if (file) { handleFiles([file]); e.preventDefault(); break; } }
         }
     });
-    document.addEventListener('click', (e) => { if (currentPopup && !currentPopup.contains(e.target)) closePopup(); if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) toggleSettings(false); });
+    document.addEventListener('click', (e) => {
+        if (currentPopup && !currentPopup.contains(e.target) && (!activePopupTagElement || !activePopupTagElement.contains(e.target))) {
+            closePopup();
+        }
+        if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) toggleSettings(false);
+    });
     window.addEventListener('resize', () => { if (settingsMenu.classList.contains('show')) positionSettingsMenu(); });
 
     results.style.display = 'none';
