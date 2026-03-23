@@ -1,124 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>e621tagger</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>e621 Tagger</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
+    <meta name="darkreader" content="disabled">
+    <meta name="theme-color" content="#8b4aff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="e621tagger">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 </head>
 <body>
     <div class="container">
+        <div id="notification-container"></div>
         <header>
             <div class="header-left">
-                <div class="egg-container" id="eggContainer">
-                    <img src="/static/egg-top.png" alt="" class="egg-top" id="eggTop">
-                    <img src="/static/egg-bottom.png" alt="" class="egg-bottom" id="eggBottom">
-                    <img src="/static/f1.png" alt="" class="egg-creature" id="eggCreature">
-                </div>
+                <button id="settingsToggle" class="settings-toggle">⚙️</button>
             </div>
-            <h1>e621 Tagger</h1>
+            <h1>e621tagger</h1>
             <div class="header-right">
-                <button class="settings-toggle" id="settingsToggle" aria-label="Settings">⚙️</button>
+                <div class="egg-container" id="eggContainer">
+                    <img src="/static/egg_top.png" class="egg-top" alt="" draggable="false">
+                    <img src="/static/egg_bottom.png" class="egg-bottom" alt="" draggable="false">
+                    <img src="" class="egg-creature" id="eggCreature" alt="" draggable="false">
+                </div>
             </div>
         </header>
-
-        <div id="dropZone" class="drop-zone">
-            <div id="uploadContent" class="upload-content">
-                <svg class="upload-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 16v-8m0 0-3 3m3-3 3 3M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-                </svg>
-                <p>Drag & drop or click to upload</p>
-                <p class="small">JPEG, PNG, WebP up to 20MB</p>
+        <div id="settingsMenu" class="settings-menu">
+            <div class="settings-header">
+                <span>Settings</span>
+                <div class="theme-toggle-group">
+                    <button class="theme-option active" data-theme="system">💻</button>
+                    <button class="theme-option" data-theme="light">☀️</button>
+                    <button class="theme-option" data-theme="dark">🌙</button>
+                </div>
+                <button id="closeSettings" class="close-settings">✕</button>
             </div>
-            <input type="file" id="fileInput" accept="image/*" style="display: none;">
-        </div>
-
-        <div id="results" class="results">
-            <div id="resultsContent" class="results-content">
-                <div class="results-header">
-                    <h2>Tags</h2>
-                    <div class="format-toggle">
-                        <span class="toggle-label">Format:</span>
-                        <button id="formatE621" class="toggle-btn">e621</button>
-                        <button id="formatPosty" class="toggle-btn">PostyBirb</button>
+            <div class="settings-section">
+                <h3>Thresholds</h3>
+                <div class="preset-buttons">
+                    <button class="preset-btn" data-preset="conservative">Conservative</button>
+                    <button class="preset-btn active" data-preset="standard">Standard</button>
+                    <button class="preset-btn" data-preset="liberal">Liberal</button>
+                    <button class="preset-btn" data-preset="custom" id="customPresetBtn">Custom</button>
+                </div>
+                <div class="custom-thresholds-panel" id="customThresholdsPanel">
+                    <div class="custom-inputs">
+                        <div class="input-group">
+                            <label for="customAll">All ≥</label>
+                            <input type="number" id="customAll" min="0" max="1" step="0.01" value="0.55">
+                        </div>
+                        <div class="input-group">
+                            <label for="customConfident">Confident ≥</label>
+                            <input type="number" id="customConfident" min="0" max="1" step="0.01" value="0.75">
+                        </div>
                     </div>
+                    <button id="applyCustom" class="apply-btn">Apply</button>
                 </div>
-                <div class="global-buttons">
-                    <button id="copyGlobalConfident" class="global-copy-btn confident">📋 Copy Confident</button>
-                    <button id="copyGlobalAll" class="global-copy-btn all">📋 Copy All</button>
+            </div>
+            <div class="settings-section">
+                <h3>Max tags</h3>
+                <div class="max-tags-group">
+                    <button class="max-tag-option" data-max="50">50</button>
+                    <button class="max-tag-option" data-max="75">75</button>
+                    <button class="max-tag-option" data-max="100">100</button>
+                    <button class="max-tag-option" data-max="150">150</button>
+                    <button class="max-tag-option active" data-max="200">200</button>
+                    <button class="max-tag-option" data-max="250">250</button>
                 </div>
-                <div class="rating-container">
-                    <div id="ratingDisplay" class="rating-display" style="display: none;"></div>
+            </div>
+            <div class="settings-section">
+                <h3>Default format</h3>
+                <div class="format-toggle-group">
+                    <button class="format-option active" data-format="e621">e621</button>
+                    <button class="format-option" data-format="posty">PostyBirb</button>
                 </div>
-                <div id="categoriesContainer" class="categories-container"></div>
+            </div>
+            <div class="settings-section">
+                <button id="resetSettings" class="reset-btn">Reset to defaults</button>
             </div>
         </div>
-
-        <div class="site-info">
-            Powered by <a href="https://github.com/Fenrir784/e621tagger" target="_blank">e621Tagger</a> • 
-            Model: <a href="https://huggingface.co/Fenrir784/e621-vit-l-large" target="_blank">e621-vit-l-large</a> • 
-            Data from <a href="https://e621.net" target="_blank">e621.net</a>
-        </div>
+        <main>
+            <div id="dropZone">
+                <div class="upload-content" id="uploadContent">
+                    <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    <p>Drag & drop image here, Ctrl+V or click to select</p>
+                    <p class="small">Supports: PNG, JPG, GIF, WebP, BMP, TIFF (max 20MB)</p>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" hidden>
+            </div>
+            <div class="results" id="results">
+                <div class="results-content" id="resultsContent">
+                    <div class="results-header">
+                        <h2>Generated Tags</h2>
+                        <div class="format-toggle">
+                            <span class="toggle-label">Format:</span>
+                            <button class="toggle-btn active" id="formatE621">e621</button>
+                            <button class="toggle-btn" id="formatPosty">PostyBirb</button>
+                        </div>
+                    </div>
+                    <div class="global-buttons">
+                        <button class="global-copy-btn confident" id="copyGlobalConfident">Copy Confident Tags</button>
+                        <button class="global-copy-btn all" id="copyGlobalAll">Copy All Tags</button>
+                    </div>
+                    <div class="rating-container">
+                        <div class="rating-display" id="ratingDisplay"></div>
+                    </div>
+                    <div class="categories-container" id="categoriesContainer"></div>
+                </div>
+            </div>
+            <div class="site-info">
+                <p>Model: <a href="https://huggingface.co/RedRocket/JTP-3" target="_blank">RedRocket/JTP-3</a></p>
+                <p>Created by <a href="https://fenrir784.ru" target="_blank">fenrir784.ru</a></p>
+                <p><a href="https://github.com/Fenrir784/e621tagger" target="_blank">Open Source</a></p>
+            </div>
+        </main>
     </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').then(reg => {
+                    console.log('Service Worker registered:', reg);
+                }).catch(err => {
+                    console.error('Service Worker registration failed:', err);
+                });
+            });
 
-    <div id="notification-container"></div>
-
-    <div id="settingsMenu" class="settings-menu">
-        <div class="settings-header">
-            <span>Settings</span>
-            <div class="theme-toggle-group">
-                <button class="theme-option" data-theme="system">🌓 System</button>
-                <button class="theme-option" data-theme="light">☀️ Light</button>
-                <button class="theme-option" data-theme="dark">🌙 Dark</button>
-            </div>
-            <button id="closeSettings" class="close-settings">✕</button>
-        </div>
-        <div class="settings-section">
-            <h3>Confidence thresholds</h3>
-            <div class="preset-buttons">
-                <button class="preset-btn" data-preset="conservative">Conservative (0.65 / 0.85)</button>
-                <button class="preset-btn" data-preset="standard">Standard (0.55 / 0.75)</button>
-                <button class="preset-btn" data-preset="liberal">Liberal (0.45 / 0.65)</button>
-                <button class="preset-btn" data-preset="custom">Custom</button>
-            </div>
-            <div id="customThresholdsPanel" class="custom-thresholds-panel">
-                <div class="custom-inputs">
-                    <div class="input-group">
-                        <label>All (≥)</label>
-                        <input type="number" id="customAll" step="0.01" min="0" max="1">
-                    </div>
-                    <div class="input-group">
-                        <label>Confident (≥)</label>
-                        <input type="number" id="customConfident" step="0.01" min="0" max="1">
-                    </div>
-                </div>
-                <button id="applyCustom" class="apply-btn">Apply custom</button>
-            </div>
-        </div>
-        <div class="settings-section">
-            <h3>Default format</h3>
-            <div class="format-toggle-group">
-                <button class="format-option" data-format="e621">e621</button>
-                <button class="format-option" data-format="posty">PostyBirb</button>
-            </div>
-        </div>
-        <div class="settings-section">
-            <h3>Max tags to return</h3>
-            <div class="max-tags-group">
-                <button class="max-tag-option" data-max="50">50</button>
-                <button class="max-tag-option" data-max="75">75</button>
-                <button class="max-tag-option" data-max="100">100</button>
-                <button class="max-tag-option" data-max="150">150</button>
-                <button class="max-tag-option" data-max="200">200</button>
-                <button class="max-tag-option" data-max="250">250</button>
-            </div>
-        </div>
-        <div class="settings-section">
-            <button id="resetSettings" class="reset-btn">Reset to defaults</button>
-        </div>
-    </div>
-
-    <script src="/static/js/script.js"></script>
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data && event.data.action === 'reload') {
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
 </body>
 </html>
