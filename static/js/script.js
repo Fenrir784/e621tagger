@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
     const ALLOWED_MAX_TAGS = [50, 75, 100, 150, 200, 250];
+    const LONG_PRESS_DURATION = 500;
 
     let allTags = [];
     let currentFormat = 'e621';
@@ -541,67 +542,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function parseDText(dtext) {
-    if (!dtext) return '';
+        if (!dtext) return '';
 
-    let text = dtext.slice(0, 1000);
+        let text = dtext.slice(0, 1000);
 
-    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-    text = text.replace(/thumb\s+#\d+\s*/g, '');
+        text = text.replace(/thumb\s+#\d+\s*/g, '');
 
-    text = text.replace(/\[section[^\]]*\]([\s\S]*?)\[\/section\]/g, '$1');
-    text = text.replace(/\[quote[^\]]*\]([\s\S]*?)\[\/quote\]/g, '$1');
-    text = text.replace(/\[table[^\]]*\]([\s\S]*?)\[\/table\]/g, '$1');
-    text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
+        text = text.replace(/\[section[^\]]*\]([\s\S]*?)\[\/section\]/g, '$1');
+        text = text.replace(/\[quote[^\]]*\]([\s\S]*?)\[\/quote\]/g, '$1');
+        text = text.replace(/\[table[^\]]*\]([\s\S]*?)\[\/table\]/g, '$1');
+        text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
 
-    text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
+        text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
 
-    text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText) => {
-        return `<span style="color: var(--confident-bg);">${escapeHtml(linkText)}</span>`;
-    });
+        text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText) => {
+            return `<span style="color: var(--confident-bg);">${escapeHtml(linkText)}</span>`;
+        });
 
-    text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => {
-        return `<span style="color: var(--confident-bg);">${escapeHtml(display)}</span>`;
-    });
-    text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
-        return `<span style="color: var(--confident-bg);">${escapeHtml(p1)}</span>`;
-    });
+        text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => {
+            return `<span style="color: var(--confident-bg);">${escapeHtml(display)}</span>`;
+        });
+        text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
+            return `<span style="color: var(--confident-bg);">${escapeHtml(p1)}</span>`;
+        });
 
-    let lines = text.split('\n');
-    let processedLines = [];
+        let lines = text.split('\n');
+        let processedLines = [];
 
-    for (let line of lines) {
-        let trimmed = line;
+        for (let line of lines) {
+            let trimmed = line;
 
-        const headerMatch = trimmed.match(/^\s*h([1-6])(?:\.?\s*)(.*)$/i);
-        if (headerMatch) {
-            trimmed = `<strong style="color: var(--confident-bg);">${headerMatch[2]}</strong>`;
-        } else {
-            trimmed = trimmed.replace(/^(\*+)\s+/, '');
+            const headerMatch = trimmed.match(/^\s*h([1-6])(?:\.?\s*)(.*)$/i);
+            if (headerMatch) {
+                trimmed = `<strong style="color: var(--confident-bg);">${headerMatch[2]}</strong>`;
+            } else {
+                trimmed = trimmed.replace(/^(\*+)\s+/, '');
+            }
+
+            if (trimmed.trim() !== '') {
+                processedLines.push(trimmed);
+            }
         }
 
-        if (trimmed.trim() !== '') {
-            processedLines.push(trimmed);
+        text = processedLines.join('\n');
+
+        text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
+        text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
+        text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
+        text = text.replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>');
+
+        text = text.replace(/\n/g, '<br>');
+        text = text.replace(/(<br>){3,}/g, '<br><br>');
+        text = text.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
+
+        if (dtext.length > 1000) {
+            text += '…';
         }
+
+        return text;
     }
-
-    text = processedLines.join('\n');
-
-    text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
-    text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
-    text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
-    text = text.replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>');
-
-    text = text.replace(/\n/g, '<br>');
-    text = text.replace(/(<br>){3,}/g, '<br><br>');
-    text = text.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
-
-    if (dtext.length > 1000) {
-        text += '…';
-    }
-
-    return text;
-}
 
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
@@ -614,16 +615,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let currentPopup = null;
+    let isLongPressTriggered = false;
 
     function closePopup() {
         if (currentPopup) {
             currentPopup.remove();
             currentPopup = null;
         }
+        isLongPressTriggered = false;
     }
 
     function showTagPopup(tagObj, targetElement) {
         if (currentPopup) closePopup();
+        isLongPressTriggered = true;
 
         const tagName = tagObj.tag;
 
@@ -684,15 +688,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function attachLongPressHandlers(element, tagObj) {
-        const handler = (e) => {
+        let pressTimer = null;
+
+        const startPress = (e) => {
+            if (pressTimer) clearTimeout(pressTimer);
+            pressTimer = setTimeout(() => {
+                showTagPopup(tagObj, element);
+                element.removeEventListener('click', element._clickHandler);
+                setTimeout(() => {
+                    element.addEventListener('click', element._clickHandler);
+                }, 100);
+            }, LONG_PRESS_DURATION);
+        };
+
+        const cancelPress = () => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+        };
+
+        element.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startPress(e);
+        });
+        element.addEventListener('touchend', cancelPress);
+        element.addEventListener('touchcancel', cancelPress);
+
+        element.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             showTagPopup(tagObj, element);
-        };
-        element.addEventListener('contextmenu', handler);
-        element._contextmenuHandler = handler;
+            element.removeEventListener('click', element._clickHandler);
+            setTimeout(() => {
+                element.addEventListener('click', element._clickHandler);
+            }, 100);
+        });
+
+        element.addEventListener('mousedown', (e) => {
+            if (e.button === 0) startPress(e);
+        });
+        element.addEventListener('mouseup', cancelPress);
+        element.addEventListener('mouseleave', cancelPress);
     }
 
     function handleTagClick(tagObj, element) {
+        if (isLongPressTriggered) {
+            isLongPressTriggered = false;
+            return;
+        }
         const tag = tagObj.tag;
         const prob = tagObj.prob;
         const category = getTagCategory(prob);
