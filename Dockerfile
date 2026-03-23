@@ -14,6 +14,9 @@ RUN mkdir -p models data
 
 COPY models/ ./models/
 COPY data/ ./data/
+# Replace copy with ADD if building locally
+#ADD https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors models/jtp-3-hydra.safetensors
+#ADD https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv data/jtp-3-hydra-tags.csv
 
 COPY *.py ./
 COPY templates/ ./templates/
