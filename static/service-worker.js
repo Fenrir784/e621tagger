@@ -1,5 +1,6 @@
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `e621tagger-${CACHE_VERSION}`;
+const STATIC_CACHE = `${CACHE_NAME}-static`;
 const urlsToCache = [
   '/',
   '/static/css/style.css',
@@ -27,7 +28,7 @@ const urlsToCache = [
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(STATIC_CACHE).then(cache => cache.addAll(urlsToCache))
   );
   self.skipWaiting();
 });
@@ -37,7 +38,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(keys => {
       return Promise.all(
         keys.map(key => {
-          if (key !== CACHE_NAME) {
+          if (key !== STATIC_CACHE) {
             return caches.delete(key);
           }
         })
@@ -55,9 +56,67 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  const isStatic = url.pathname.startsWith('/static/') || 
+                   url.pathname === '/favicon.ico' || 
+                   url.pathname === '/manifest.json';
+
+  if (event.request.method !== 'GET') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  if (url.pathname === '/predict') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(async () => {
+        const cache = await caches.open(STATIC_CACHE);
+        const cachedResponse = await cache.match('/');
+        if (cachedResponse) {
+          const clientsList = await clients.matchAll({ type: 'window' });
+          clientsList.forEach(client => {
+            client.postMessage({ action: 'offline' });
+          });
+          return cachedResponse;
+        }
+        return new Response('Offline: unable to load page', { status: 503 });
+      })
+    );
+    return;
+  }
+
+  if (isStatic) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        const fetchPromise = fetch(event.request).then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(STATIC_CACHE).then(cache => {
+              cache.put(event.request, networkResponse.clone());
+            });
+          }
+          return networkResponse;
+        }).catch(() => null);
+        return cached || fetchPromise;
+      })
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+      return fetch(event.request).then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200) {
+          caches.open(STATIC_CACHE).then(cache => {
+            cache.put(event.request, networkResponse.clone());
+          });
+        }
+        return networkResponse;
+      });
     })
   );
 });
