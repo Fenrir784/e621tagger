@@ -1,9 +1,10 @@
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `e621tagger-${CACHE_VERSION}`;
 const urlsToCache = [
   '/',
   '/static/css/style.css',
   '/static/js/script.js',
+  '/static/js/hammer.min.js',
   '/static/manifest.json',
   '/static/android-chrome-192x192.png',
   '/static/android-chrome-512x512.png',
