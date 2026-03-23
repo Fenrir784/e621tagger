@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function parseDText(dtext) {
         if (!dtext) return '';
-        let text = dtext.slice(0, 1000);
+        let text = escapeHtml(dtext.slice(0, 1000));
         text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
         text = text.replace(/thumb\s+#\d+\s*/g, '');
         text = text.replace(/\[section[^\]]*\]([\s\S]*?)\[\/section\]/g, '$1');
@@ -228,9 +228,9 @@ document.addEventListener('DOMContentLoaded', () => {
         text = text.replace(/\[table[^\]]*\]([\s\S]*?)\[\/table\]/g, '$1');
         text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
         text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
-        text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText) => `<span style="color: var(--confident-bg);">${escapeHtml(linkText)}</span>`);
-        text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => `<span style="color: var(--confident-bg);">${escapeHtml(display)}</span>`);
-        text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => `<span style="color: var(--confident-bg);">${escapeHtml(p1)}</span>`);
+        text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText) => `<span style="color: var(--confident-bg);">${linkText}</span>`);
+        text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => `<span style="color: var(--confident-bg);">${display}</span>`);
+        text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => `<span style="color: var(--confident-bg);">${p1}</span>`);
         let lines = text.split('\n');
         let processedLines = [];
         for (let line of lines) {
