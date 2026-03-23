@@ -23,16 +23,42 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache model (JTP-3 hydra)
+        id: cache-model
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: ${{ runner.os }}-model-jtp3-hydra
+
+      - name: Download model if not cached
+        if: steps.cache-model.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p models
+          wget -q https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors -O models/jtp-3-hydra.safetensors
+
+      - name: Cache tag data (CSV)
+        id: cache-data
+        uses: actions/cache@v4
+        with:
+          path: data
+          key: ${{ runner.os }}-data-jtp3-hydra
+
+      - name: Download tag data if not cached
+        if: steps.cache-data.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p data
+          wget -q https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv -O data/jtp-3-hydra-tags.csv
+
       - name: Install cosign
-        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20
         with:
           cosign-release: 'v2.2.4'
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226
 
       - name: Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -40,7 +66,7 @@ jobs:
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -50,7 +76,7 @@ jobs:
 
       - name: Build and push Docker image
         id: build-and-push
-        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09
         with:
           context: .
           push: true
