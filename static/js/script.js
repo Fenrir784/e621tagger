@@ -551,9 +551,15 @@ document.addEventListener('DOMContentLoaded', () => {
         text = text.replace(/\[table[^\]]*\]([\s\S]*?)\[\/table\]/g, '$1');
         text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
         text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
-        text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText) => `<span style="color: var(--confident-bg);">${escapeHtml(linkText)}</span>`);
-        text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => `<span style="color: var(--confident-bg);">${escapeHtml(display)}</span>`);
-        text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => `<span style="color: var(--confident-bg);">${escapeHtml(p1)}</span>`);
+        text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText) => {
+            return `<span style="color: var(--confident-bg);">${escapeHtml(linkText)}</span>`;
+        });
+        text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => {
+            return `<span style="color: var(--confident-bg);">${escapeHtml(display)}</span>`;
+        });
+        text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
+            return `<span style="color: var(--confident-bg);">${escapeHtml(p1)}</span>`;
+        });
 
         let lines = text.split('\n');
         let processedLines = [];
@@ -570,7 +576,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         text = processedLines.join('\n');
-
         text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
         text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
         text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
@@ -578,7 +583,6 @@ document.addEventListener('DOMContentLoaded', () => {
         text = text.replace(/\n/g, '<br>');
         text = text.replace(/(<br>){3,}/g, '<br><br>');
         text = text.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
-
         if (dtext.length > 1000) {
             text += '…';
         }
@@ -642,6 +646,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (top + popupRect.height > viewportHeight - 10) {
             top = rect.top - popupRect.height - 8;
         }
+
         left = Math.max(10, Math.min(left, viewportWidth - popupRect.width - 10));
 
         popup.style.top = `${top + window.scrollY}px`;
@@ -661,27 +666,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }).catch(() => {
             content.innerHTML = '<div class="tag-popup-error">Failed to load description.</div>';
-        });
-    }
-
-    let isLongPress = false;
-
-    function attachLongPressHandlers(element, tagObj) {
-        const hammer = new Hammer.Manager(element);
-        const press = new Hammer.Press({ time: 500 });
-        hammer.add(press);
-        hammer.on('press', (e) => {
-            e.srcEvent.preventDefault();
-            isLongPress = true;
-            showTagPopup(tagObj, element);
-        });
-        element.addEventListener('click', (e) => {
-            if (isLongPress) {
-                e.stopPropagation();
-                isLongPress = false;
-                return;
-            }
-            handleTagClick(tagObj, element);
         });
     }
 
@@ -848,7 +832,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     tagEl.classList.add('removed');
                 }
 
-                attachLongPressHandlers(tagEl, item);
+                const clickHandler = (e) => {
+                    e.stopPropagation();
+                    handleTagClick(item, tagEl);
+                };
+                tagEl.addEventListener('click', clickHandler);
+
+                const hammer = new Hammer.Manager(tagEl);
+                const press = new Hammer.Press({ time: 500 });
+                hammer.add(press);
+                hammer.on('press', (e) => {
+                    e.preventDefault();
+                    e.srcEvent.preventDefault();
+                    showTagPopup(item, tagEl);
+                });
+                tagEl._hammer = hammer;
 
                 tagsContainer.appendChild(tagEl);
             });
