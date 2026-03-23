@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('resetSettings');
     const themeOptions = document.querySelectorAll('.theme-option');
     const maxTagBtns = document.querySelectorAll('.max-tag-option');
-
     const eggContainer = document.getElementById('eggContainer');
     const eggCreature = document.getElementById('eggCreature');
 
@@ -43,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let maxTags = 200;
 
     const ratingTags = new Set(['safe', 'questionable', 'explicit']);
-
     const creaturePaths = [
         '/static/f1.png',
         '/static/f2.png',
@@ -56,22 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
         '/static/f9.png'
     ];
 
+    const tagDescriptionCache = new Map();
+    let currentPopup = null;
+
     function preloadCreatures() {
-        creaturePaths.forEach(path => {
-            const img = new Image();
-            img.src = path;
-        });
+        creaturePaths.forEach(path => { new Image().src = path; });
     }
     preloadCreatures();
-
-    eggContainer.addEventListener('click', () => {
-        const isOpen = eggContainer.classList.contains('open');
-        if (!isOpen) {
-            const randomIndex = Math.floor(Math.random() * creaturePaths.length);
-            eggCreature.src = creaturePaths[randomIndex];
-        }
-        eggContainer.classList.toggle('open');
-    });
 
     function loadSettings() {
         const saved = localStorage.getItem('e621tagger-settings');
@@ -117,28 +106,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateMaxTagsUI() {
         maxTagBtns.forEach(btn => {
             const val = parseInt(btn.dataset.max);
-            if (val === maxTags) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
+            if (val === maxTags) btn.classList.add('active');
+            else btn.classList.remove('active');
         });
     }
 
     function updateTheme(theme) {
         currentTheme = theme;
         document.body.classList.remove('theme-light', 'theme-dark');
-        if (theme === 'light') {
-            document.body.classList.add('theme-light');
-        } else if (theme === 'dark') {
-            document.body.classList.add('theme-dark');
-        }
+        if (theme === 'light') document.body.classList.add('theme-light');
+        else if (theme === 'dark') document.body.classList.add('theme-dark');
         themeOptions.forEach(opt => {
-            if (opt.dataset.theme === theme) {
-                opt.classList.add('active');
-            } else {
-                opt.classList.remove('active');
-            }
+            if (opt.dataset.theme === theme) opt.classList.add('active');
+            else opt.classList.remove('active');
         });
     }
 
@@ -154,28 +134,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateSettingsFormatUI() {
         formatOptions.forEach(opt => {
-            if (opt.dataset.format === savedFormat) {
-                opt.classList.add('active');
-            } else {
-                opt.classList.remove('active');
-            }
+            if (opt.dataset.format === savedFormat) opt.classList.add('active');
+            else opt.classList.remove('active');
         });
     }
 
     function updateThresholdUI() {
         presetBtns.forEach(btn => {
             const preset = btn.dataset.preset;
-            if (preset === activePreset) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
+            if (preset === activePreset) btn.classList.add('active');
+            else btn.classList.remove('active');
         });
-        if (activePreset === 'custom') {
-            customPanel.classList.add('open');
-        } else {
-            customPanel.classList.remove('open');
-        }
+        if (activePreset === 'custom') customPanel.classList.add('open');
+        else customPanel.classList.remove('open');
         customAllInput.value = allThreshold.toFixed(2);
         customConfidentInput.value = confidentThreshold.toFixed(2);
     }
@@ -186,17 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const tagObj = allTags.find(t => t.tag === tagName);
             if (!tagObj) return;
             el.classList.remove('confident', 'all');
-            if (tagObj.prob >= confidentThreshold) {
-                el.classList.add('confident');
-            } else if (tagObj.prob >= allThreshold) {
-                el.classList.add('all');
-            }
+            if (tagObj.prob >= confidentThreshold) el.classList.add('confident');
+            else if (tagObj.prob >= allThreshold) el.classList.add('all');
             el.classList.remove('added', 'removed');
-            if (addedTags.has(tagName)) {
-                el.classList.add('added');
-            } else if (removedTags.has(tagName)) {
-                el.classList.add('removed');
-            }
+            if (addedTags.has(tagName)) el.classList.add('added');
+            else if (removedTags.has(tagName)) el.classList.add('removed');
         });
         updateCategoryButtonsDisabled();
     }
@@ -209,93 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateThresholdUI();
         saveSettings();
     }
-
-    presetBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const preset = btn.dataset.preset;
-            if (preset === 'custom') {
-                activePreset = 'custom';
-                updateThresholdUI();
-                saveSettings();
-                return;
-            }
-            activePreset = preset;
-            switch (preset) {
-                case 'conservative':
-                    allThreshold = 0.65;
-                    confidentThreshold = 0.85;
-                    break;
-                case 'standard':
-                    allThreshold = 0.55;
-                    confidentThreshold = 0.75;
-                    break;
-                case 'liberal':
-                    allThreshold = 0.45;
-                    confidentThreshold = 0.65;
-                    break;
-            }
-            customAllInput.value = allThreshold.toFixed(2);
-            customConfidentInput.value = confidentThreshold.toFixed(2);
-            applyThresholds();
-        });
-    });
-
-    applyCustom.addEventListener('click', () => {
-        const all = parseFloat(customAllInput.value);
-        const conf = parseFloat(customConfidentInput.value);
-        if (isNaN(all) || isNaN(conf) || all < 0 || all > 1 || conf < 0 || conf > 1) {
-            showNotification('Please enter valid numbers between 0 and 1.', 'error');
-            return;
-        }
-        allThreshold = all;
-        confidentThreshold = conf;
-        activePreset = 'custom';
-        applyThresholds();
-    });
-
-    formatOptions.forEach(opt => {
-        opt.addEventListener('click', () => {
-            const format = opt.dataset.format;
-            savedFormat = format;
-            updateSettingsFormatUI();
-            saveSettings();
-        });
-    });
-
-    themeOptions.forEach(opt => {
-        opt.addEventListener('click', () => {
-            const theme = opt.dataset.theme;
-            updateTheme(theme);
-            saveSettings();
-        });
-    });
-
-    maxTagBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const val = parseInt(btn.dataset.max);
-            if (ALLOWED_MAX_TAGS.includes(val)) {
-                maxTags = val;
-                updateMaxTagsUI();
-                saveSettings();
-            }
-        });
-    });
-
-    resetBtn.addEventListener('click', () => {
-        allThreshold = 0.55;
-        confidentThreshold = 0.75;
-        savedFormat = 'e621';
-        currentFormat = savedFormat;
-        currentTheme = 'system';
-        activePreset = 'standard';
-        maxTags = 200;
-        updateTheme('system');
-        updateLocalFormatUI();
-        updateSettingsFormatUI();
-        updateMaxTagsUI();
-        applyThresholds();
-        saveSettings();
-    });
 
     function toggleSettings(show) {
         if (show) {
@@ -317,90 +195,358 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsMenu.style.top = top + 'px';
     }
 
-    settingsToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleSettings(!settingsMenu.classList.contains('show'));
-    });
-
-    closeSettings.addEventListener('click', () => {
-        toggleSettings(false);
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) {
-            toggleSettings(false);
-        }
-    });
-
-    window.addEventListener('resize', () => {
-        if (settingsMenu.classList.contains('show')) {
-            positionSettingsMenu();
-        }
-    });
-
-    formatE621.addEventListener('click', () => {
-        currentFormat = 'e621';
-        updateLocalFormatUI();
-    });
-    formatPosty.addEventListener('click', () => {
-        currentFormat = 'posty';
-        updateLocalFormatUI();
-    });
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
+    function showNotification(message, type = 'error', duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        notificationContainer.appendChild(notification);
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease forwards';
+            setTimeout(() => notification.remove(), 300);
+        }, duration);
     }
 
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
-    });
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return unsafe.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
 
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        if (files.length > 0) handleFiles(files);
-    });
-
-    dropZone.addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
-
-    document.addEventListener('paste', (e) => {
-        const items = e.clipboardData?.items;
-        if (!items) return;
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            if (item.type.startsWith('image/')) {
-                const file = item.getAsFile();
-                if (file) {
-                    handleFiles([file]);
-                    e.preventDefault();
-                    break;
-                }
-            }
+    function parseDText(dtext) {
+        if (!dtext) return '';
+        let text = dtext.slice(0, 1000);
+        text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        text = text.replace(/thumb\s+#\d+\s*/g, '');
+        text = text.replace(/\[section[^\]]*\]([\s\S]*?)\[\/section\]/g, '$1');
+        text = text.replace(/\[quote[^\]]*\]([\s\S]*?)\[\/quote\]/g, '$1');
+        text = text.replace(/\[table[^\]]*\]([\s\S]*?)\[\/table\]/g, '$1');
+        text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
+        text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
+        text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText) => `<span style="color: var(--confident-bg);">${escapeHtml(linkText)}</span>`);
+        text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => `<span style="color: var(--confident-bg);">${escapeHtml(display)}</span>`);
+        text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => `<span style="color: var(--confident-bg);">${escapeHtml(p1)}</span>`);
+        let lines = text.split('\n');
+        let processedLines = [];
+        for (let line of lines) {
+            let trimmed = line;
+            const headerMatch = trimmed.match(/^\s*h([1-6])(?:\.?\s*)(.*)$/i);
+            if (headerMatch) trimmed = `<strong style="color: var(--confident-bg);">${headerMatch[2]}</strong>`;
+            else trimmed = trimmed.replace(/^(\*+)\s+/, '');
+            if (trimmed.trim() !== '') processedLines.push(trimmed);
         }
-    });
+        text = processedLines.join('\n');
+        text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
+        text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
+        text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
+        text = text.replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>');
+        text = text.replace(/\n/g, '<br>');
+        text = text.replace(/(<br>){3,}/g, '<br><br>');
+        text = text.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
+        if (dtext.length > 1000) text += '…';
+        return text;
+    }
 
+    async function fetchTagDescription(tagName) {
+        if (tagDescriptionCache.has(tagName)) return tagDescriptionCache.get(tagName);
+        const url = `https://e621.net/wiki_pages.json?search[title]=${encodeURIComponent(tagName)}&limit=1`;
+        try {
+            const response = await fetch(url, { headers: { 'User-Agent': 'e621tagger/1.0 (https://tagger.fenrir784.ru)' } });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const wiki = data[0];
+                const result = { exists: true, title: wiki.title || tagName, body: wiki.body || 'No description available.' };
+                tagDescriptionCache.set(tagName, result);
+                return result;
+            } else {
+                const result = { exists: false, title: tagName, body: 'No description found on e621.' };
+                tagDescriptionCache.set(tagName, result);
+                return result;
+            }
+        } catch (err) {
+            console.warn(`Failed to fetch description for ${tagName}:`, err);
+            return { exists: false, title: tagName, body: 'Failed to load description. Please check your internet connection.' };
+        }
+    }
+
+    function closePopup() {
+        if (currentPopup) {
+            currentPopup.remove();
+            currentPopup = null;
+        }
+    }
+
+    function showTagPopup(tagObj, targetElement) {
+        if (currentPopup) closePopup();
+        const tagName = tagObj.tag;
+        const popup = document.createElement('div');
+        popup.className = 'tag-popup';
+        const header = document.createElement('div');
+        header.className = 'tag-popup-header';
+        header.innerHTML = `<a href="https://e621.net/wiki_pages?title=${encodeURIComponent(tagName)}" target="_blank" rel="noopener noreferrer" class="tag-popup-title" style="color: var(--confident-bg); text-decoration: none;">${escapeHtml(tagName)}</a>
+                            <button class="close-popup">✕</button>`;
+        const content = document.createElement('div');
+        content.className = 'tag-popup-content';
+        content.innerHTML = '<div class="tag-popup-loading">Loading description...</div>';
+        popup.appendChild(header);
+        popup.appendChild(content);
+        document.body.appendChild(popup);
+        currentPopup = popup;
+        const rect = targetElement.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        popup.style.visibility = 'hidden';
+        popup.style.position = 'absolute';
+        const popupRect = popup.getBoundingClientRect();
+        popup.style.visibility = '';
+        let top = rect.bottom + 8;
+        let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
+        if (top + popupRect.height > viewportHeight - 10) top = rect.top - popupRect.height - 8;
+        left = Math.max(10, Math.min(left, viewportWidth - popupRect.width - 10));
+        popup.style.top = `${top + window.scrollY}px`;
+        popup.style.left = `${left + window.scrollX}px`;
+        const closeBtn = popup.querySelector('.close-popup');
+        closeBtn.addEventListener('click', () => closePopup());
+        fetchTagDescription(tagName).then(desc => {
+            if (desc.exists) content.innerHTML = `<div class="tag-popup-text">${parseDText(desc.body)}</div>`;
+            else content.innerHTML = `<div class="tag-popup-error">${escapeHtml(desc.body)}</div>`;
+        }).catch(() => content.innerHTML = '<div class="tag-popup-error">Failed to load description.</div>');
+    }
+
+    function handleTagClick(tagObj, element) {
+        const tag = tagObj.tag;
+        const prob = tagObj.prob;
+        const category = prob >= confidentThreshold ? 'confident' : (prob >= allThreshold ? 'all' : 'low');
+        const wasAdded = addedTags.has(tag);
+        const wasRemoved = removedTags.has(tag);
+        if (category === 'confident') {
+            if (!wasAdded && !wasRemoved) removedTags.add(tag);
+            else if (wasRemoved) removedTags.delete(tag);
+            else if (wasAdded) addedTags.delete(tag);
+        } else if (category === 'all') {
+            if (!wasAdded && !wasRemoved) addedTags.add(tag);
+            else if (wasAdded) { addedTags.delete(tag); removedTags.add(tag); }
+            else if (wasRemoved) removedTags.delete(tag);
+        } else {
+            if (!wasAdded && !wasRemoved) addedTags.add(tag);
+            else if (wasAdded) addedTags.delete(tag);
+            else if (wasRemoved) removedTags.delete(tag);
+        }
+        document.querySelectorAll(`.tag[data-tag="${tag}"]`).forEach(el => updateTagElement(el, tagObj));
+        updateCategoryButtonsDisabled();
+    }
+
+    function updateTagElement(el, tagObj) {
+        el.classList.remove('added', 'removed');
+        if (addedTags.has(tagObj.tag)) el.classList.add('added');
+        else if (removedTags.has(tagObj.tag)) el.classList.add('removed');
+    }
+
+    function updateCategoryButtonsDisabled() {
+        document.querySelectorAll('.cat-copy-btn').forEach(btn => {
+            const category = btn.dataset.category;
+            const type = btn.dataset.type;
+            const threshold = type === 'confident' ? confidentThreshold : allThreshold;
+            const categoryTags = allTags.filter(t => t.category === category && !ratingTags.has(t.tag));
+            const hasAny = categoryTags.some(t => isTagIncluded(t, threshold));
+            btn.disabled = !hasAny;
+        });
+    }
+
+    function isTagIncluded(tagObj, threshold) {
+        const tag = tagObj.tag;
+        if (removedTags.has(tag)) return false;
+        if (addedTags.has(tag)) return true;
+        return tagObj.prob >= threshold;
+    }
+
+    function filterTags(threshold) {
+        return allTags.filter(t => !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
+    }
+
+    function filterTagsByCategory(category, threshold) {
+        return allTags.filter(t => t.category === category && !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
+    }
+
+    function formatTags(tags) {
+        if (currentFormat === 'e621') {
+            const grouped = {};
+            tags.forEach(t => {
+                const cat = t.category || 'Other';
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(t.tag);
+            });
+            const order = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+            const sortedCats = Object.keys(grouped).sort((a, b) => {
+                const ia = order.indexOf(a);
+                const ib = order.indexOf(b);
+                if (ia !== -1 && ib !== -1) return ia - ib;
+                if (ia !== -1) return -1;
+                if (ib !== -1) return 1;
+                return a.localeCompare(b);
+            });
+            return sortedCats.map(cat => grouped[cat].join(' ')).join('\n');
+        } else {
+            return tags.map(t => t.tag.replace(/_/g, ' ')).join(', ');
+        }
+    }
+
+    async function copyToClipboard(text, count, format, btn) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showCopySuccess(btn, count, format);
+            } catch { fallbackCopy(text, btn, count, format); }
+        } else { fallbackCopy(text, btn, count, format); }
+    }
+
+    function showCopySuccess(btn, count, format) {
+        if (btn._copyTimeout) clearTimeout(btn._copyTimeout);
+        btn.classList.add('copied');
+        const emoji = format === 'e621' ? '📋' : '🐦';
+        const displayName = format === 'e621' ? 'e621' : 'PostyBirb';
+        showNotification(`${emoji} Copied ${count} ${count === 1 ? 'tag' : 'tags'} • ${displayName}`, 'success');
+        btn._copyTimeout = setTimeout(() => btn.classList.remove('copied'), 1000);
+    }
+
+    function fallbackCopy(text, btn, count, format) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            if (document.execCommand('copy')) showCopySuccess(btn, count, format);
+            else showNotification('Unable to copy. Please copy manually.', 'error');
+        } catch { showNotification('Copy failed. Please copy manually.', 'error'); }
+        document.body.removeChild(textarea);
+    }
+
+    function setupGlobalCopyButton(btn, getThreshold) {
+        const hammer = new Hammer(btn);
+        hammer.on('tap', async () => {
+            const threshold = getThreshold();
+            const filtered = filterTags(threshold);
+            if (filtered.length === 0) { showNotification('No tags meet the threshold.', 'error'); return; }
+            const text = formatTags(filtered);
+            await copyToClipboard(text, filtered.length, currentFormat, btn);
+        });
+    }
+
+    function setupCategoryCopyButtons() {
+        document.querySelectorAll('.cat-copy-btn').forEach(btn => {
+            if (btn._hammer) btn._hammer.destroy();
+            const hammer = new Hammer(btn);
+            const category = btn.dataset.category;
+            const type = btn.dataset.type;
+            const threshold = type === 'confident' ? confidentThreshold : allThreshold;
+            hammer.on('tap', async () => {
+                if (btn.disabled) return;
+                const filtered = filterTagsByCategory(category, threshold);
+                if (filtered.length === 0) { showNotification(`No ${type} tags in ${category}.`, 'error'); return; }
+                const text = formatTags(filtered);
+                await copyToClipboard(text, filtered.length, currentFormat, btn);
+            });
+            btn._hammer = hammer;
+        });
+    }
+
+    function attachTagEvents(tagEl, tagObj) {
+        const hammer = new Hammer(tagEl);
+        hammer.on('tap', (e) => { e.srcEvent.stopPropagation(); handleTagClick(tagObj, tagEl); });
+        hammer.on('press', (e) => { e.srcEvent.preventDefault(); showTagPopup(tagObj, tagEl); });
+        tagEl.addEventListener('contextmenu', (e) => { e.preventDefault(); showTagPopup(tagObj, tagEl); });
+        tagEl._hammer = hammer;
+    }
+
+    function displayTags(tags) {
+        let rating = null;
+        const nonRatingTags = [];
+        tags.forEach(t => {
+            if (ratingTags.has(t.tag)) { if (!rating || t.prob > rating.prob) rating = t; }
+            else nonRatingTags.push(t);
+        });
+        if (rating) {
+            ratingDisplay.textContent = `Rating: ${rating.tag}`;
+            ratingDisplay.className = 'rating-display ' + rating.tag;
+            ratingDisplay.style.display = 'inline-block';
+        } else ratingDisplay.style.display = 'none';
+        const grouped = {};
+        nonRatingTags.sort((a, b) => b.prob - a.prob);
+        nonRatingTags.forEach(item => {
+            const cat = item.category || 'Other';
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(item);
+        });
+        const order = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+        const sortedCategories = Object.keys(grouped).sort((a, b) => {
+            const ia = order.indexOf(a);
+            const ib = order.indexOf(b);
+            if (ia !== -1 && ib !== -1) return ia - ib;
+            if (ia !== -1) return -1;
+            if (ib !== -1) return 1;
+            return a.localeCompare(b);
+        });
+        categoriesContainer.innerHTML = '';
+        sortedCategories.forEach(cat => {
+            const catTags = grouped[cat];
+            const catDiv = document.createElement('div');
+            catDiv.className = 'category-block';
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            const categoryName = document.createElement('span');
+            categoryName.className = 'category-name';
+            categoryName.textContent = cat;
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.className = 'category-buttons';
+            const confidentBtn = document.createElement('button');
+            confidentBtn.className = 'cat-copy-btn confident';
+            confidentBtn.dataset.category = cat;
+            confidentBtn.dataset.type = 'confident';
+            confidentBtn.title = 'Copy confident tags';
+            confidentBtn.textContent = 'C';
+            const allBtn = document.createElement('button');
+            allBtn.className = 'cat-copy-btn all';
+            allBtn.dataset.category = cat;
+            allBtn.dataset.type = 'all';
+            allBtn.title = 'Copy all tags';
+            allBtn.textContent = 'A';
+            buttonsDiv.appendChild(confidentBtn);
+            buttonsDiv.appendChild(allBtn);
+            header.appendChild(categoryName);
+            header.appendChild(buttonsDiv);
+            const tagsContainer = document.createElement('div');
+            tagsContainer.className = 'category-tags';
+            catTags.forEach(item => {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'tag';
+                tagEl.setAttribute('data-tag', item.tag);
+                tagEl.textContent = item.tag;
+                if (item.prob >= confidentThreshold) tagEl.classList.add('confident');
+                else if (item.prob >= allThreshold) tagEl.classList.add('all');
+                if (addedTags.has(item.tag)) tagEl.classList.add('added');
+                else if (removedTags.has(item.tag)) tagEl.classList.add('removed');
+                attachTagEvents(tagEl, item);
+                tagsContainer.appendChild(tagEl);
+            });
+            catDiv.appendChild(header);
+            catDiv.appendChild(tagsContainer);
+            categoriesContainer.appendChild(catDiv);
+        });
+        setupCategoryCopyButtons();
+    }
+
+    function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
     function handleFiles(files) {
         if (files.length === 0) return;
         const file = files[0];
-        if (!file.type.startsWith('image/')) {
-            showNotification('Please select an image file.', 'error');
-            return;
-        }
-        if (file.size > MAX_FILE_SIZE) {
-            showNotification(`File too large. Maximum size is ${MAX_FILE_SIZE / (1024*1024)}MB.`, 'error');
-            return;
-        }
+        if (!file.type.startsWith('image/')) { showNotification('Please select an image file.', 'error'); return; }
+        if (file.size > MAX_FILE_SIZE) { showNotification(`File too large. Maximum size is ${MAX_FILE_SIZE / (1024*1024)}MB.`, 'error'); return; }
         uploadImage(file);
     }
 
@@ -421,11 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!results.classList.contains('visible')) return Promise.resolve();
         results.classList.remove('visible');
         return new Promise(resolve => {
-            const onTransitionEnd = () => {
-                results.style.display = 'none';
-                results.removeEventListener('transitionend', onTransitionEnd);
-                resolve();
-            };
+            const onTransitionEnd = () => { results.style.display = 'none'; results.removeEventListener('transitionend', onTransitionEnd); resolve(); };
             results.addEventListener('transitionend', onTransitionEnd, { once: true });
         });
     }
@@ -441,25 +583,16 @@ document.addEventListener('DOMContentLoaded', () => {
     async function uploadImage(file) {
         showPreview(file);
         dropZone.classList.add('uploading');
-
         const wasVisible = results.classList.contains('visible');
-        if (wasVisible) {
-            await hideResults();
-        }
-
+        if (wasVisible) await hideResults();
         const formData = new FormData();
         formData.append('image', file);
         formData.append('top_k', maxTags.toString());
-
         try {
             const response = await fetch('/predict', { method: 'POST', body: formData });
             if (!response.ok) {
                 let errorMsg = 'Server error. Please try again later.';
-                try {
-                    const data = await response.json();
-                    errorMsg = data.error || errorMsg;
-                } catch (e) {
-                }
+                try { const data = await response.json(); errorMsg = data.error || errorMsg; } catch (e) {}
                 throw new Error(errorMsg);
             }
             const data = await response.json();
@@ -471,518 +604,92 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateLocalFormatUI();
                 displayTags(allTags);
                 await showResults();
-            } else {
-                showNotification(data.error || 'Failed to generate tags.', 'error');
-            }
-        } catch (err) {
-            const errorMsg = err.message || 'Network error. Please try again.';
-            showNotification(errorMsg, 'error');
-        } finally {
-            dropZone.classList.remove('uploading');
-        }
+            } else showNotification(data.error || 'Failed to generate tags.', 'error');
+        } catch (err) { showNotification(err.message || 'Network error. Please try again.', 'error'); }
+        finally { dropZone.classList.remove('uploading'); }
     }
 
-    function getTagCategory(prob) {
-        if (prob >= confidentThreshold) return 'confident';
-        if (prob >= allThreshold) return 'all';
-        return 'low';
-    }
-
-    function isTagIncluded(tagObj, threshold) {
-        const tag = tagObj.tag;
-        if (removedTags.has(tag)) return false;
-        if (addedTags.has(tag)) return true;
-        return tagObj.prob >= threshold;
-    }
-
-    function filterTags(threshold) {
-        return allTags.filter(t => !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
-    }
-
-    function filterTagsByCategory(category, threshold) {
-        return allTags.filter(t => t.category === category && !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
-    }
-
-    const tagDescriptionCache = new Map();
-
-    async function fetchTagDescription(tagName) {
-        if (tagDescriptionCache.has(tagName)) {
-            return tagDescriptionCache.get(tagName);
-        }
-        const url = `https://e621.net/wiki_pages.json?search[title]=${encodeURIComponent(tagName)}&limit=1`;
-        try {
-            const response = await fetch(url, {
-                headers: {
-                    'User-Agent': 'e621tagger/1.0 (https://tagger.fenrir784.ru)'
+    function initHammer() {
+        const dropZoneHammer = new Hammer(dropZone);
+        dropZoneHammer.on('tap', () => fileInput.click());
+        const eggHammer = new Hammer(eggContainer);
+        eggHammer.on('tap', () => {
+            const isOpen = eggContainer.classList.contains('open');
+            if (!isOpen) { const randomIndex = Math.floor(Math.random() * creaturePaths.length); eggCreature.src = creaturePaths[randomIndex]; }
+            eggContainer.classList.toggle('open');
+        });
+        const settingsToggleHammer = new Hammer(settingsToggle);
+        settingsToggleHammer.on('tap', (e) => { e.srcEvent.stopPropagation(); toggleSettings(!settingsMenu.classList.contains('show')); });
+        const closeSettingsHammer = new Hammer(closeSettings);
+        closeSettingsHammer.on('tap', () => toggleSettings(false));
+        presetBtns.forEach(btn => {
+            const hammer = new Hammer(btn);
+            hammer.on('tap', () => {
+                const preset = btn.dataset.preset;
+                if (preset === 'custom') { activePreset = 'custom'; updateThresholdUI(); saveSettings(); return; }
+                activePreset = preset;
+                switch (preset) {
+                    case 'conservative': allThreshold = 0.65; confidentThreshold = 0.85; break;
+                    case 'standard': allThreshold = 0.55; confidentThreshold = 0.75; break;
+                    case 'liberal': allThreshold = 0.45; confidentThreshold = 0.65; break;
                 }
+                customAllInput.value = allThreshold.toFixed(2);
+                customConfidentInput.value = confidentThreshold.toFixed(2);
+                applyThresholds();
             });
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            const data = await response.json();
-            if (data && data.length > 0) {
-                const wiki = data[0];
-                const result = {
-                    exists: true,
-                    title: wiki.title || tagName,
-                    body: wiki.body || 'No description available.'
-                };
-                tagDescriptionCache.set(tagName, result);
-                return result;
-            } else {
-                const result = { exists: false, title: tagName, body: 'No description found on e621.' };
-                tagDescriptionCache.set(tagName, result);
-                return result;
-            }
-        } catch (err) {
-            console.warn(`Failed to fetch description for ${tagName}:`, err);
-            return { exists: false, title: tagName, body: 'Failed to load description. Please check your internet connection.' };
-        }
-    }
-
-    function parseDText(dtext) {
-        if (!dtext) return '';
-
-        let text = dtext.slice(0, 1000);
-        text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-        text = text.replace(/thumb\s+#\d+\s*/g, '');
-        text = text.replace(/\[section[^\]]*\]([\s\S]*?)\[\/section\]/g, '$1');
-        text = text.replace(/\[quote[^\]]*\]([\s\S]*?)\[\/quote\]/g, '$1');
-        text = text.replace(/\[table[^\]]*\]([\s\S]*?)\[\/table\]/g, '$1');
-        text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
-        text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
-        text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText) => {
-            return `<span style="color: var(--confident-bg);">${escapeHtml(linkText)}</span>`;
         });
-        text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => {
-            return `<span style="color: var(--confident-bg);">${escapeHtml(display)}</span>`;
+        const applyCustomHammer = new Hammer(applyCustom);
+        applyCustomHammer.on('tap', () => {
+            const all = parseFloat(customAllInput.value);
+            const conf = parseFloat(customConfidentInput.value);
+            if (isNaN(all) || isNaN(conf) || all < 0 || all > 1 || conf < 0 || conf > 1) { showNotification('Please enter valid numbers between 0 and 1.', 'error'); return; }
+            allThreshold = all;
+            confidentThreshold = conf;
+            activePreset = 'custom';
+            applyThresholds();
         });
-        text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
-            return `<span style="color: var(--confident-bg);">${escapeHtml(p1)}</span>`;
+        formatOptions.forEach(opt => {
+            const hammer = new Hammer(opt);
+            hammer.on('tap', () => { savedFormat = opt.dataset.format; updateSettingsFormatUI(); saveSettings(); });
         });
-
-        let lines = text.split('\n');
-        let processedLines = [];
-        for (let line of lines) {
-            let trimmed = line;
-            const headerMatch = trimmed.match(/^\s*h([1-6])(?:\.?\s*)(.*)$/i);
-            if (headerMatch) {
-                trimmed = `<strong style="color: var(--confident-bg);">${headerMatch[2]}</strong>`;
-            } else {
-                trimmed = trimmed.replace(/^(\*+)\s+/, '');
-            }
-            if (trimmed.trim() !== '') {
-                processedLines.push(trimmed);
-            }
-        }
-        text = processedLines.join('\n');
-        text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
-        text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
-        text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
-        text = text.replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>');
-        text = text.replace(/\n/g, '<br>');
-        text = text.replace(/(<br>){3,}/g, '<br><br>');
-        text = text.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
-        if (dtext.length > 1000) {
-            text += '…';
-        }
-        return text;
-    }
-
-    function escapeHtml(unsafe) {
-        if (!unsafe) return '';
-        return unsafe.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
+        themeOptions.forEach(opt => {
+            const hammer = new Hammer(opt);
+            hammer.on('tap', () => { updateTheme(opt.dataset.theme); saveSettings(); });
         });
-    }
-
-    let currentPopup = null;
-
-    function closePopup() {
-        if (currentPopup) {
-            currentPopup.remove();
-            currentPopup = null;
-        }
-    }
-
-    function showTagPopup(tagObj, targetElement) {
-        if (currentPopup) closePopup();
-
-        const tagName = tagObj.tag;
-
-        const popup = document.createElement('div');
-        popup.className = 'tag-popup';
-
-        const header = document.createElement('div');
-        header.className = 'tag-popup-header';
-        header.innerHTML = `<a href="https://e621.net/wiki_pages?title=${encodeURIComponent(tagName)}" target="_blank" rel="noopener noreferrer" class="tag-popup-title" style="color: var(--confident-bg); text-decoration: none;">${escapeHtml(tagName)}</a>
-                            <button class="close-popup">✕</button>`;
-
-        const content = document.createElement('div');
-        content.className = 'tag-popup-content';
-        content.innerHTML = '<div class="tag-popup-loading">Loading description...</div>';
-
-        popup.appendChild(header);
-        popup.appendChild(content);
-        document.body.appendChild(popup);
-        currentPopup = popup;
-
-        const rect = targetElement.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-
-        popup.style.visibility = 'hidden';
-        popup.style.position = 'absolute';
-        document.body.appendChild(popup);
-        const popupRect = popup.getBoundingClientRect();
-        popup.style.visibility = '';
-
-        let top = rect.bottom + 8;
-        let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
-
-        if (top + popupRect.height > viewportHeight - 10) {
-            top = rect.top - popupRect.height - 8;
-        }
-
-        left = Math.max(10, Math.min(left, viewportWidth - popupRect.width - 10));
-
-        popup.style.top = `${top + window.scrollY}px`;
-        popup.style.left = `${left + window.scrollX}px`;
-
-        const closeBtn = popup.querySelector('.close-popup');
-        closeBtn.addEventListener('click', () => {
-            closePopup();
+        maxTagBtns.forEach(btn => {
+            const hammer = new Hammer(btn);
+            hammer.on('tap', () => { const val = parseInt(btn.dataset.max); if (ALLOWED_MAX_TAGS.includes(val)) { maxTags = val; updateMaxTagsUI(); saveSettings(); } });
         });
-
-        fetchTagDescription(tagName).then(desc => {
-            if (desc.exists) {
-                const parsed = parseDText(desc.body);
-                content.innerHTML = `<div class="tag-popup-text">${parsed}</div>`;
-            } else {
-                content.innerHTML = `<div class="tag-popup-error">${escapeHtml(desc.body)}</div>`;
-            }
-        }).catch(() => {
-            content.innerHTML = '<div class="tag-popup-error">Failed to load description.</div>';
+        const resetHammer = new Hammer(resetBtn);
+        resetHammer.on('tap', () => {
+            allThreshold = 0.55; confidentThreshold = 0.75; savedFormat = 'e621'; currentFormat = savedFormat; currentTheme = 'system'; activePreset = 'standard'; maxTags = 200;
+            updateTheme('system'); updateLocalFormatUI(); updateSettingsFormatUI(); updateMaxTagsUI(); applyThresholds(); saveSettings();
         });
+        const formatE621Hammer = new Hammer(formatE621);
+        formatE621Hammer.on('tap', () => { currentFormat = 'e621'; updateLocalFormatUI(); });
+        const formatPostyHammer = new Hammer(formatPosty);
+        formatPostyHammer.on('tap', () => { currentFormat = 'posty'; updateLocalFormatUI(); });
     }
 
-    function handleTagClick(tagObj, element) {
-        const tag = tagObj.tag;
-        const prob = tagObj.prob;
-        const category = getTagCategory(prob);
-
-        const wasAdded = addedTags.has(tag);
-        const wasRemoved = removedTags.has(tag);
-
-        if (category === 'confident') {
-            if (!wasAdded && !wasRemoved) {
-                removedTags.add(tag);
-            } else if (wasRemoved) {
-                removedTags.delete(tag);
-            } else if (wasAdded) {
-                addedTags.delete(tag);
-            }
-        } else if (category === 'all') {
-            if (!wasAdded && !wasRemoved) {
-                addedTags.add(tag);
-            } else if (wasAdded) {
-                addedTags.delete(tag);
-                removedTags.add(tag);
-            } else if (wasRemoved) {
-                removedTags.delete(tag);
-            }
-        } else {
-            if (!wasAdded && !wasRemoved) {
-                addedTags.add(tag);
-            } else if (wasAdded) {
-                addedTags.delete(tag);
-            } else if (wasRemoved) {
-                removedTags.delete(tag);
-            }
-        }
-
-        document.querySelectorAll(`.tag[data-tag="${tag}"]`).forEach(el => {
-            updateTagElement(el, tagObj);
-        });
-
-        updateCategoryButtonsDisabled();
-    }
-
-    function updateTagElement(el, tagObj) {
-        el.classList.remove('added', 'removed');
-        if (addedTags.has(tagObj.tag)) {
-            el.classList.add('added');
-        } else if (removedTags.has(tagObj.tag)) {
-            el.classList.add('removed');
-        }
-    }
-
-    function updateCategoryButtonsDisabled() {
-        document.querySelectorAll('.cat-copy-btn').forEach(btn => {
-            const category = btn.dataset.category;
-            const type = btn.dataset.type;
-            const threshold = type === 'confident' ? confidentThreshold : allThreshold;
-            const categoryTags = allTags.filter(t => t.category === category && !ratingTags.has(t.tag));
-            const hasAny = categoryTags.some(t => isTagIncluded(t, threshold));
-            btn.disabled = !hasAny;
-        });
-    }
-
-    function displayTags(tags) {
-        let rating = null;
-        const nonRatingTags = [];
-        tags.forEach(t => {
-            if (ratingTags.has(t.tag)) {
-                if (!rating || t.prob > rating.prob) {
-                    rating = t;
-                }
-            } else {
-                nonRatingTags.push(t);
-            }
-        });
-
-        if (rating) {
-            ratingDisplay.textContent = `Rating: ${rating.tag}`;
-            ratingDisplay.className = 'rating-display ' + rating.tag;
-            ratingDisplay.style.display = 'inline-block';
-        } else {
-            ratingDisplay.style.display = 'none';
-        }
-
-        const grouped = {};
-        nonRatingTags.sort((a, b) => b.prob - a.prob);
-        nonRatingTags.forEach(item => {
-            const cat = item.category || 'Other';
-            if (!grouped[cat]) grouped[cat] = [];
-            grouped[cat].push(item);
-        });
-
-        const order = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
-        const sortedCategories = Object.keys(grouped).sort((a, b) => {
-            const ia = order.indexOf(a);
-            const ib = order.indexOf(b);
-            if (ia !== -1 && ib !== -1) return ia - ib;
-            if (ia !== -1) return -1;
-            if (ib !== -1) return 1;
-            return a.localeCompare(b);
-        });
-
-        categoriesContainer.innerHTML = '';
-        sortedCategories.forEach(cat => {
-            const catTags = grouped[cat];
-            const catDiv = document.createElement('div');
-            catDiv.className = 'category-block';
-
-            const header = document.createElement('div');
-            header.className = 'category-header';
-
-            const categoryName = document.createElement('span');
-            categoryName.className = 'category-name';
-            categoryName.textContent = cat;
-
-            const buttonsDiv = document.createElement('div');
-            buttonsDiv.className = 'category-buttons';
-
-            const confidentBtn = document.createElement('button');
-            confidentBtn.className = 'cat-copy-btn confident';
-            confidentBtn.dataset.category = cat;
-            confidentBtn.dataset.type = 'confident';
-            confidentBtn.title = 'Copy confident tags';
-            confidentBtn.textContent = 'C';
-
-            const allBtn = document.createElement('button');
-            allBtn.className = 'cat-copy-btn all';
-            allBtn.dataset.category = cat;
-            allBtn.dataset.type = 'all';
-            allBtn.title = 'Copy all tags';
-            allBtn.textContent = 'A';
-
-            const hasConfident = catTags.some(t => isTagIncluded(t, confidentThreshold));
-            const hasAll = catTags.some(t => isTagIncluded(t, allThreshold));
-            confidentBtn.disabled = !hasConfident;
-            allBtn.disabled = !hasAll;
-
-            buttonsDiv.appendChild(confidentBtn);
-            buttonsDiv.appendChild(allBtn);
-
-            header.appendChild(categoryName);
-            header.appendChild(buttonsDiv);
-
-            const tagsContainer = document.createElement('div');
-            tagsContainer.className = 'category-tags';
-
-            catTags.forEach(item => {
-                const tagEl = document.createElement('span');
-                tagEl.className = 'tag';
-                tagEl.setAttribute('data-tag', item.tag);
-                tagEl.textContent = item.tag;
-
-                if (item.prob >= confidentThreshold) {
-                    tagEl.classList.add('confident');
-                } else if (item.prob >= allThreshold) {
-                    tagEl.classList.add('all');
-                }
-
-                if (addedTags.has(item.tag)) {
-                    tagEl.classList.add('added');
-                } else if (removedTags.has(item.tag)) {
-                    tagEl.classList.add('removed');
-                }
-
-                const clickHandler = (e) => {
-                    e.stopPropagation();
-                    handleTagClick(item, tagEl);
-                };
-                tagEl.addEventListener('click', clickHandler);
-
-                const hammer = new Hammer.Manager(tagEl);
-                const press = new Hammer.Press({ time: 500 });
-                hammer.add(press);
-                hammer.on('press', (e) => {
-                    e.preventDefault();
-                    e.srcEvent.preventDefault();
-                    showTagPopup(item, tagEl);
-                });
-                tagEl._hammer = hammer;
-
-                tagsContainer.appendChild(tagEl);
-            });
-
-            catDiv.appendChild(header);
-            catDiv.appendChild(tagsContainer);
-            categoriesContainer.appendChild(catDiv);
-        });
-
-        results.style.animation = 'fadeIn 0.3s ease';
-        setupCategoryCopyButtons();
-    }
-
-    function showNotification(message, type = 'error', duration = 3000) {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        notificationContainer.appendChild(notification);
-
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease forwards';
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, duration);
-    }
-
-    function formatTags(tags) {
-        if (currentFormat === 'e621') {
-            const grouped = {};
-            tags.forEach(t => {
-                const cat = t.category || 'Other';
-                if (!grouped[cat]) grouped[cat] = [];
-                grouped[cat].push(t.tag);
-            });
-            const order = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
-            const sortedCats = Object.keys(grouped).sort((a,b) => {
-                const ia = order.indexOf(a);
-                const ib = order.indexOf(b);
-                if (ia !== -1 && ib !== -1) return ia - ib;
-                if (ia !== -1) return -1;
-                if (ib !== -1) return 1;
-                return a.localeCompare(b);
-            });
-            return sortedCats.map(cat => grouped[cat].join(' ')).join('\n');
-        } else {
-            return tags.map(t => t.tag.replace(/_/g, ' ')).join(', ');
-        }
-    }
-
-    function setupGlobalCopyButton(btn, getThreshold) {
-        btn.addEventListener('click', async () => {
-            const threshold = getThreshold();
-            const filtered = filterTags(threshold);
-            if (filtered.length === 0) {
-                showNotification('No tags meet the threshold.', 'error');
-                return;
-            }
-            const text = formatTags(filtered);
-            await copyToClipboard(text, filtered.length, currentFormat, btn);
-        });
-    }
-
-    function setupCategoryCopyButtons() {
-        document.querySelectorAll('.cat-copy-btn').forEach(btn => {
-            btn.removeEventListener('click', btn._handler);
-            const category = btn.dataset.category;
-            const type = btn.dataset.type;
-            const threshold = type === 'confident' ? confidentThreshold : allThreshold;
-            const handler = async () => {
-                if (btn.disabled) return;
-                const filtered = filterTagsByCategory(category, threshold);
-                if (filtered.length === 0) {
-                    showNotification(`No ${type} tags in ${category}.`, 'error');
-                    return;
-                }
-                const text = formatTags(filtered);
-                await copyToClipboard(text, filtered.length, currentFormat, btn);
-            };
-            btn._handler = handler;
-            btn.addEventListener('click', handler);
-        });
-    }
-
-    async function copyToClipboard(text, count, format, btn) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            try {
-                await navigator.clipboard.writeText(text);
-                showCopySuccess(btn, count, format);
-            } catch {
-                fallbackCopy(text, btn, count, format);
-            }
-        } else {
-            fallbackCopy(text, btn, count, format);
-        }
-    }
-
-    function showCopySuccess(btn, count, format) {
-        if (btn._copyTimeout) clearTimeout(btn._copyTimeout);
-        btn.classList.add('copied');
-        const emoji = format === 'e621' ? '📋' : '🐦';
-        const displayName = format === 'e621' ? 'e621' : 'PostyBirb';
-        const message = `${emoji} Copied ${count} ${count === 1 ? 'tag' : 'tags'} • ${displayName}`;
-        showNotification(message, 'success');
-        btn._copyTimeout = setTimeout(() => {
-            btn.classList.remove('copied');
-        }, 1000);
-    }
-
-    function fallbackCopy(text, btn, count, format) {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            if (document.execCommand('copy')) {
-                showCopySuccess(btn, count, format);
-            } else {
-                showNotification('Unable to copy. Please copy manually.', 'error');
-            }
-        } catch {
-            showNotification('Copy failed. Please copy manually.', 'error');
-        }
-        document.body.removeChild(textarea);
-    }
-
-    document.addEventListener('click', (e) => {
-        if (currentPopup && !currentPopup.contains(e.target)) {
-            closePopup();
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, preventDefaults, false));
+    ['dragenter', 'dragover'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false));
+    ['dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false));
+    dropZone.addEventListener('drop', (e) => { const dt = e.dataTransfer; const files = dt.files; if (files.length > 0) handleFiles(files); });
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+    document.addEventListener('paste', (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.type.startsWith('image/')) { const file = item.getAsFile(); if (file) { handleFiles([file]); e.preventDefault(); break; } }
         }
     });
+    document.addEventListener('click', (e) => { if (currentPopup && !currentPopup.contains(e.target)) closePopup(); if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) toggleSettings(false); });
+    window.addEventListener('resize', () => { if (settingsMenu.classList.contains('show')) positionSettingsMenu(); });
 
     results.style.display = 'none';
     loadSettings();
+    initHammer();
     setupGlobalCopyButton(copyGlobalConfident, () => confidentThreshold);
     setupGlobalCopyButton(copyGlobalAll, () => allThreshold);
 });
