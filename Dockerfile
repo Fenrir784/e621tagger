@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-ARG APP_VERSION=dev
+ARG APP_VERSION=test
 
 RUN apt-get update && apt-get install -y \
     libgl1 \
