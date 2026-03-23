@@ -26,6 +26,25 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Determine app version
+        id: version
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          if [[ "$BRANCH" == "test" ]]; then
+            APP_VERSION="test"
+          elif [[ "$BRANCH" == "latest" ]]; then
+            PR_NUMBER=$(git log -1 --pretty=%B | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1)
+            if [[ -n "$PR_NUMBER" ]]; then
+              APP_VERSION="v$PR_NUMBER"
+            else
+              APP_VERSION="latest"
+            fi
+          else
+            APP_VERSION="test"
+          fi
+          echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $APP_VERSION"
+
       - name: Cache model (JTP-3 hydra)
         id: cache-model
         uses: actions/cache@main
@@ -88,6 +107,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.app_version }}
 
       - name: Sign the published Docker image
         env:
@@ -111,4 +132,5 @@ jobs:
           echo "## 🐳 Docker Image Built" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** \`${FIRST_TAG}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Digest:** \`${DIGEST}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ steps.version.outputs.app_version }}\`" >> $GITHUB_STEP_SUMMARY
           echo "Built image: $FIRST_TAG"
