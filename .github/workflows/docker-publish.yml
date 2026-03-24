@@ -123,7 +123,7 @@ jobs:
           delete-partial-images: true
           delete-orphaned-images: true
 
-      - name: Trigger Dockhand deployment (only on latest branch)
+      - name: Trigger Dockhand deployment
         if: github.event_name == 'push' && github.ref == 'refs/heads/latest'
         env:
           WEBHOOK_URL: ${{ secrets.DOCKHAND_WEBHOOK_URL }}
