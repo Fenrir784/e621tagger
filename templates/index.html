@@ -45,7 +45,10 @@
                 <button id="closeSettings" class="close-settings">✕</button>
             </div>
             <div class="settings-section">
-                <h3>Thresholds</h3>
+                <div class="settings-section-header">
+                    <h3>Thresholds</h3>
+                    <button id="helpThresholdsBtn" class="help-btn">Need help?</button>
+                </div>
                 <div class="preset-buttons">
                     <button class="preset-btn" data-preset="conservative">Conservative</button>
                     <button class="preset-btn active" data-preset="standard">Standard</button>
@@ -127,6 +130,48 @@
             </div>
         </main>
     </div>
+
+    <div id="helpModal" class="help-modal" style="display: none;">
+        <div class="help-modal-content">
+            <div class="help-modal-header">
+                <h2>How to use e621tagger</h2>
+                <button class="close-help-modal">&times;</button>
+            </div>
+            <div class="help-modal-body">
+                <p><strong>📤 Upload an image</strong><br>
+                Drag & drop, paste (Ctrl+V), or click to select. Supports PNG, JPG, GIF, WebP, BMP, TIFF (max 20MB).</p>
+
+                <p><strong>🏷️ Tag interaction</strong><br>
+                • <span class="tag-example confident">Purple</span> – high confidence (≥ Confident threshold).<br>
+                • <span class="tag-example all">Blue</span> – medium confidence (≥ All threshold).<br>
+                • <span class="tag-example low">Gray</span> – low confidence (below thresholds).<br>
+                • <strong>Click a tag</strong> to force it to be included (green) or excluded (red) from copying.<br>
+                • <strong>Long press or right-click</strong> a tag to show the description from e621 wiki.</p>
+
+                • <strong>💄 Pro Tip</strong>: Narrow down basic detection so that it is almost always correct, and then manually add or remove tags.</p>
+                
+                <p><strong>📋 Copying tags</strong><br>
+                • Use <strong>Copy Confident Tags</strong> or <strong>Copy All Tags</strong> buttons to copy all tags that meet the threshold.<br>
+                • Within each category, small <strong>C</strong> (Confident) and <strong>A</strong> (All) buttons copy only tags from that category.</p>
+
+                <p><strong>⚙️ Settings</strong><br>
+                • <strong>Theme:</strong> System, Light or Dark – follow your preference.</p>
+                • <strong>Thresholds:</strong> Choose a preset (Conservative, Standard or Liberal) or set custom values.<br>
+                • <strong>Max tags:</strong> Limit the number of returned tags (50–250).<br>
+                • <strong>Default format:</strong> e621 (space-separated) or PostyBirb (comma-separated).<br>
+
+                <p><strong>💡 Extra features</strong><br>
+                • <strong>PWA:</strong> Install the app via the browser's "Install" button for quick access.<br>
+                • <strong>Privacy:</strong> All processing is done locally on the server and no data is sent to third parties.</p>
+
+                <div class="help-footer">
+                    Made by space bird called <a href="https://fenrir784.ru" target="_blank">Fenrir784</a><br>
+                    Have issues or suggestions? <a href="https://github.com/Fenrir784/e621tagger/issues" target="_blank">Open an issue on GitHub</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <script>
         if ('serviceWorker' in navigator) {
