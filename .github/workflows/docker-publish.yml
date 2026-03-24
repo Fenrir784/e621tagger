@@ -26,8 +26,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Determine app version
+      - name: Determine app version    
         id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
         run: |
           APP_VERSION="test"
           BRANCH="${GITHUB_REF#refs/heads/}"
