@@ -174,7 +174,6 @@ h1 {
     color: var(--confident-bg);
     margin: 0;
     line-height: 1.2;
-    user-select: text;
 }
 
 .settings-toggle {
@@ -194,7 +193,6 @@ h1 {
     transition: transform 0.1s ease-out, background-color 0.2s;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     touch-action: manipulation;
-    user-select: none;
 }
 .settings-toggle:active {
     transform: scale(0.95);
@@ -219,7 +217,6 @@ h1 {
     height: 80px;
     position: relative;
     cursor: pointer;
-    user-select: none;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.2s;
 }
@@ -578,7 +575,6 @@ h1 {
     font-size: 0.8rem;
     color: var(--text-color);
     opacity: 0.7;
-    user-select: none;
 }
 .toggle-btn {
     border: none;
@@ -643,7 +639,6 @@ h1 {
     font-weight: 500;
     letter-spacing: 0.3px;
     display: inline-block;
-    user-select: none;
 }
 .rating-display.safe {
     background-color: var(--safe-bg);
@@ -678,7 +673,6 @@ h1 {
     font-size: 0.9rem;
     color: var(--confident-bg);
     text-transform: uppercase;
-    user-select: none;
 }
 .category-buttons { display: flex; gap: 0.3rem; }
 .cat-copy-btn {
@@ -726,7 +720,6 @@ h1 {
     opacity: 0.6;
     animation: fadeInScale 0.2s;
     cursor: pointer;
-    user-select: none;
     -webkit-tap-highlight-color: transparent;
     line-height: 1.2;
     touch-action: manipulation;
@@ -851,7 +844,6 @@ input[type="number"]::-webkit-outer-spin-button {
 .tag-popup-title {
     color: var(--confident-bg);
     word-break: break-word;
-    user-select: text;
 }
 .close-popup {
     background: none;
