@@ -146,7 +146,8 @@ def health():
             'version': APP_VERSION
         }), 200
     except Exception as e:
-        return jsonify({'status': 'unhealthy', 'reason': str(e)}), 503
+        logger.exception("Health check failed")
+        return jsonify({'status': 'unhealthy', 'reason': 'internal error'}), 503
 
 @app.route('/predict', methods=['POST'])
 @limiter.limit("20 per minute")
