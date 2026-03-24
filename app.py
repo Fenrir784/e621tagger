@@ -54,6 +54,8 @@ UPLOAD_DIR = os.getenv('UPLOAD_DIR', '/app/uploads')
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff'}
 ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/tiff'}
 
+APP_VERSION = os.getenv('APP_VERSION', 'test')
+
 if SAVE_UPLOADS:
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     logger.info(f"Upload saving enabled, directory: {UPLOAD_DIR}")
@@ -131,6 +133,20 @@ def favicon():
 @app.route('/service-worker.js')
 def service_worker():
     return send_from_directory('static', 'service-worker.js')
+
+@app.route('/health')
+def health():
+    try:
+        if model is None or tag_list is None or len(tag_list) == 0:
+            return jsonify({'status': 'unhealthy', 'reason': 'model not loaded'}), 503
+        return jsonify({
+            'status': 'healthy',
+            'model': 'loaded',
+            'tags_count': len(tag_list),
+            'version': APP_VERSION
+        }), 200
+    except Exception as e:
+        return jsonify({'status': 'unhealthy', 'reason': str(e)}), 503
 
 @app.route('/predict', methods=['POST'])
 @limiter.limit("20 per minute")
