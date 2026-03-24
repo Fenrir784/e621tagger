@@ -187,13 +187,28 @@ h1 {
     justify-content: center;
     background-color: var(--secondary-color);
     color: var(--text-color);
-    transition: background-color 0.2s, transform 0.2s;
+    transition: transform 0.1s ease-out, background-color 0.2s;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     touch-action: manipulation;
     user-select: none;
 }
-
-.settings-toggle.open { transform: scale(1.1); }
+.settings-toggle:active {
+    transform: scale(0.95);
+}
+.settings-toggle.pressed {
+    transform: scale(0.95);
+}
+.settings-toggle.open {
+    transform: scale(1.1);
+}
+@media (hover: hover) {
+    .settings-toggle:hover {
+        transform: scale(1.1);
+    }
+    .settings-toggle.open:hover {
+        transform: scale(1.1);
+    }
+}
 
 .egg-container {
     width: 80px;
@@ -300,6 +315,30 @@ h1 {
     opacity: 0.9;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+.settings-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+.settings-section-header h3 {
+    margin: 0;
+}
+
+.help-btn {
+    background: none;
+    border: none;
+    font-size: 0.8rem;
+    color: var(--confident-bg);
+    text-decoration: underline dotted;
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+.help-btn:hover {
+    background-color: var(--bg-color);
 }
 
 .preset-buttons {
@@ -741,7 +780,7 @@ h1 {
     .settings-menu { left: 0.5rem; width: calc(100% - 1rem); max-width: 300px; }
 }
 
-.preset-btn:active, .apply-btn:active, .reset-btn:active, .global-copy-btn:active, .settings-toggle:active, .close-settings:active {
+.preset-btn:active, .apply-btn:active, .reset-btn:active, .global-copy-btn:active, .close-settings:active {
     transform: scale(0.98);
     opacity: 0.9;
 }
@@ -847,3 +886,95 @@ input[type="number"]::-webkit-outer-spin-button {
 @media (max-width: 600px) { .tag-popup { width: 260px; } }
 
 h1, .site-info, .tag-popup .tag-popup-title, .tag-popup .tag-popup-text { user-select: text; }
+
+.help-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    backdrop-filter: blur(4px);
+}
+.help-modal-content {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+}
+.help-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.help-modal-header h2 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--confident-bg);
+    margin: 0;
+}
+.close-help-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-color);
+    padding: 0;
+    line-height: 1;
+}
+.help-modal-body {
+    padding: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.help-modal-body p {
+    margin-bottom: 0.8rem;
+}
+.help-modal-body strong {
+    color: var(--confident-bg);
+}
+.tag-example {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin: 0 0.2rem;
+}
+.tag-example.confident {
+    background-color: var(--confident-bg);
+    color: var(--confident-text);
+}
+.tag-example.all {
+    background-color: var(--all-bg);
+    color: var(--all-text);
+}
+.tag-example.low {
+    background-color: var(--low-bg);
+    color: var(--low-text);
+}
+.help-footer {
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.5rem;
+}
+.help-footer a {
+    color: var(--confident-bg);
+    text-decoration: none;
+}
+.help-footer a:hover {
+    text-decoration: underline;
+}
