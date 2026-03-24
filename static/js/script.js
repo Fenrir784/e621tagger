@@ -26,6 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const maxTagBtns = document.querySelectorAll('.max-tag-option');
     const eggContainer = document.getElementById('eggContainer');
     const eggCreature = document.getElementById('eggCreature');
+    const helpBtn = document.getElementById('helpThresholdsBtn');
+    const helpModal = document.getElementById('helpModal');
+    const closeHelpModal = document.querySelector('.close-help-modal');
 
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
     const ALLOWED_MAX_TAGS = [50, 75, 100, 150, 200, 250];
@@ -644,7 +647,12 @@ document.addEventListener('DOMContentLoaded', () => {
             eggContainer.classList.toggle('open');
         });
         const settingsToggleHammer = new Hammer(settingsToggle);
-        settingsToggleHammer.on('tap', (e) => { e.srcEvent.stopPropagation(); toggleSettings(!settingsMenu.classList.contains('show')); });
+        settingsToggleHammer.on('tap', (e) => {
+            e.srcEvent.stopPropagation();
+            settingsToggle.classList.add('pressed');
+            setTimeout(() => settingsToggle.classList.remove('pressed'), 150);
+            toggleSettings(!settingsMenu.classList.contains('show'));
+        });
         const closeSettingsHammer = new Hammer(closeSettings);
         closeSettingsHammer.on('tap', () => toggleSettings(false));
         presetBtns.forEach(btn => {
@@ -714,8 +722,28 @@ document.addEventListener('DOMContentLoaded', () => {
             closePopup();
         }
         if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) toggleSettings(false);
+        if (helpModal && helpModal.style.display === 'flex' && !helpModal.contains(e.target)) {
+            helpModal.style.display = 'none';
+        }
     });
     window.addEventListener('resize', () => { if (settingsMenu.classList.contains('show')) positionSettingsMenu(); });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && helpModal && helpModal.style.display === 'flex') {
+            helpModal.style.display = 'none';
+        }
+    });
+
+    if (helpBtn && helpModal) {
+        helpBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            helpModal.style.display = 'flex';
+        });
+        if (closeHelpModal) {
+            closeHelpModal.addEventListener('click', () => {
+                helpModal.style.display = 'none';
+            });
+        }
+    }
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.addEventListener('message', event => {
