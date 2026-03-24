@@ -29,18 +29,16 @@ jobs:
       - name: Determine app version
         id: version
         run: |
+          APP_VERSION="test"
           BRANCH="${GITHUB_REF#refs/heads/}"
-          if [[ "$BRANCH" == "test" ]]; then
-            APP_VERSION="test"
-          elif [[ "$BRANCH" == "latest" ]]; then
-            PR_NUMBER=$(git log -1 --pretty=%B | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1)
-            if [[ -n "$PR_NUMBER" ]]; then
+          if [[ "$BRANCH" == "latest" ]]; then
+            PR_NUMBER=$(gh pr list --state merged --base latest --limit 1 --json number --jq '.[0].number')
+            if [[ -n "$PR_NUMBER" && "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
               APP_VERSION="v$PR_NUMBER"
             else
-              APP_VERSION="latest"
+              echo "❌ Could not determine PR number for branch latest. Aborting."
+              exit 1
             fi
-          else
-            APP_VERSION="test"
           fi
           echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
           echo "Using version: $APP_VERSION"
