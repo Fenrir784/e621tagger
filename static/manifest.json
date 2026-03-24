@@ -2,6 +2,7 @@
   "name": "e621tagger",
   "short_name": "e621tagger",
   "description": "Free web-based e621 tagging app",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
