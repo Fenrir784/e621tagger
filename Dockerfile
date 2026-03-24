@@ -2,8 +2,6 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-ARG APP_VERSION=test
-
 RUN apt-get update && apt-get install -y \
     libgl1 \
     libglib2.0-0 \
@@ -21,6 +19,7 @@ COPY data/ ./data/
 #ADD https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv data/jtp-3-hydra-tags.csv
 
 COPY *.py ./
+ARG APP_VERSION=test
 COPY templates/ ./templates/
 COPY static/ ./static/
 
