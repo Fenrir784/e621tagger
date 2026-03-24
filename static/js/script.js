@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const eggCreature = document.getElementById('eggCreature');
     const helpBtn = document.getElementById('helpThresholdsBtn');
     const helpModal = document.getElementById('helpModal');
-    const closeHelpModal = document.querySelector('.close-help-modal');
+    const closeHelpModalBtn = document.querySelector('.close-help-modal');
 
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
     const ALLOWED_MAX_TAGS = [50, 75, 100, 150, 200, 250];
@@ -637,6 +637,25 @@ document.addEventListener('DOMContentLoaded', () => {
         finally { dropZone.classList.remove('uploading'); }
     }
 
+    function openHelpModal() {
+        if (settingsMenu.classList.contains('show')) toggleSettings(false);
+        helpModal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+        requestAnimationFrame(() => {
+            helpModal.classList.add('show');
+        });
+    }
+
+    function closeHelpModal() {
+        helpModal.classList.remove('show');
+        helpModal.addEventListener('transitionend', () => {
+            if (!helpModal.classList.contains('show')) {
+                helpModal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+        }, { once: true });
+    }
+
     function initHammer() {
         const dropZoneHammer = new Hammer(dropZone);
         dropZoneHammer.on('tap', () => fileInput.click());
@@ -722,35 +741,26 @@ document.addEventListener('DOMContentLoaded', () => {
             closePopup();
         }
         if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) toggleSettings(false);
-        if (helpModal && helpModal.classList.contains('show') && !helpModal.contains(e.target)) {
-            helpModal.classList.remove('show');
+        if (helpModal && helpModal.style.display === 'flex' && !helpModal.contains(e.target)) {
+            closeHelpModal();
         }
     });
     window.addEventListener('resize', () => { if (settingsMenu.classList.contains('show')) positionSettingsMenu(); });
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            if (helpModal && helpModal.classList.contains('show')) {
-                helpModal.classList.remove('show');
-            }
+            if (helpModal && helpModal.style.display === 'flex') closeHelpModal();
+            if (settingsMenu.classList.contains('show')) toggleSettings(false);
         }
     });
 
     if (helpBtn && helpModal) {
         helpBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (settingsMenu.classList.contains('show')) toggleSettings(false);
-            helpModal.classList.add('show');
+            openHelpModal();
         });
-        if (closeHelpModal) {
-            closeHelpModal.addEventListener('click', () => {
-                helpModal.classList.remove('show');
-            });
+        if (closeHelpModalBtn) {
+            closeHelpModalBtn.addEventListener('click', closeHelpModal);
         }
-        helpModal.addEventListener('click', (e) => {
-            if (e.target === helpModal) {
-                helpModal.classList.remove('show');
-            }
-        });
     }
 
     if ('serviceWorker' in navigator) {
