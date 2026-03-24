@@ -722,27 +722,35 @@ document.addEventListener('DOMContentLoaded', () => {
             closePopup();
         }
         if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) toggleSettings(false);
-        if (helpModal && helpModal.style.display === 'flex' && !helpModal.contains(e.target)) {
-            helpModal.style.display = 'none';
+        if (helpModal && helpModal.classList.contains('show') && !helpModal.contains(e.target)) {
+            helpModal.classList.remove('show');
         }
     });
     window.addEventListener('resize', () => { if (settingsMenu.classList.contains('show')) positionSettingsMenu(); });
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && helpModal && helpModal.style.display === 'flex') {
-            helpModal.style.display = 'none';
+        if (e.key === 'Escape') {
+            if (helpModal && helpModal.classList.contains('show')) {
+                helpModal.classList.remove('show');
+            }
         }
     });
 
     if (helpBtn && helpModal) {
         helpBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            helpModal.style.display = 'flex';
+            if (settingsMenu.classList.contains('show')) toggleSettings(false);
+            helpModal.classList.add('show');
         });
         if (closeHelpModal) {
             closeHelpModal.addEventListener('click', () => {
-                helpModal.style.display = 'none';
+                helpModal.classList.remove('show');
             });
         }
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                helpModal.classList.remove('show');
+            }
+        });
     }
 
     if ('serviceWorker' in navigator) {
