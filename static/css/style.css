@@ -899,6 +899,13 @@ h1, .site-info, .tag-popup .tag-popup-title, .tag-popup .tag-popup-text { user-s
     justify-content: center;
     z-index: 1100;
     backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+.help-modal.show {
+    opacity: 1;
+    visibility: visible;
 }
 .help-modal-content {
     background-color: var(--bg-color);
@@ -910,6 +917,11 @@ h1, .site-info, .tag-popup .tag-popup-title, .tag-popup .tag-popup-text { user-s
     overflow-y: auto;
     box-shadow: 0 8px 30px rgba(0,0,0,0.3);
     border: 1px solid var(--border-color);
+    transform: scale(0.95);
+    transition: transform 0.2s ease;
+}
+.help-modal.show .help-modal-content {
+    transform: scale(1);
 }
 .help-modal-header {
     display: flex;
