@@ -95,8 +95,9 @@ self.addEventListener('fetch', event => {
       caches.match(event.request).then(cached => {
         const fetchPromise = fetch(event.request).then(networkResponse => {
           if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
             caches.open(STATIC_CACHE).then(cache => {
-              cache.put(event.request, networkResponse.clone());
+              cache.put(event.request, responseToCache);
             });
           }
           return networkResponse;
@@ -112,8 +113,9 @@ self.addEventListener('fetch', event => {
       if (cached) return cached;
       return fetch(event.request).then(networkResponse => {
         if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
           caches.open(STATIC_CACHE).then(cache => {
-            cache.put(event.request, networkResponse.clone());
+            cache.put(event.request, responseToCache);
           });
         }
         return networkResponse;
