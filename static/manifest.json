@@ -2,6 +2,7 @@
   "name": "e621tagger",
   "short_name": "e621tagger",
   "description": "Free web-based e621 tagging app",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -24,17 +25,30 @@
   ],
   "screenshots": [
     {
-      "src": "/static/screenshots/desktop.png",
+      "src": "/static/screenshots/desktop1.png",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Desktop view"
+      "label": "Desktop view 1"
     },
     {
-      "src": "/static/screenshots/mobile.png",
+      "src": "/static/screenshots/desktop2.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop view 2"
+    },
+    {
+      "src": "/static/screenshots/mobile1.png",
       "sizes": "1080x1920",
       "type": "image/png",
-      "label": "Mobile view"
+      "label": "Mobile view 1"
+    },
+    {
+      "src": "/static/screenshots/mobile2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "Mobile view 2"
     }
   ],
   "shortcuts": [
