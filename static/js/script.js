@@ -741,8 +741,11 @@ document.addEventListener('DOMContentLoaded', () => {
             closePopup();
         }
         if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) toggleSettings(false);
-        if (helpModal && helpModal.style.display === 'flex' && !helpModal.contains(e.target)) {
-            closeHelpModal();
+        if (helpModal && helpModal.style.display === 'flex') {
+            const modalContent = helpModal.querySelector('.help-modal-content');
+            if (e.target === helpModal || (helpModal.contains(e.target) && modalContent && !modalContent.contains(e.target))) {
+                closeHelpModal();
+            }
         }
     });
     window.addEventListener('resize', () => { if (settingsMenu.classList.contains('show')) positionSettingsMenu(); });
