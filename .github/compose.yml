@@ -3,6 +3,7 @@ services:
     container_name: e621tagger
     image: ghcr.io/fenrir784/e621tagger:latest
     restart: unless-stopped
+    pull_policy: always
     deploy:
       resources:
         limits:
