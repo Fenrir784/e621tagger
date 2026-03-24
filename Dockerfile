@@ -1,5 +1,5 @@
 FROM python:3.11-slim
-
+ARG APP_VERSION=test
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
@@ -19,7 +19,6 @@ COPY data/ ./data/
 #ADD https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv data/jtp-3-hydra-tags.csv
 
 COPY *.py ./
-ARG APP_VERSION=test
 COPY templates/ ./templates/
 COPY static/ ./static/
 
