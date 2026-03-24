@@ -1,7 +1,7 @@
 {
   "name": "e621tagger",
   "short_name": "e621tagger",
-  "description": "Image tagger for e621 using JTP-3 Hydra model",
+  "description": "Free web-based e621 tagging app",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
