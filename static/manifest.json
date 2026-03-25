@@ -1,7 +1,7 @@
 {
   "name": "e621tagger",
   "short_name": "e621tagger",
-  "description": "Free web-based e621 tagging app",
+  "description": "Free web-based e621 tagging app created for furries by furries.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
