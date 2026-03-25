@@ -46,15 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const ratingTags = new Set(['safe', 'questionable', 'explicit']);
     const creaturePaths = [
-        '/static/f1.png',
-        '/static/f2.png',
-        '/static/f3.png',
-        '/static/f4.png',
-        '/static/f5.png',
-        '/static/f6.png',
-        '/static/f7.png',
-        '/static/f8.png',
-        '/static/f9.png'
+        '/static/icons/egg/f1.png',
+        '/static/icons/egg/f2.png',
+        '/static/icons/egg/f3.png',
+        '/static/icons/egg/f4.png',
+        '/static/icons/egg/f5.png',
+        '/static/icons/egg/f6.png',
+        '/static/icons/egg/f7.png',
+        '/static/icons/egg/f8.png',
+        '/static/icons/egg/f9.png'
     ];
 
     const tagDescriptionCache = new Map();
