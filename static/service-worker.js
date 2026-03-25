@@ -10,8 +10,10 @@ const urlsToCache = [
   '/static/manifest.json',
   '/static/android-chrome-192x192.png',
   '/static/android-chrome-512x512.png',
+  '/static/favicon.svg',
   '/static/favicon.ico',
   '/static/apple-touch-icon.png',
+  '/static/favicon-96x96.png',
   '/static/favicon-32x32.png',
   '/static/favicon-16x16.png',
   '/static/egg_top.png',
@@ -67,7 +69,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  if (url.pathname === '/predict') {
+  if (url.pathname === '/predict' || url.pathname === '/health') {
     event.respondWith(fetch(event.request));
     return;
   }
