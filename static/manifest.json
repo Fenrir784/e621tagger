@@ -14,8 +14,8 @@
   "icons": [
     {
       "purpose": "any",
-      "sizes": "512x512",
-      "src": "/static/icons/maskable_icon_x512.png",
+      "sizes": "1024x1024",
+      "src": "/static/icons/maskable_icon.png",
       "type": "image/png"
     },
     {
