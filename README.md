@@ -2,7 +2,7 @@
 **Can be accessed here: [tagger.fenrir784.ru](https://tagger.fenrir784.ru)**
 
 e621tagger is a web-based tool that automatically generates relevant tags for furry artwork using the **JTP-3 Hydra** model by Project RedRocket. It provides a clean, responsive interface for copying tags in formats suitable for e621 and PostyBirb.
-![alt text](https://github.com/Fenrir784/e621tagger/blob/latest/preview.jpg?raw=true)
+![alt text](https://github.com/Fenrir784/e621tagger/blob/latest/static/screenshots/preview.png?raw=true)
 > ⚠️ **Note:** This repository contains the source code for the application. A live, fully functional instance is already available at the link above.
 
 ---
