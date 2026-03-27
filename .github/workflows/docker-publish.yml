@@ -25,20 +25,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Determine app version    
+      - name: Determine app version
         id: version
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          APP_VERSION="test"
-          BRANCH="${GITHUB_REF#refs/heads/}"
-          if [[ "$BRANCH" == "latest" ]]; then
+          APP_VERSION=""
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            COMMIT_SHA="${{ github.event.pull_request.head.sha }}"
+            SHORT_SHA=$(echo "$COMMIT_SHA" | cut -c1-7)
+            APP_VERSION="test-${SHORT_SHA}"
+            echo "🔨 Test build, using version: $APP_VERSION"
+          else
             PR_NUMBER=$(gh pr list --state merged --base latest --limit 1 --json number --jq '.[0].number')
             if [[ -n "$PR_NUMBER" && "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
               APP_VERSION="v$PR_NUMBER"
+              echo "💽 Merged latest release, using version: $APP_VERSION"              
             else
-              APP_VERSION="$(git rev-parse --short HEAD)"
-              echo "⚠️ Could not determine PR number, using commit SHA: $APP_VERSION"
+              SHORT_SHA=$(git rev-parse --short HEAD)
+              APP_VERSION="$SHORT_SHA"
+              echo "⚠️ Could not determine PR number for latest release, using commit SHA: $APP_VERSION"
             fi
           fi
           echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
