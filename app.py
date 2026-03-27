@@ -17,10 +17,6 @@ from ua_parser import user_agent_parser
 from model import load_model, load_image
 from inference import load_metadata
 
-#Build speed test
-MODEL_PATH1 = 200
-
-
 TAG_CATEGORIES = {
     0: "General",
     1: "Artist",
