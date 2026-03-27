@@ -74,16 +74,18 @@ def secure_log(s: str) -> str:
 def generate_request_id():
     return str(uuid.uuid4())[:8]
 
+def status_emoji(status_code):
+    if 200 <= status_code < 300:
+        return "🟢"
+    elif 300 <= status_code < 400:
+        return "🟡"
+    else:
+        return "🔴"
+
 @app.before_request
 def log_request_start():
     g.request_id = generate_request_id()
     g.start_time = time.time()
-    if LOG_LEVEL == logging.DEBUG and request.path in ('/', '/predict'):
-        ip = secure_log(request.remote_addr)
-        ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
-        method = secure_log(request.method)
-        path = secure_log(request.path)
-        logger.debug("🌐 [%s] %s %s ip=%s ua=%s", g.request_id, method, path, ip, ua[:100] + '...' if len(ua) > 100 else ua)
 
 @app.after_request
 def log_request_end(response):
@@ -92,17 +94,29 @@ def log_request_end(response):
         status = response.status_code
         method = secure_log(request.method)
         path = secure_log(request.path)
+        emoji = status_emoji(status)
+
+        if path == '/':
+            ip = secure_log(request.remote_addr)
+            ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
+            accept_lang = secure_log(request.headers.get('Accept-Language', ''))
+            referer = secure_log(request.headers.get('Referer', ''))
+            logger.info(
+                "[req=%s] 👤 %s %s ip=%s ua=%s lang=%s ref=%s status=%d %s duration=%.1fms",
+                g.request_id, method, path, ip, ua[:100] + '...' if len(ua) > 100 else ua,
+                accept_lang[:50], referer[:50], status, emoji, duration
+            )
+            return response
+
         if path == '/health' and status == 200:
             if LOG_LEVEL == logging.DEBUG:
-                logger.debug("🔄 [%s] %s %s status=%d duration=%.1fms", g.request_id, method, path, status, duration)
-        elif path == '/' and status == 200:
-            logger.info("🏠 [%s] %s %s status=%d duration=%.1fms", g.request_id, method, path, status, duration)
+                logger.debug("🔄 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
         elif path == '/predict':
-            logger.info("📤 [%s] %s %s status=%d duration=%.1fms", g.request_id, method, path, status, duration)
+            logger.info("📤 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
         elif LOG_LEVEL == logging.DEBUG:
-            logger.debug("📄 [%s] %s %s status=%d duration=%.1fms", g.request_id, method, path, status, duration)
+            logger.debug("📄 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
         elif status >= 400:
-            logger.warning("⚠️ [%s] %s %s status=%d duration=%.1fms", g.request_id, method, path, status, duration)
+            logger.warning("⚠️ [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
     return response
 
 if SAVE_UPLOADS:
