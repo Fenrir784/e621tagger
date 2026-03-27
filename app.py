@@ -3,7 +3,6 @@ import tempfile
 import logging
 import time
 import re
-import uuid
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template, send_from_directory, make_response, g
 from werkzeug.utils import secure_filename
@@ -71,9 +70,6 @@ def secure_log(s: str) -> str:
     s = re.sub(r'[\x00-\x1f\x7f]', '', s)
     return s.strip()
 
-def generate_request_id():
-    return str(uuid.uuid4())[:8]
-
 def status_emoji(status_code):
     if 200 <= status_code < 300:
         return "🟢"
@@ -82,14 +78,23 @@ def status_emoji(status_code):
     else:
         return "🔴"
 
+def get_country_flag(accept_lang):
+    if not accept_lang:
+        return ""
+    first_lang = accept_lang.split(',')[0].strip()
+    if '-' in first_lang:
+        country_code = first_lang.split('-')[1].upper()
+        if len(country_code) == 2 and country_code.isalpha():
+            return chr(ord(country_code[0]) - ord('A') + 0x1F1E6) + chr(ord(country_code[1]) - ord('A') + 0x1F1E6)
+    return ""
+
 @app.before_request
 def log_request_start():
-    g.request_id = generate_request_id()
     g.start_time = time.time()
 
 @app.after_request
 def log_request_end(response):
-    if hasattr(g, 'start_time') and hasattr(g, 'request_id'):
+    if hasattr(g, 'start_time'):
         duration = (time.time() - g.start_time) * 1000
         status = response.status_code
         method = secure_log(request.method)
@@ -101,22 +106,26 @@ def log_request_end(response):
             ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
             accept_lang = secure_log(request.headers.get('Accept-Language', ''))
             referer = secure_log(request.headers.get('Referer', ''))
+            if 'service-worker.js' in referer:
+                return response
+            flag = get_country_flag(accept_lang)
+            flag_part = f" {flag}" if flag else ""
             logger.info(
-                "[req=%s] 👤 %s %s ip=%s ua=%s lang=%s ref=%s status=%d %s duration=%.1fms",
-                g.request_id, method, path, ip, ua[:100] + '...' if len(ua) > 100 else ua,
-                accept_lang[:50], referer[:50], status, emoji, duration
+                "👤 %s %s ip=%s%s ua=%s status=%d %s duration=%.1fms",
+                method, path, ip, flag_part, ua[:100] + '...' if len(ua) > 100 else ua,
+                status, emoji, duration
             )
             return response
 
         if path == '/health' and status == 200:
             if LOG_LEVEL == logging.DEBUG:
-                logger.debug("🔄 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
+                logger.debug("🔄 %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
         elif path == '/predict':
-            logger.info("📤 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
+            logger.info("📤 %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
         elif LOG_LEVEL == logging.DEBUG:
-            logger.debug("📄 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
+            logger.debug("📄 %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
         elif status >= 400:
-            logger.warning("⚠️ [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
+            logger.warning("⚠️ %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
     return response
 
 if SAVE_UPLOADS:
@@ -170,17 +179,16 @@ def save_upload(file, original_filename):
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     save_path = os.path.join(UPLOAD_DIR, final_name)
     if not os.path.abspath(save_path).startswith(os.path.abspath(UPLOAD_DIR)):
-        logger.error("🔒 [%s] Path traversal attempt: %s", g.get('request_id', '?'), save_path)
+        logger.error("🔒 Path traversal attempt: %s", save_path)
         return None
     file.seek(0)
     file.save(save_path)
-    logger.info("📁 [%s] Uploaded file saved to %s", g.get('request_id', '?'), save_path)
+    logger.info("📁 Uploaded file saved to %s", save_path)
     return save_path
 
 @app.errorhandler(RequestEntityTooLarge)
 def handle_file_too_large(e):
-    rid = g.get('request_id', '?')
-    logger.warning("⚠️ [%s] File too large (max 20MB)", rid)
+    logger.warning("⚠️ File too large (max 20MB)")
     return jsonify({'error': 'File too large. Maximum size is 20MB.'}), 413
 
 @app.route('/')
@@ -202,13 +210,12 @@ def service_worker():
 
 @app.route('/health')
 def health():
-    rid = g.get('request_id', '?')
     try:
         if model is None or tag_list is None or len(tag_list) == 0:
-            logger.warning("⚠️ [%s] Health check: model not loaded", rid)
+            logger.warning("⚠️ Health check: model not loaded")
             return jsonify({'status': 'unhealthy', 'reason': 'model not loaded'}), 503
         if LOG_LEVEL == logging.DEBUG:
-            logger.debug("✅ [%s] Health check ok (tags=%d)", rid, len(tag_list))
+            logger.debug("✅ Health check ok (tags=%d)", len(tag_list))
         return jsonify({
             'status': 'healthy',
             'model': 'loaded',
@@ -216,22 +223,21 @@ def health():
             'version': APP_VERSION
         }), 200
     except Exception as e:
-        logger.exception("💥 [%s] Health check failed", rid)
+        logger.exception("💥 Health check failed")
         return jsonify({'status': 'unhealthy', 'reason': 'internal error'}), 503
 
 @app.route('/predict', methods=['POST'])
 @limiter.limit("20 per minute")
 def predict():
-    rid = g.get('request_id', '?')
     ip = secure_log(request.remote_addr)
 
     if 'image' not in request.files:
-        logger.warning("⚠️ [%s] IP=%s: request without image file", rid, ip)
+        logger.warning("⚠️ IP=%s: request without image file", ip)
         return jsonify({'error': 'No image provided'}), 400
 
     file = request.files['image']
     if file.filename == '':
-        logger.warning("⚠️ [%s] IP=%s: empty filename", rid, ip)
+        logger.warning("⚠️ IP=%s: empty filename", ip)
         return jsonify({'error': 'Empty filename'}), 400
 
     filename = secure_log(file.filename)
@@ -239,14 +245,14 @@ def predict():
     content_type = secure_log(content_type)
 
     if not is_allowed_file(filename, content_type):
-        logger.warning("⚠️ [%s] IP=%s: rejected file '%s' (type: %s)", rid, ip, filename, content_type)
+        logger.warning("⚠️ IP=%s: rejected file '%s' (type: %s)", ip, filename, content_type)
         return jsonify({'error': 'File type not allowed'}), 400
 
     if not is_valid_image(file):
-        logger.warning("⚠️ [%s] IP=%s: rejected invalid image file '%s'", rid, ip, filename)
+        logger.warning("⚠️ IP=%s: rejected invalid image file '%s'", ip, filename)
         return jsonify({'error': 'Invalid or corrupted image file'}), 400
 
-    logger.info("📥 [%s] IP=%s: uploading file '%s'", rid, ip, filename)
+    logger.info("📥 IP=%s: uploading file '%s'", ip, filename)
 
     top_k_str = request.form.get('top_k', str(DEFAULT_TOP_K))
     try:
@@ -303,13 +309,13 @@ def predict():
                 'prob': prob,
                 'category': category_name
             })
-        logger.info("✅ [%s] IP=%s: file '%s' processed, top=%d tags", rid, ip, filename, len(tags_with_probs))
+        logger.info("✅ IP=%s: file '%s' processed, top=%d tags", ip, filename, len(tags_with_probs))
         return jsonify({
             'success': True,
             'tags': tags_with_probs
         })
     except Exception as e:
-        logger.error("❌ [%s] IP=%s: error processing file '%s': %s", rid, ip, filename, str(e))
+        logger.error("❌ IP=%s: error processing file '%s': %s", ip, filename, str(e))
         return jsonify({'error': 'Internal server error'}), 500
     finally:
         if temp_path is not None:
