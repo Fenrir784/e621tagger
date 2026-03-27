@@ -27,8 +27,11 @@ TAG_CATEGORIES = {
     8: "Lore",
 }
 
+APP_VERSION = os.getenv('APP_VERSION', 'test')
+LOG_LEVEL = logging.DEBUG if APP_VERSION.startswith('test-') else logging.INFO
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=LOG_LEVEL,
     format='%(asctime)s [%(levelname)s] %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
@@ -60,8 +63,6 @@ UPLOAD_DIR = os.getenv('UPLOAD_DIR', '/app/uploads')
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff'}
 ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/tiff'}
 
-APP_VERSION = os.getenv('APP_VERSION', 'test')
-
 def secure_log(s: str) -> str:
     if not s:
         return ""
@@ -76,13 +77,12 @@ def generate_request_id():
 def log_request_start():
     g.request_id = generate_request_id()
     g.start_time = time.time()
-
-    if request.path in ('/', '/predict'):
+    if LOG_LEVEL == logging.DEBUG and request.path in ('/', '/predict'):
         ip = secure_log(request.remote_addr)
         ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
         method = secure_log(request.method)
         path = secure_log(request.path)
-        logger.info("[req=%s] %s %s ip=%s ua=%s", g.request_id, method, path, ip, ua[:100] + '...' if len(ua) > 100 else ua)
+        logger.debug("[req=%s] %s %s ip=%s ua=%s", g.request_id, method, path, ip, ua[:100] + '...' if len(ua) > 100 else ua)
 
 @app.after_request
 def log_request_end(response):
@@ -91,15 +91,15 @@ def log_request_end(response):
         status = response.status_code
         method = secure_log(request.method)
         path = secure_log(request.path)
-        log_msg = "[req=%s] %s %s status=%d duration=%.1fms"
-        log_args = (g.request_id, method, path, status, duration)
-        logger.info(log_msg, *log_args)
+        if LOG_LEVEL == logging.DEBUG or path in ('/', '/predict') or status >= 400:
+            logger.info("[req=%s] %s %s status=%d duration=%.1fms", g.request_id, method, path, status, duration)
     return response
 
 if SAVE_UPLOADS:
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     logger.info("Upload saving enabled, directory: %s", UPLOAD_DIR)
 
+logger.info("e621tagger version: %s", APP_VERSION)
 logger.info("Loading e621tagger model on %s...", DEVICE)
 model, tag_list, ext_info = load_model(MODEL_PATH, device=DEVICE)
 
@@ -178,7 +178,8 @@ def health():
         if model is None or tag_list is None or len(tag_list) == 0:
             logger.warning("[req=%s] Health check: model not loaded", rid)
             return jsonify({'status': 'unhealthy', 'reason': 'model not loaded'}), 503
-        logger.info("[req=%s] Health check ok (tags=%d)", rid, len(tag_list))
+        if LOG_LEVEL == logging.DEBUG:
+            logger.debug("[req=%s] Health check ok (tags=%d)", rid, len(tag_list))
         return jsonify({
             'status': 'healthy',
             'model': 'loaded',
