@@ -12,6 +12,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import torch
 from PIL import Image
+from ua_parser import user_agent_parser
 
 from model import load_model, load_image
 from inference import load_metadata
@@ -88,6 +89,42 @@ def get_country_flag(accept_lang):
             return chr(ord(country_code[0]) - ord('A') + 0x1F1E6) + chr(ord(country_code[1]) - ord('A') + 0x1F1E6)
     return ""
 
+def parse_user_agent(ua_str):
+    try:
+        parsed = user_agent_parser.Parse(ua_str)
+        ua = parsed.get('user_agent', {})
+        os = parsed.get('os', {})
+        device = parsed.get('device', {})
+
+        device_type = device.get('family', '').lower()
+        if device_type in ('smartphone', 'tablet', 'spider', 'bot', 'crawler'):
+            device_family = device_type
+        elif 'mobile' in ua_str.lower():
+            device_family = 'mobile'
+        else:
+            device_family = 'desktop'
+
+        parts = []
+        if ua.get('family') and ua.get('family') != 'Other':
+            parts.append(ua['family'])
+            if ua.get('major'):
+                parts[-1] += f"/{ua['major']}"
+        if os.get('family') and os.get('family') != 'Other':
+            os_str = os['family']
+            if os.get('major'):
+                os_str += f"/{os['major']}"
+            parts.append(os_str)
+
+        if parts:
+            return f"{device_family} {' '.join(parts)}"
+        else:
+            short = ua_str[:100]
+            if len(ua_str) > 100:
+                short += '…'
+            return short
+    except Exception:
+        return ua_str[:100] + ('…' if len(ua_str) > 100 else '')
+
 @app.before_request
 def log_request_start():
     g.start_time = time.time()
@@ -103,16 +140,17 @@ def log_request_end(response):
 
         if path == '/':
             ip = secure_log(request.remote_addr)
-            ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
+            raw_ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
             accept_lang = secure_log(request.headers.get('Accept-Language', ''))
             referer = secure_log(request.headers.get('Referer', ''))
             if 'service-worker.js' in referer:
                 return response
             flag = get_country_flag(accept_lang)
             flag_part = f" {flag}" if flag else ""
+            ua_short = parse_user_agent(raw_ua)
             logger.info(
                 "👤 %s %s ip=%s%s ua=%s status=%d %s duration=%.1fms",
-                method, path, ip, flag_part, ua[:100] + '...' if len(ua) > 100 else ua,
+                method, path, ip, flag_part, ua_short,
                 status, emoji, duration
             )
             return response
