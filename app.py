@@ -6,6 +6,7 @@ from datetime import datetime
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import torch
@@ -33,6 +34,9 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
+
+if os.getenv('USE_PROXY', 'false').lower() == 'true':
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 limiter = Limiter(
     get_remote_address,
@@ -169,7 +173,6 @@ def predict():
         logger.warning(f"IP={ip}: rejected invalid image file '{filename}'")
         return jsonify({'error': 'Invalid or corrupted image file'}), 400
     logger.info(f"IP={ip}: uploading file '{filename}'")
-    saved_path = save_upload(file, filename)
 
     top_k_str = request.form.get('top_k', str(DEFAULT_TOP_K))
     try:
@@ -179,13 +182,23 @@ def predict():
     if top_k not in ALLOWED_TOP_K:
         top_k = DEFAULT_TOP_K
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
-        file.seek(0)
-        file.save(tmp.name)
-        temp_path = tmp.name
+    saved_path = None
+    temp_path = None
     try:
+        if SAVE_UPLOADS:
+            saved_path = save_upload(file, filename)
+            if saved_path is None:
+                raise Exception("Failed to save uploaded file")
+            image_path = saved_path
+        else:
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
+                file.seek(0)
+                file.save(tmp.name)
+                temp_path = tmp.name
+            image_path = temp_path
+
         patches, patch_coords, patch_valid = load_image(
-            temp_path,
+            image_path,
             patch_size=PATCH_SIZE,
             max_seq_len=MAX_SEQ_LEN,
             share_memory=False
@@ -225,7 +238,8 @@ def predict():
         logger.error(f"IP={ip}: error processing file '{filename}': {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
     finally:
-        os.unlink(temp_path)
+        if temp_path is not None:
+            os.unlink(temp_path)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
