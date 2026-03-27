@@ -136,7 +136,12 @@ def favicon():
 
 @app.route('/service-worker.js')
 def service_worker():
-    return render_template('service-worker.js', APP_VERSION=APP_VERSION)
+    response = make_response(render_template('service-worker.js', APP_VERSION=APP_VERSION))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 
 @app.route('/health')
 def health():
