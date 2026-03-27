@@ -4,6 +4,9 @@ import logging
 import time
 import re
 import uuid
+import threading
+import requests
+import functools
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template, send_from_directory, make_response, g
 from werkzeug.utils import secure_filename
@@ -64,6 +67,8 @@ UPLOAD_DIR = os.getenv('UPLOAD_DIR', '/app/uploads')
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff'}
 ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/tiff'}
 
+GEOIP_ENABLED = os.getenv('GEOIP_ENABLED', 'false').lower() == 'true'
+
 def secure_log(s: str) -> str:
     if not s:
         return ""
@@ -82,6 +87,45 @@ def status_emoji(status_code):
     else:
         return "🔴"
 
+def is_private_ip(ip):
+    private_prefixes = ('10.', '172.16.', '172.17.', '172.18.', '172.19.',
+                        '172.20.', '172.21.', '172.22.', '172.23.', '172.24.',
+                        '172.25.', '172.26.', '172.27.', '172.28.', '172.29.',
+                        '172.30.', '172.31.', '192.168.', '127.', '0.')
+    return ip.startswith(private_prefixes) or ip == '::1'
+
+@functools.lru_cache(maxsize=1000)
+def get_geo_info(ip):
+    if not GEOIP_ENABLED or is_private_ip(ip):
+        return None
+    try:
+        url = f"http://ip-api.com/json/{ip}?fields=status,message,country,countryCode,city"
+        resp = requests.get(url, timeout=2)
+        data = resp.json()
+        if data.get('status') == 'success':
+            country = data.get('country', '')
+            country_code = data.get('countryCode', '')
+            city = data.get('city', '')
+            if country_code:
+                flag = ''.join(chr(0x1F1E6 + ord(c) - ord('A')) for c in country_code.upper())
+                return f"{flag} {country}, {city}"
+            return f"{country}, {city}"
+    except Exception as e:
+        logger.debug("GeoIP lookup failed for %s: %s", ip, str(e))
+    return None
+
+def log_visitor_in_background(request_id, ip, ua, lang_header, status, duration, emoji):
+    ua_short = (ua[:100] + '...') if len(ua) > 100 else ua
+    lang = ''
+    if lang_header:
+        parts = lang_header.split(',')
+        if parts:
+            lang = parts[0].strip().split(';')[0]
+    geo = get_geo_info(ip)
+    geo_str = f" {geo}" if geo else ""
+    logger.info("[%s] 👤 GET / ip=%s%s lang=%s status=%d %s duration=%.1fms",
+                request_id, ip, geo_str, lang, status, emoji, duration)
+
 @app.before_request
 def log_request_start():
     g.request_id = generate_request_id()
@@ -89,34 +133,32 @@ def log_request_start():
 
 @app.after_request
 def log_request_end(response):
-    if hasattr(g, 'start_time') and hasattr(g, 'request_id'):
-        duration = (time.time() - g.start_time) * 1000
-        status = response.status_code
-        method = secure_log(request.method)
-        path = secure_log(request.path)
-        emoji = status_emoji(status)
+    if not hasattr(g, 'start_time') or not hasattr(g, 'request_id'):
+        return response
+    duration = (time.time() - g.start_time) * 1000
+    status = response.status_code
+    method = secure_log(request.method)
+    path = secure_log(request.path)
+    emoji = status_emoji(status)
 
-        if path == '/':
-            ip = secure_log(request.remote_addr)
-            ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
-            accept_lang = secure_log(request.headers.get('Accept-Language', ''))
-            referer = secure_log(request.headers.get('Referer', ''))
-            logger.info(
-                "[req=%s] 👤 %s %s ip=%s ua=%s lang=%s ref=%s status=%d %s duration=%.1fms",
-                g.request_id, method, path, ip, ua[:100] + '...' if len(ua) > 100 else ua,
-                accept_lang[:50], referer[:50], status, emoji, duration
-            )
-            return response
+    if path == '/':
+        ip = secure_log(request.remote_addr)
+        ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
+        lang_header = request.headers.get('Accept-Language', '')
+        threading.Thread(target=log_visitor_in_background,
+                         args=(g.request_id, ip, ua, lang_header, status, duration, emoji),
+                         daemon=True).start()
+        return response
 
-        if path == '/health' and status == 200:
-            if LOG_LEVEL == logging.DEBUG:
-                logger.debug("🔄 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
-        elif path == '/predict':
-            logger.info("📤 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
-        elif LOG_LEVEL == logging.DEBUG:
-            logger.debug("📄 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
-        elif status >= 400:
-            logger.warning("⚠️ [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
+    if path == '/health' and status == 200:
+        if LOG_LEVEL == logging.DEBUG:
+            logger.debug("🔄 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
+    elif path == '/predict':
+        logger.info("📤 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
+    elif LOG_LEVEL == logging.DEBUG:
+        logger.debug("📄 [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
+    elif status >= 400:
+        logger.warning("⚠️ [%s] %s %s status=%d %s duration=%.1fms", g.request_id, method, path, status, emoji, duration)
     return response
 
 if SAVE_UPLOADS:
