@@ -17,7 +17,6 @@ services:
       - TZ=Europe/Moscow
       - SAVE_UPLOADS=true
       - USE_PROXY=true
-      - GEOIP_ENABLED=true
       - GUNICORN_WORKERS=2
       - GUNICORN_TIMEOUT=120
     volumes:
