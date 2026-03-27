@@ -37,8 +37,8 @@ jobs:
             if [[ -n "$PR_NUMBER" && "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
               APP_VERSION="v$PR_NUMBER"
             else
-              echo "❌ Could not determine PR number for branch latest. Aborting."
-              exit 1
+              APP_VERSION="$(git rev-parse --short HEAD)"
+              echo "⚠️ Could not determine PR number, using commit SHA: $APP_VERSION"
             fi
           fi
           echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
