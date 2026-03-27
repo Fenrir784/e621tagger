@@ -194,6 +194,7 @@ def favicon():
 @app.route('/service-worker.js')
 def service_worker():
     response = make_response(render_template('service-worker.js', APP_VERSION=APP_VERSION))
+    response.headers['Content-Type'] = 'application/javascript'
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
