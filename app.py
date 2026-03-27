@@ -62,7 +62,7 @@ ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'ima
 
 APP_VERSION = os.getenv('APP_VERSION', 'test')
 
-def sanitize_log_string(s: str) -> str:
+def secure_log(s: str) -> str:
     if not s:
         return ""
     s = s.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ')
@@ -78,10 +78,10 @@ def log_request_start():
     g.start_time = time.time()
 
     if request.path in ('/', '/predict'):
-        ip = sanitize_log_string(request.remote_addr)
-        ua = sanitize_log_string(request.headers.get('User-Agent', 'Unknown'))
-        method = sanitize_log_string(request.method)
-        path = sanitize_log_string(request.path)
+        ip = secure_log(request.remote_addr)
+        ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
+        method = secure_log(request.method)
+        path = secure_log(request.path)
         logger.info("[req=%s] %s %s ip=%s ua=%s", g.request_id, method, path, ip, ua[:100] + '...' if len(ua) > 100 else ua)
 
 @app.after_request
@@ -89,8 +89,8 @@ def log_request_end(response):
     if hasattr(g, 'start_time') and hasattr(g, 'request_id'):
         duration = (time.time() - g.start_time) * 1000
         status = response.status_code
-        method = sanitize_log_string(request.method)
-        path = sanitize_log_string(request.path)
+        method = secure_log(request.method)
+        path = secure_log(request.path)
         log_msg = "[req=%s] %s %s status=%d duration=%.1fms"
         log_args = (g.request_id, method, path, status, duration)
         logger.info(log_msg, *log_args)
@@ -193,7 +193,7 @@ def health():
 @limiter.limit("20 per minute")
 def predict():
     rid = g.get('request_id', '?')
-    ip = sanitize_log_string(request.remote_addr)
+    ip = secure_log(request.remote_addr)
 
     if 'image' not in request.files:
         logger.warning("[req=%s] IP=%s: request without image file", rid, ip)
@@ -204,9 +204,9 @@ def predict():
         logger.warning("[req=%s] IP=%s: empty filename", rid, ip)
         return jsonify({'error': 'Empty filename'}), 400
 
-    filename = sanitize_log_string(file.filename)
+    filename = secure_log(file.filename)
     content_type = file.content_type or ''
-    content_type = sanitize_log_string(content_type)
+    content_type = secure_log(content_type)
 
     if not is_allowed_file(filename, content_type):
         logger.warning("[req=%s] IP=%s: rejected file '%s' (type: %s)", rid, ip, filename, content_type)
