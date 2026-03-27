@@ -1,6 +1,4 @@
 FROM python:3.11-slim
-ARG APP_VERSION=test
-ENV APP_VERSION=${APP_VERSION}
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
@@ -24,6 +22,8 @@ COPY *.py ./
 COPY templates/ ./templates/
 COPY static/ ./static/
 
+ARG APP_VERSION=test
+ENV APP_VERSION=${APP_VERSION}
 ENV GUNICORN_WORKERS=2
 ENV GUNICORN_TIMEOUT=120
 
