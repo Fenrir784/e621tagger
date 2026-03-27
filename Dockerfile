@@ -24,8 +24,6 @@ COPY *.py ./
 COPY templates/ ./templates/
 COPY static/ ./static/
 
-RUN sed -i "s/{{APP_VERSION}}/${APP_VERSION}/g" templates/index.html static/service-worker.js
-
 ENV GUNICORN_WORKERS=2
 ENV GUNICORN_TIMEOUT=120
 
