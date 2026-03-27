@@ -3,7 +3,7 @@ import tempfile
 import logging
 import time
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template, send_from_directory, make_response
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -128,7 +128,7 @@ def handle_file_too_large(e):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', APP_VERSION=APP_VERSION)
 
 @app.route('/favicon.ico')
 def favicon():
@@ -141,7 +141,6 @@ def service_worker():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
-
 
 @app.route('/health')
 def health():
