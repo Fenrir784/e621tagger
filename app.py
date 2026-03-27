@@ -3,7 +3,7 @@ import tempfile
 import logging
 import time
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Flask, request, jsonify, render_template, send_from_directory, make_response, g
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -320,6 +320,32 @@ def predict():
     finally:
         if temp_path is not None:
             os.unlink(temp_path)
+
+@app.route('/robots.txt')
+def robots():
+    content = """User-agent: *
+Disallow: /static/
+Disallow: /predict
+Disallow: /health
+Disallow: /service-worker.js
+
+Sitemap: https://www.tagger.fenrir784.ru/sitemap.xml
+"""
+    return make_response(content, 200, {'Content-Type': 'text/plain'})
+
+@app.route('/sitemap.xml')
+def sitemap():
+    lastmod = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.tagger.fenrir784.ru/</loc>
+    <lastmod>{lastmod}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>"""
+    return make_response(content, 200, {'Content-Type': 'application/xml'})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
