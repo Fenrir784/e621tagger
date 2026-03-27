@@ -2,6 +2,7 @@ import os
 import tempfile
 import logging
 import time
+import re
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template, send_from_directory, make_response
 from werkzeug.utils import secure_filename
@@ -60,11 +61,18 @@ ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'ima
 
 APP_VERSION = os.getenv('APP_VERSION', 'test')
 
+def sanitize_log_string(s: str) -> str:
+    if not s:
+        return ""
+    s = s.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ')
+    s = re.sub(r'[\x00-\x1f\x7f]', '', s)
+    return s.strip()
+
 if SAVE_UPLOADS:
     os.makedirs(UPLOAD_DIR, exist_ok=True)
-    logger.info(f"Upload saving enabled, directory: {UPLOAD_DIR}")
+    logger.info("Upload saving enabled, directory: %s", UPLOAD_DIR)
 
-logger.info(f"Loading e621tagger model on {DEVICE}...")
+logger.info("Loading e621tagger model on %s...", DEVICE)
 model, tag_list, ext_info = load_model(MODEL_PATH, device=DEVICE)
 
 if DEVICE == 'cpu':
@@ -75,11 +83,11 @@ else:
 
 model.requires_grad_(False)
 model.eval()
-logger.info(f"Model loaded, {len(tag_list)} tags")
+logger.info("Model loaded, %d tags", len(tag_list))
 
 logger.info("Loading tag metadata...")
 metadata = load_metadata(TAGS_PATH)
-logger.info(f"Metadata loaded, {len(metadata)} entries")
+logger.info("Metadata loaded, %d entries", len(metadata))
 
 def is_valid_image(file):
     try:
@@ -106,21 +114,20 @@ def save_upload(file, original_filename):
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     save_path = os.path.join(UPLOAD_DIR, final_name)
     if not os.path.abspath(save_path).startswith(os.path.abspath(UPLOAD_DIR)):
-        logger.error(f"Path traversal attempt: {save_path}")
+        logger.error("Path traversal attempt: %s", save_path)
         return None
     file.seek(0)
     file.save(save_path)
-    logger.info(f"Uploaded file saved to {save_path}")
+    logger.info("Uploaded file saved to %s", save_path)
     return save_path
 
 @app.before_request
 def log_request_info():
     if request.path == '/' or request.path == '/predict':
-        ip = request.remote_addr
-        ua = request.headers.get('User-Agent', 'Unknown')
-        if len(ua) > 100:
-            ua = ua[:100] + '...'
-        logger.info(f"Client connected: IP={ip}, UA={ua}, Path={request.path}")
+        ip = sanitize_log_string(request.remote_addr)
+        ua = sanitize_log_string(request.headers.get('User-Agent', 'Unknown'))
+        path = sanitize_log_string(request.path)
+        logger.info("Client connected: IP=%s, UA=%s, Path=%s", ip, ua[:100] + '...' if len(ua) > 100 else ua, path)
 
 @app.errorhandler(RequestEntityTooLarge)
 def handle_file_too_large(e):
@@ -160,23 +167,23 @@ def health():
 @app.route('/predict', methods=['POST'])
 @limiter.limit("20 per minute")
 def predict():
-    ip = request.remote_addr
+    ip = sanitize_log_string(request.remote_addr)
     if 'image' not in request.files:
-        logger.warning(f"IP={ip}: request without image file")
+        logger.warning("IP=%s: request without image file", ip)
         return jsonify({'error': 'No image provided'}), 400
     file = request.files['image']
     if file.filename == '':
-        logger.warning(f"IP={ip}: empty filename")
+        logger.warning("IP=%s: empty filename", ip)
         return jsonify({'error': 'Empty filename'}), 400
-    filename = file.filename
+    filename = sanitize_log_string(file.filename)
     content_type = file.content_type or ''
     if not is_allowed_file(filename, content_type):
-        logger.warning(f"IP={ip}: rejected file '{filename}' (type: {content_type})")
+        logger.warning("IP=%s: rejected file '%s' (type: %s)", ip, filename, content_type)
         return jsonify({'error': 'File type not allowed'}), 400
     if not is_valid_image(file):
-        logger.warning(f"IP={ip}: rejected invalid image file '{filename}'")
+        logger.warning("IP=%s: rejected invalid image file '%s'", ip, filename)
         return jsonify({'error': 'Invalid or corrupted image file'}), 400
-    logger.info(f"IP={ip}: uploading file '{filename}'")
+    logger.info("IP=%s: uploading file '%s'", ip, filename)
 
     top_k_str = request.form.get('top_k', str(DEFAULT_TOP_K))
     try:
@@ -233,13 +240,13 @@ def predict():
                 'prob': prob,
                 'category': category_name
             })
-        logger.info(f"IP={ip}: file '{filename}' processed successfully, top {len(tags_with_probs)} tags")
+        logger.info("IP=%s: file '%s' processed successfully, top %d tags", ip, filename, len(tags_with_probs))
         return jsonify({
             'success': True,
             'tags': tags_with_probs
         })
     except Exception as e:
-        logger.error(f"IP={ip}: error processing file '{filename}': {str(e)}")
+        logger.error("IP=%s: error processing file '%s': %s", ip, filename, str(e))
         return jsonify({'error': 'Internal server error'}), 500
     finally:
         if temp_path is not None:
