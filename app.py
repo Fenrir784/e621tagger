@@ -136,7 +136,7 @@ def favicon():
 
 @app.route('/service-worker.js')
 def service_worker():
-    return send_from_directory('static', 'service-worker.js')
+    return render_template('service-worker.js', APP_VERSION=APP_VERSION)
 
 @app.route('/health')
 def health():
