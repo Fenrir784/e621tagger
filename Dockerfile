@@ -1,6 +1,4 @@
 FROM python:3.11-slim
-ARG APP_VERSION=test
-ENV APP_VERSION=${APP_VERSION}
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
@@ -24,11 +22,14 @@ COPY *.py ./
 COPY templates/ ./templates/
 COPY static/ ./static/
 
-RUN sed -i "s/{{APP_VERSION}}/${APP_VERSION}/g" templates/index.html static/service-worker.js
+ARG APP_VERSION=test
+ENV APP_VERSION=${APP_VERSION}
+ENV GUNICORN_WORKERS=2
+ENV GUNICORN_TIMEOUT=120
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:5000/health || exit 1
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "app:app"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:5000 --workers ${GUNICORN_WORKERS} --timeout ${GUNICORN_TIMEOUT} app:app"]
