@@ -14,6 +14,9 @@ import torch
 from PIL import Image
 from ua_parser import user_agent_parser
 
+#test
+LOG_LEVEL1 = 1
+
 from model import load_model, load_image
 from inference import load_metadata
 
