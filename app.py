@@ -265,10 +265,10 @@ def service_worker():
 def health():
     try:
         if model is None or tag_list is None or len(tag_list) == 0:
-            logger.warning("⚠️ Health check: model not loaded")
+            logger.warning("⚠️ Health check: model not loaded (version=%s)", APP_VERSION)
             return jsonify({'status': 'unhealthy', 'reason': 'model not loaded'}), 503
         if LOG_LEVEL == logging.DEBUG:
-            logger.debug("✅ Health check ok (tags=%d)", len(tag_list))
+            logger.debug("✅ Health check ok (tags=%d, version=%s)", len(tag_list), APP_VERSION)
         return jsonify({
             'status': 'healthy',
             'model': 'loaded',
@@ -276,7 +276,7 @@ def health():
             'version': APP_VERSION
         }), 200
     except Exception as e:
-        logger.exception("💥 Health check failed")
+        logger.exception("💥 Health check failed (version=%s)", APP_VERSION)
         return jsonify({'status': 'unhealthy', 'reason': 'internal error'}), 503
 
 @app.route('/predict', methods=['POST'])
