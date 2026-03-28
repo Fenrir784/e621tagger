@@ -1,9 +1,3 @@
-FROM python:3.11-slim AS data
-WORKDIR /tmp
-ADD https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors /models/jtp-3-hydra.safetensors
-ADD https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv /data/jtp-3-hydra-tags.csv
-
-
 FROM python:3.11-slim
 WORKDIR /app
 
@@ -16,8 +10,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip pip install --no-cache-dir -r requirements.txt
 
-COPY --from=data /models/ ./models/
-COPY --from=data /data/ ./data/
+ADD https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors models/jtp-3-hydra.safetensors
+ADD https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv data/jtp-3-hydra-tags.csv
 
 COPY *.py ./
 COPY templates/ ./templates/
