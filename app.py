@@ -3,7 +3,7 @@ import tempfile
 import logging
 import time
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Flask, request, jsonify, render_template, send_from_directory, make_response, g
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -12,6 +12,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import torch
 from PIL import Image
+from ua_parser import user_agent_parser
 
 from model import load_model, load_image
 from inference import load_metadata
@@ -88,6 +89,50 @@ def get_country_flag(accept_lang):
             return chr(ord(country_code[0]) - ord('A') + 0x1F1E6) + chr(ord(country_code[1]) - ord('A') + 0x1F1E6)
     return ""
 
+def parse_user_agent(ua_str):
+    try:
+        parsed = user_agent_parser.Parse(ua_str)
+        ua = parsed.get('user_agent', {})
+        os = parsed.get('os', {})
+        device = parsed.get('device', {})
+
+        device_family = device.get('family', '').lower()
+
+        if device_family in ('spider', 'bot', 'crawler'):
+            device_type = 'bot'
+        elif device_family == 'smartphone':
+            device_type = 'mobile'
+        elif device_family == 'tablet':
+            device_type = 'tablet'
+        elif 'mobile' in ua_str.lower():
+            device_type = 'mobile'
+        elif device_family and device_family != 'other':
+            device_type = 'desktop'
+        else:
+            device_type = 'desktop'
+
+        parts = []
+        if ua.get('family') and ua.get('family') != 'Other':
+            ua_str_short = ua['family']
+            if ua.get('major'):
+                ua_str_short += f"/{ua['major']}"
+            parts.append(ua_str_short)
+        if os.get('family') and os.get('family') != 'Other':
+            os_str = os['family']
+            if os.get('major'):
+                os_str += f"/{os['major']}"
+            parts.append(os_str)
+
+        if parts:
+            short = ' '.join(parts)
+        else:
+            short = ua_str[:80]
+            if len(ua_str) > 80:
+                short += '…'
+        return device_type, short
+    except Exception:
+        return 'desktop', ua_str[:80] + ('…' if len(ua_str) > 80 else '')
+
 @app.before_request
 def log_request_start():
     g.start_time = time.time()
@@ -99,33 +144,41 @@ def log_request_end(response):
         status = response.status_code
         method = secure_log(request.method)
         path = secure_log(request.path)
-        emoji = status_emoji(status)
+        emoji_status = status_emoji(status)
 
         if path == '/':
             ip = secure_log(request.remote_addr)
-            ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
+            raw_ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
             accept_lang = secure_log(request.headers.get('Accept-Language', ''))
             referer = secure_log(request.headers.get('Referer', ''))
             if 'service-worker.js' in referer:
                 return response
             flag = get_country_flag(accept_lang)
             flag_part = f" {flag}" if flag else ""
+            device_type, ua_short = parse_user_agent(raw_ua)
+            device_emoji = {
+                'desktop': '💻',
+                'mobile': '📱',
+                'tablet': '📱',
+                'bot': '🤖',
+                'other': '❓'
+            }.get(device_type, '❓')
             logger.info(
-                "👤 %s %s ip=%s%s ua=%s status=%d %s duration=%.1fms",
-                method, path, ip, flag_part, ua[:100] + '...' if len(ua) > 100 else ua,
-                status, emoji, duration
+                "👤 %s %s %s %s %s %s %d %s %.1fms",
+                method, path, ip, flag_part, device_emoji, ua_short,
+                status, emoji_status, duration
             )
             return response
 
         if path == '/health' and status == 200:
             if LOG_LEVEL == logging.DEBUG:
-                logger.debug("🔄 %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
+                logger.debug("🔄 %s %s %d %s %.1fms", method, path, status, emoji_status, duration)
         elif path == '/predict':
-            logger.info("📤 %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
+            logger.info("📤 %s %s %d %s %.1fms", method, path, status, emoji_status, duration)
         elif LOG_LEVEL == logging.DEBUG:
-            logger.debug("📄 %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
+            logger.debug("📄 %s %s %d %s %.1fms", method, path, status, emoji_status, duration)
         elif status >= 400:
-            logger.warning("⚠️ %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
+            logger.warning("⚠️ %s %s %d %s %.1fms", method, path, status, emoji_status, duration)
     return response
 
 if SAVE_UPLOADS:
@@ -212,10 +265,10 @@ def service_worker():
 def health():
     try:
         if model is None or tag_list is None or len(tag_list) == 0:
-            logger.warning("⚠️ Health check: model not loaded")
+            logger.warning("⚠️ Health check: model not loaded (version=%s)", APP_VERSION)
             return jsonify({'status': 'unhealthy', 'reason': 'model not loaded'}), 503
         if LOG_LEVEL == logging.DEBUG:
-            logger.debug("✅ Health check ok (tags=%d)", len(tag_list))
+            logger.debug("✅ Health check ok (tags=%d, version=%s)", len(tag_list), APP_VERSION)
         return jsonify({
             'status': 'healthy',
             'model': 'loaded',
@@ -223,7 +276,7 @@ def health():
             'version': APP_VERSION
         }), 200
     except Exception as e:
-        logger.exception("💥 Health check failed")
+        logger.exception("💥 Health check failed (version=%s)", APP_VERSION)
         return jsonify({'status': 'unhealthy', 'reason': 'internal error'}), 503
 
 @app.route('/predict', methods=['POST'])
@@ -320,6 +373,32 @@ def predict():
     finally:
         if temp_path is not None:
             os.unlink(temp_path)
+
+@app.route('/robots.txt')
+def robots():
+    content = """User-agent: *
+Disallow: /static/
+Disallow: /predict
+Disallow: /health
+Disallow: /service-worker.js
+
+Sitemap: https://www.tagger.fenrir784.ru/sitemap.xml
+"""
+    return make_response(content, 200, {'Content-Type': 'text/plain'})
+
+@app.route('/sitemap.xml')
+def sitemap():
+    lastmod = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.tagger.fenrir784.ru/</loc>
+    <lastmod>{lastmod}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>"""
+    return make_response(content, 200, {'Content-Type': 'application/xml'})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

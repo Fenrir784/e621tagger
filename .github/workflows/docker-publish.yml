@@ -50,34 +50,6 @@ jobs:
           echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
           echo "Using version: $APP_VERSION"
 
-      - name: Cache model (.safetensors)
-        id: cache-model
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 #v5.0.4
-        with:
-          path: models
-          key: ${{ runner.os }}-model-jtp3-hydra
-
-      - name: Download model if not cached
-        if: steps.cache-model.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p models
-          echo "Downloading model (this may take a while)..."
-          wget -q --progress=bar:force:noscroll https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors -O models/jtp-3-hydra.safetensors
-          echo "Model downloaded."
-
-      - name: Cache tag data (.csv)
-        id: cache-data
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 #v5.0.4
-        with:
-          path: data
-          key: ${{ runner.os }}-data-jtp3-hydra
-
-      - name: Download tag data if not cached
-        if: steps.cache-data.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p data
-          wget -q https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv -O data/jtp-3-hydra-tags.csv
-
       - name: Install cosign
         uses: sigstore/cosign-installer@ba7bc0a3fef59531c69a25acd34668d6d3fe6f22 #v4.1.0
 

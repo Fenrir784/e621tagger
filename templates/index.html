@@ -4,6 +4,7 @@
     <title>e621tagger</title>
     <meta charset="UTF-8">
     <meta name="description" content="Free web-based e621 tagging app created for furries by furries.">
+    <meta name="keywords" content="e621, tagging, AI, furry, image tags, automatic tagging, e621tagger, booru">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light">
     <meta name="darkreader" content="disabled">
@@ -35,6 +36,31 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/hammer.min.js') }}"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "e621tagger",
+      "description": "Free web-based e621 tagging app created for furries by furries. Automatically tag images using AI.",
+      "url": "https://www.tagger.fenrir784.ru/",
+      "applicationCategory": "Multimedia",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Fenrir784",
+        "url": "https://fenrir784.ru"
+      },
+      "keywords": "e621, tagging, AI, furry, image tags, automatic tagging, e621tagger, booru",
+      "screenshot": "https://www.tagger.fenrir784.ru/static/screenshots/preview.png",
+      "thumbnailUrl": "https://www.tagger.fenrir784.ru/static/icons/maskable_icon_x512.png",
+      "softwareVersion": "{{APP_VERSION}}"
+    }
+    </script>
 </head>
 <body>
     <div class="container">
@@ -46,9 +72,9 @@
             <h1>e621tagger</h1>
             <div class="header-right">
                 <div class="egg-container" id="eggContainer">
-                    <img src="/static/icons/egg/egg_top.png" class="egg-top" alt="" draggable="false">
-                    <img src="/static/icons/egg/egg_bottom.png" class="egg-bottom" alt="" draggable="false">
-                    <img src="" class="egg-creature" id="eggCreature" alt="" draggable="false">
+                    <img src="/static/icons/egg/egg_top.png" class="egg-top" alt="Egg top half" draggable="false">
+                    <img src="/static/icons/egg/egg_bottom.png" class="egg-bottom" alt="Egg bottom half" draggable="false">
+                    <img src="" class="egg-creature" id="eggCreature" alt="Random Fyr Avali" draggable="false">
                 </div>
             </div>
         </header>
