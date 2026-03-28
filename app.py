@@ -96,19 +96,26 @@ def parse_user_agent(ua_str):
         os = parsed.get('os', {})
         device = parsed.get('device', {})
 
-        device_type = device.get('family', '').lower()
-        if device_type in ('smartphone', 'tablet', 'spider', 'bot', 'crawler'):
-            device_family = device_type
+        device_family = device.get('family', '').lower()
+        if device_family in ('spider', 'bot', 'crawler'):
+            device_type = 'bot'
+        elif device_family in ('smartphone',):
+            device_type = 'mobile'
+        elif device_family == 'tablet':
+            device_type = 'tablet'
         elif 'mobile' in ua_str.lower():
-            device_family = 'mobile'
+            device_type = 'mobile'
+        elif device_family and device_family != 'other':
+            device_type = 'other'
         else:
-            device_family = 'desktop'
+            device_type = 'other'
 
         parts = []
         if ua.get('family') and ua.get('family') != 'Other':
-            parts.append(ua['family'])
+            ua_str_short = ua['family']
             if ua.get('major'):
-                parts[-1] += f"/{ua['major']}"
+                ua_str_short += f"/{ua['major']}"
+            parts.append(ua_str_short)
         if os.get('family') and os.get('family') != 'Other':
             os_str = os['family']
             if os.get('major'):
@@ -116,14 +123,14 @@ def parse_user_agent(ua_str):
             parts.append(os_str)
 
         if parts:
-            return f"{device_family} {' '.join(parts)}"
+            short = ' '.join(parts)
         else:
-            short = ua_str[:100]
-            if len(ua_str) > 100:
+            short = ua_str[:80]
+            if len(ua_str) > 80:
                 short += '…'
-            return short
+        return device_type, short
     except Exception:
-        return ua_str[:100] + ('…' if len(ua_str) > 100 else '')
+        return 'other', ua_str[:80] + ('…' if len(ua_str) > 80 else '')
 
 @app.before_request
 def log_request_start():
@@ -136,7 +143,7 @@ def log_request_end(response):
         status = response.status_code
         method = secure_log(request.method)
         path = secure_log(request.path)
-        emoji = status_emoji(status)
+        emoji_status = status_emoji(status)
 
         if path == '/':
             ip = secure_log(request.remote_addr)
@@ -147,23 +154,30 @@ def log_request_end(response):
                 return response
             flag = get_country_flag(accept_lang)
             flag_part = f" {flag}" if flag else ""
-            ua_short = parse_user_agent(raw_ua)
+            device_type, ua_short = parse_user_agent(raw_ua)
+            device_emoji = {
+                'desktop': '💻',
+                'mobile': '📱',
+                'tablet': '📱',
+                'bot': '🤖',
+                'other': '❓'
+            }.get(device_type, '❓')
             logger.info(
-                "👤 %s %s ip=%s%s ua=%s status=%d %s duration=%.1fms",
-                method, path, ip, flag_part, ua_short,
-                status, emoji, duration
+                "👤 %s %s ip=%s%s %s %s status=%d %s duration=%.1fms",
+                method, path, ip, flag_part, device_emoji, ua_short,
+                status, emoji_status, duration
             )
             return response
 
         if path == '/health' and status == 200:
             if LOG_LEVEL == logging.DEBUG:
-                logger.debug("🔄 %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
+                logger.debug("🔄 %s %s status=%d %s duration=%.1fms", method, path, status, emoji_status, duration)
         elif path == '/predict':
-            logger.info("📤 %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
+            logger.info("📤 %s %s status=%d %s duration=%.1fms", method, path, status, emoji_status, duration)
         elif LOG_LEVEL == logging.DEBUG:
-            logger.debug("📄 %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
+            logger.debug("📄 %s %s status=%d %s duration=%.1fms", method, path, status, emoji_status, duration)
         elif status >= 400:
-            logger.warning("⚠️ %s %s status=%d %s duration=%.1fms", method, path, status, emoji, duration)
+            logger.warning("⚠️ %s %s status=%d %s duration=%.1fms", method, path, status, emoji_status, duration)
     return response
 
 if SAVE_UPLOADS:
