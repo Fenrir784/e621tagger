@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeHelpModalBtn = document.querySelector('.close-help-modal');
 
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
-    const ALLOWED_MAX_TAGS = [50, 75, 100, 150, 200, 250];
+    const ALLOWED_MAX_TAGS = [50, 75, 100, 150, 200, 300];
     const ratingTags = new Set(['safe', 'questionable', 'explicit']);
     const creaturePaths = [
         '/static/icons/egg/f1.png', '/static/icons/egg/f2.png', '/static/icons/egg/f3.png',
