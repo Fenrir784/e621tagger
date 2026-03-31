@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsMenu = document.getElementById('settingsMenu');
     const closeSettings = document.getElementById('closeSettings');
     const presetBtns = document.querySelectorAll('.preset-btn');
-    const customPresetBtn = document.getElementById('customPresetBtn');
     const customPanel = document.getElementById('customThresholdsPanel');
     const customAllInput = document.getElementById('customAll');
     const customConfidentInput = document.getElementById('customConfident');
