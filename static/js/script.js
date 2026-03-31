@@ -258,9 +258,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const tagName = tagObj.tag;
         const popup = document.createElement('div');
         popup.className = 'tag-popup';
+        const wikiUrl = `https://e621.net/wiki_pages?title=${encodeURIComponent(tagName)}`;
         popup.innerHTML = `
             <div class="tag-popup-header">
-                <a href="https://e621.net/wiki_pages?title=${encodeURIComponent(tagName)}" target="_blank" rel="noopener noreferrer" class="tag-popup-title" style="color: var(--confident-bg); text-decoration: none;">${escapeHtml(tagName)}</a>
+                <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--confident-bg);">
+                    <span>${escapeHtml(tagName)}</span>
+                    <span style="color: var(--low-text); font-size: 0.7rem; text-decoration: underline;">read more</span>
+                </a>
                 <button class="close-popup">✕</button>
             </div>
             <div class="tag-popup-content"><div class="tag-popup-loading">Loading description...</div></div>
