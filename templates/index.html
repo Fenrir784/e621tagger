@@ -35,7 +35,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="{{ url_for('static', filename='js/hammer.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/hammer.min.js') }}" defer></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -97,7 +97,7 @@
                     <button class="preset-btn" data-preset="conservative">Conservative</button>
                     <button class="preset-btn active" data-preset="standard">Standard</button>
                     <button class="preset-btn" data-preset="liberal">Liberal</button>
-                    <button class="preset-btn" data-preset="custom" id="customPresetBtn">Custom</button>
+                    <button class="preset-btn" data-preset="custom">Custom</button>
                 </div>
                 <div class="custom-thresholds-panel" id="customThresholdsPanel">
                     <div class="custom-inputs">
@@ -121,7 +121,7 @@
                     <button class="max-tag-option" data-max="100">100</button>
                     <button class="max-tag-option" data-max="150">150</button>
                     <button class="max-tag-option active" data-max="200">200</button>
-                    <button class="max-tag-option" data-max="250">250</button>
+                    <button class="max-tag-option" data-max="300">300</button>
                 </div>
             </div>
             <div class="settings-section">
@@ -184,24 +184,23 @@
             </div>
             <div class="help-modal-body">
                 <p><strong>1. 📤 Upload an image</strong><br>
-                <strong>2. 🏷️ Add/remove tags before copying</strong><br>
+                <strong>2. 🏷️ Add/remove tags before copying by clicking on them</strong><br>
                 <strong>3. 💽 Copy tags in needed format</strong></p>
 
                 <p><strong>🏷️ Tag interaction</strong><br>
                 • <span class="tag-example confident">Purple</span> – high confidence (≥ Confident threshold).<br>
                 • <span class="tag-example all">Blue</span> – medium confidence (≥ All threshold).<br>
                 • <span class="tag-example low">Gray</span> – low confidence (below thresholds).<br>
-                • <strong>Click a tag</strong> to force it to be included (green) or excluded (red) from copying.<br>
+                • <strong>Click a tag</strong> to force it to be included (green) or excluded (red) from copying, tags adjusted like that will ignore any thresholds.<br>
                 • <strong>Long press or right-click</strong> a tag to show the description from e621 wiki.</p>
 
                 <p><strong>💄 Pro Tip</strong>: Narrow down basic detection so that it is almost always correct, and then manually add or remove tags.</p>
                 
                 <p><strong>📋 Copying tags</strong><br>
-                • Use <strong>Copy Confident Tags</strong> or <strong>Copy All Tags</strong> buttons to copy all tags that meet the threshold.<br>
+                • Use <strong>Copy Confident Tags</strong> or <strong>Copy All Tags</strong> buttons to copy all tags that meet the threshold. Tags are copied in category order presented on e621.<br>
                 • Within each category, small <strong>C</strong> (Confident) and <strong>A</strong> (All) buttons copy only tags from that category.</p>
 
                 <p><strong>⚙️ Settings</strong><br>
-                • <strong>Theme:</strong> System, Light or Dark – follow your preference.<br>
                 • <strong>Thresholds:</strong> Choose a preset or set custom values.<br>
                 • <strong>Max tags:</strong> Limit the number of returned tags from backend.<br>
                 • <strong>Default format:</strong> e621 (space-separated) or PostyBirb (comma-separated).</p>
@@ -212,13 +211,14 @@
 
                 <div class="help-footer">
                     Made by space bird called <a href="https://fenrir784.ru" target="_blank">Fenrir784</a><br>
-                    Have problems or suggestions? <a href="https://github.com/Fenrir784/e621tagger/issues" target="_blank">Open an issue on GitHub</a>
+                    Have problems or suggestions?<br>
+                    Contact me directly via <a href="https://t.me/fenrir784" target="_blank">Telegram</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

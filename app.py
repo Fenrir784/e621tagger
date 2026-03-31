@@ -57,7 +57,7 @@ DEVICE = os.getenv('DEVICE', 'cuda' if torch.cuda.is_available() else 'cpu')
 MAX_SEQ_LEN = int(os.getenv('MAX_SEQ_LEN', '1024'))
 PATCH_SIZE = 16
 DEFAULT_TOP_K = 200
-ALLOWED_TOP_K = {50, 75, 100, 150, 200, 250}
+ALLOWED_TOP_K = {50, 75, 100, 150, 200, 300}
 
 SAVE_UPLOADS = os.getenv('SAVE_UPLOADS', 'false').lower() == 'true'
 UPLOAD_DIR = os.getenv('UPLOAD_DIR', '/app/uploads')
