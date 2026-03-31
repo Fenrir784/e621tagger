@@ -1,9 +1,10 @@
 # e621tagger
+
+e621tagger is a web-based tool that automatically generates relevant tags for furry artwork using the **JTP-3 Hydra** model by Project RedRocket.
+
 ### **Can be accessed here: [tagger.fenrir784.ru](https://tagger.fenrir784.ru)**
 
 ### For usage tips click Need Help? in settings.
-
-e621tagger is a web-based tool that automatically generates relevant tags for furry artwork using the **JTP-3 Hydra** model by Project RedRocket.
 
 ### Features:
 - Mobile and desktop interface
@@ -12,6 +13,8 @@ e621tagger is a web-based tool that automatically generates relevant tags for fu
 - Adjustable thresholds
 - e621wiki lookups
 - Self-host-able with all-in-one docker image
+
+#### Have problems or suggestions? Contact me directly via [Telegram](https://t.me/fenrir784)
 
 ![alt text](https://github.com/Fenrir784/e621tagger/blob/latest/static/screenshots/preview.png?raw=true)
 > ⚠️ **Note:** This repository contains the source code for the app. A live, fully functional instance is available at the link above.
