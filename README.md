@@ -36,7 +36,7 @@ services:
       - SAVE_UPLOADS=true          # optional, default is false
       - USE_PROXY=true             # optional, default is false, set to true for correct client IPs while using reverse proxy
       - GUNICORN_WORKERS=2         # optional, default is 1, amount of workers up, useful for redundancy  
-      - GUNICORN_TIMEOUT=120       # optional, fefault is 120(seconds), timeout before worker tries to restart
+      - GUNICORN_TIMEOUT=120       # optional, default is 120(seconds), timeout before worker tries to restart
     volumes:
       - ./uploads:/app/uploads     # where uploaded images are saved (if enabled)
     restart: unless-stopped
@@ -51,7 +51,7 @@ services:
 
 - The backend uses **PyTorch** and the **JTP-3 Hydra** model, a fine‑tuned image classifier trained on e621 data.
 - When you upload an image, it is resized, converted to patches, and fed through the model.
-- The model outputs confidence scores for over 7,500 possible tags; the adjustable amount of tags from top 50 to 250 are returned.
+- The model outputs confidence scores for over 7,500 possible tags; the adjustable amount of tags are returned.
 - All processing happens on the server; no data is sent to third parties.
 
 ---
