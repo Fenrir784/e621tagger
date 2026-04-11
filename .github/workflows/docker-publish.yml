@@ -105,7 +105,7 @@ jobs:
         run: sleep 30s
         shell: bash
 
-      - name: Trigger Dockhand deployment
+      - name: Trigger Dockhand deployment (latest)
         if: github.event_name == 'push' && github.ref == 'refs/heads/latest'
         env:
           WEBHOOK_URL: ${{ secrets.DOCKHAND_WEBHOOK_URL }}
@@ -117,6 +117,29 @@ jobs:
           fi
           if [[ -z "$WEBHOOK_SECRET" ]]; then
             echo "⚠️ DOCKHAND_WEBHOOK_SECRET is not set. Skipping deployment trigger."
+            exit 0
+          fi
+
+          PAYLOAD='{}'
+          SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | awk '{print $NF}')
+          echo "Sending webhook to $WEBHOOK_URL"
+          curl -sf -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
+            -d "$PAYLOAD"
+
+      - name: Trigger Dockhand deployment (test)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/test'
+        env:
+          WEBHOOK_URL: ${{ secrets.DOCKHAND_WEBHOOK_URL_TEST }}
+          WEBHOOK_SECRET: ${{ secrets.DOCKHAND_WEBHOOK_SECRET_TEST }}
+        run: |
+          if [[ -z "$WEBHOOK_URL" ]]; then
+            echo "⚠️ DOCKHAND_WEBHOOK_URL_TEST is not set. Skipping deployment trigger."
+            exit 0
+          fi
+          if [[ -z "$WEBHOOK_SECRET" ]]; then
+            echo "⚠️ DOCKHAND_WEBHOOK_SECRET_TEST is not set. Skipping deployment trigger."
             exit 0
           fi
 
