@@ -129,7 +129,7 @@ jobs:
             -d "$PAYLOAD"
 
       - name: Trigger Dockhand deployment (test)
-        if: github.event_name == 'pull_request' && github.ref == 'refs/heads/test'
+        if: github.ref == 'refs/heads/test'
         env:
           WEBHOOK_URL: ${{ secrets.DOCKHAND_WEBHOOK_URL_TEST }}
           WEBHOOK_SECRET: ${{ secrets.DOCKHAND_WEBHOOK_SECRET_TEST }}
