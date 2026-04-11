@@ -101,10 +101,6 @@ jobs:
           delete-partial-images: true
           delete-orphaned-images: true
 
-     # - name: Pause for 30 seconds
-     #   run: sleep 30s
-     #   shell: bash
-
       - name: Trigger Dockhand deployment (latest)
         if: github.head_ref == 'latest'
         env:
