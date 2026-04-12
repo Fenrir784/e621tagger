@@ -255,7 +255,7 @@ h1 {
     touch-action: manipulation;
 }
 .format-option, .max-tag-option, .toggle-btn { padding: 0.4rem 0; flex: 1; text-align: center; font-weight: 500; border-radius: 30px; }
-.toggle-btn { min-width: 60px; padding: 0.3rem 0.8rem; }
+.toggle-btn { min-width: 60px; padding: 0.3rem 0.8rem; border: 1px solid var(--border-color); }
 .theme-option.active, .format-option.active, .max-tag-option.active, .toggle-btn.active, .preset-btn.active, .tag.confident, .tag.all {
     background-color: var(--confident-bg);
     color: white;
@@ -697,7 +697,7 @@ input[type="number"]::-webkit-outer-spin-button {
 @media (hover: hover) {
     .settings-toggle:hover { transform: scale(1.1); }
     .close-settings:hover { filter: brightness(0.9); }
-    #dropZone:hover { border-color: var(--confident-bg); background-color: var(--glow-color); }
+    #dropZone:hover { filter: brightness(1.05); }
 }
 input[type="number"]:hover::-webkit-inner-spin-button,
 input[type="number"]:hover::-webkit-outer-spin-button {
