@@ -221,6 +221,40 @@ def is_allowed_file(filename, content_type):
     ext = os.path.splitext(filename)[1].lower()
     return ext in ALLOWED_EXTENSIONS and content_type in ALLOWED_MIME_TYPES
 
+def detect_meta_tags_for_image_path(image_path: str):
+    tags = set()
+    if not image_path:
+        return tags
+    try:
+        with Image.open(image_path) as im:
+            w, h = im.size
+            fmt = getattr(im, 'format', None)
+            if fmt == 'GIF':
+                try:
+                    if getattr(im, 'n_frames', 1) > 1:
+                        tags.add('animated')
+                except Exception:
+                    pass
+            if 'A' in im.getbands():
+                tags.add('alpha_channel')
+            if w >= 1600 or h >= 1200:
+                tags.add('hi_res')
+            if w >= 3200 or h >= 2400:
+                tags.add('absurd_res')
+            if w and h:
+                ratio = w / h
+                def close_to(target, tol=0.05):
+                    return abs(ratio - target) <= tol
+                if close_to(16/9):
+                    tags.add('16:9')
+                if close_to(1.0):
+                    tags.add('1:1')
+                if close_to(4/3):
+                    tags.add('4:3')
+    except Exception:
+        pass
+    return tags
+
 def save_upload(file, original_filename):
     if not SAVE_UPLOADS:
         return None
@@ -362,10 +396,18 @@ def predict():
                 'prob': prob,
                 'category': category_name
             })
-        logger.info("✅ IP=%s: file '%s' processed, top=%d tags", ip, filename, len(tags_with_probs))
+        auto_tags = set()
+        try:
+            image_path_for_analysis = image_path if 'image_path' in locals() else None
+            if image_path_for_analysis:
+                auto_tags = detect_meta_tags_for_image_path(image_path_for_analysis)
+        except Exception:
+            auto_tags = set()
+        logger.info("✅ IP=%s: file '%s' processed, top=%d tags (auto=%d)", ip, filename, len(tags_with_probs), len(auto_tags))
         return jsonify({
             'success': True,
-            'tags': tags_with_probs
+            'tags': tags_with_probs,
+            'auto_meta': sorted(list(auto_tags))
         })
     except Exception as e:
         logger.error("❌ IP=%s: error processing file '%s': %s", ip, filename, str(e))

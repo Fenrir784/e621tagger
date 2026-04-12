@@ -49,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let addedTags = new Set();
     let removedTags = new Set();
     let maxTags = 200;
+    let autoMetaTagSet = new Set();
+    let perTagAutoDisable = new Set();
 
     const tagDescriptionCache = new Map();
     let currentPopup = null;
@@ -338,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function isTagIncluded(tagObj, threshold) {
+        if (perTagAutoDisable.has(tagObj.tag)) return false;
         const tag = tagObj.tag;
         if (removedTags.has(tag)) return false;
         if (addedTags.has(tag)) return true;
@@ -377,7 +380,20 @@ document.addEventListener('DOMContentLoaded', () => {
     async function copyToClipboard(text, count, format, btn) {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             try {
-                await navigator.clipboard.writeText(text);
+                let finalText = text;
+                if (autoMetaTagSet && autoMetaTagSet.size > 0) {
+                    const filteredTagNames = new Set(allTags.map(t => t.tag));
+                    const extras = [];
+                    autoMetaTagSet.forEach(t => {
+                        if (perTagAutoDisable.has(t)) return;
+                        if (!filteredTagNames.has(t) && extras.indexOf(t) === -1) extras.push(t);
+                    });
+                    if (extras.length > 0) {
+                        const joiner = (format === 'e621') ? ' ' : ', ';
+                        finalText = finalText ? finalText + (joiner) + extras.join(joiner) : extras.join(joiner);
+                    }
+                }
+                await navigator.clipboard.writeText(finalText);
                 showCopySuccess(btn, count, format);
             } catch { fallbackCopy(text, btn, count, format); }
         } else { fallbackCopy(text, btn, count, format); }
@@ -515,6 +531,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (item.prob >= allThreshold) tagEl.classList.add('all');
                 if (addedTags.has(item.tag)) tagEl.classList.add('added');
                 else if (removedTags.has(item.tag)) tagEl.classList.add('removed');
+                
+                if (autoMetaTagSet.has(item.tag)) {
+                    tagEl.style.color = '#FADE00';
+                    let toggle = document.createElement('input');
+                    toggle.type = 'checkbox';
+                    toggle.className = 'auto-toggle';
+                    toggle.style.marginLeft = '6px';
+                    toggle.checked = true;
+                    toggle.title = 'Disable auto-add for this tag for this copy';
+                    toggle.dataset.tag = item.tag;
+                    toggle.addEventListener('change', (ev) => {
+                        const t = ev.target.dataset.tag;
+                        if (ev.target.checked) perTagAutoDisable.delete(t);
+                        else perTagAutoDisable.add(t);
+                    });
+                    tagEl.appendChild(toggle);
+                }
                 attachTagEvents(tagEl, item);
                 tagsContainer.appendChild(tagEl);
             });
@@ -581,6 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             if (data.success) {
                 allTags = data.tags;
+                autoMetaTagSet = new Set(data.auto_meta || []);
                 addedTags.clear();
                 removedTags.clear();
                 currentFormat = savedFormat;
