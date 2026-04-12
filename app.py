@@ -221,6 +221,64 @@ def is_allowed_file(filename, content_type):
     ext = os.path.splitext(filename)[1].lower()
     return ext in ALLOWED_EXTENSIONS and content_type in ALLOWED_MIME_TYPES
 
+def detect_meta_tags_for_image_path(image_path: str):
+    tags = set()
+    if not image_path:
+        return tags
+    try:
+        with Image.open(image_path) as im:
+            w, h = im.size
+            fmt = getattr(im, 'format', None)
+            if fmt == 'GIF':
+                try:
+                    if getattr(im, 'n_frames', 1) > 1:
+                        tags.add('animated')
+                except Exception:
+                    pass
+            if w <= 250 and h <= 250:
+                tags.add('thumbnail')
+            if w <= 500 and h <= 500:
+                tags.add('low_res')
+            if w >= 1600 or h >= 1200:
+                tags.add('hi_res')
+            if w >= 3200 or h >= 2400:
+                tags.add('absurd_res')
+            if (w == 3840 and h == 2160) or (w == 2160 and h == 3840) or (w == 4096 and h == 2160) or (w == 2160 and h == 4096):
+                tags.add('4k')
+            if w >= 10000 and h >= 10000:
+                tags.add('superabsurd_res')
+            if w > 0 and h > 0:
+                ratio = w / h
+                if ratio >= 4 or ratio <= 0.25:
+                    tags.add('long_image')
+                if ratio <= 0.25:
+                    tags.add('tall_image')
+                ratios = [
+                    ('1:1', 1, 1),
+                    ('2:1', 2, 1), ('1:2', 1, 2),
+                    ('3:1', 3, 1), ('1:3', 1, 3),
+                    ('3:2', 3, 2), ('2:3', 2, 3),
+                    ('4:3', 4, 3), ('3:4', 3, 4),
+                    ('5:3', 5, 3), ('3:5', 3, 5),
+                    ('5:4', 5, 4), ('4:5', 4, 5),
+                    ('6:5', 6, 5), ('5:6', 5, 6),
+                    ('7:4', 7, 4), ('4:7', 4, 7),
+                    ('7:3', 7, 3), ('3:7', 3, 7),
+                    ('16:10', 16, 10), ('10:16', 10, 16),
+                    ('11:8', 11, 8), ('8:11', 8, 11),
+                    ('14:9', 14, 9), ('9:14', 9, 14),
+                    ('16:9', 16, 9), ('9:16', 9, 16),
+                    ('21:9', 21, 9), ('9:21', 9, 21),
+                ]
+                for tagname, a, b in ratios:
+                    if w * b == h * a:
+                        tags.add(tagname)
+                if w * 9 == h * 16:
+                    tags.add('widescreen')
+    except Exception:
+        pass
+    return tags
+
 def save_upload(file, original_filename):
     if not SAVE_UPLOADS:
         return None
@@ -362,10 +420,18 @@ def predict():
                 'prob': prob,
                 'category': category_name
             })
-        logger.info("✅ IP=%s: file '%s' processed, top=%d tags", ip, filename, len(tags_with_probs))
+        auto_tags = set()
+        try:
+            image_path_for_analysis = image_path if 'image_path' in locals() else None
+            if image_path_for_analysis:
+                auto_tags = detect_meta_tags_for_image_path(image_path_for_analysis)
+        except Exception:
+            auto_tags = set()
+        logger.info("✅ IP=%s: file '%s' processed, top=%d tags (auto=%d)", ip, filename, len(tags_with_probs), len(auto_tags))
         return jsonify({
             'success': True,
-            'tags': tags_with_probs
+            'tags': tags_with_probs,
+            'auto_meta': sorted(list(auto_tags))
         })
     except Exception as e:
         logger.error("❌ IP=%s: error processing file '%s': %s", ip, filename, str(e))

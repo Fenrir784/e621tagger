@@ -663,6 +663,7 @@ h1 {
     line-height: 1.2;
     touch-action: manipulation;
 }
+
 .tag:active { transform: scale(0.97); }
 .tag.all {
     background-color: var(--all-bg);

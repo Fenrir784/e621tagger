@@ -49,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let addedTags = new Set();
     let removedTags = new Set();
     let maxTags = 200;
+    let autoMetaTagSet = new Set();
+    let perTagAutoDisable = new Set();
 
     const tagDescriptionCache = new Map();
     let currentPopup = null;
@@ -338,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function isTagIncluded(tagObj, threshold) {
+        if (perTagAutoDisable.has(tagObj.tag)) return false;
         const tag = tagObj.tag;
         if (removedTags.has(tag)) return false;
         if (addedTags.has(tag)) return true;
@@ -377,7 +380,20 @@ document.addEventListener('DOMContentLoaded', () => {
     async function copyToClipboard(text, count, format, btn) {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             try {
-                await navigator.clipboard.writeText(text);
+                let finalText = text;
+                if (autoMetaTagSet && autoMetaTagSet.size > 0) {
+                    const extras = [];
+                    autoMetaTagSet.forEach(t => {
+                        if (perTagAutoDisable.has(t)) return;
+                        if (text.includes(t) || text.includes(t.replace(/_/g, ' '))) return;
+                        extras.push(t);
+                    });
+                    if (extras.length > 0) {
+                        const joiner = (format === 'e621') ? ' ' : ', ';
+                        finalText = finalText ? finalText + (joiner) + extras.join(joiner) : extras.join(joiner);
+                    }
+                }
+                await navigator.clipboard.writeText(finalText);
                 showCopySuccess(btn, count, format);
             } catch { fallbackCopy(text, btn, count, format); }
         } else { fallbackCopy(text, btn, count, format); }
@@ -515,6 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (item.prob >= allThreshold) tagEl.classList.add('all');
                 if (addedTags.has(item.tag)) tagEl.classList.add('added');
                 else if (removedTags.has(item.tag)) tagEl.classList.add('removed');
+                
                 attachTagEvents(tagEl, item);
                 tagsContainer.appendChild(tagEl);
             });
@@ -580,7 +597,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             if (data.success) {
-                allTags = data.tags;
+                const baseTags = data.tags || [];
+                const autoMeta = data.auto_meta || [];
+                const merged = baseTags.slice();
+                autoMeta.forEach(t => {
+                    if (!merged.find(x => x.tag === t)) {
+                        merged.push({ tag: t, prob: 1.0, category: 'Meta' });
+                    }
+                });
+                allTags = merged;
+                autoMetaTagSet = new Set(autoMeta);
                 addedTags.clear();
                 removedTags.clear();
                 currentFormat = savedFormat;
