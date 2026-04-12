@@ -273,7 +273,7 @@ def detect_meta_tags_for_image_path(image_path: str):
                 for tagname, a, b in ratios:
                     if w * b == h * a:
                         tags.add(tagname)
-                if w * 9 == h * 16:
+                if (w * 9 == h * 16) or (w * 10 == h * 16):
                     tags.add('widescreen')
     except Exception:
         pass
