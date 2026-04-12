@@ -423,10 +423,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupGlobalCopyButton(btn, getThreshold) {
-        const hammer = new Hammer(btn, { preventDefault: true });
+        const hammer = new Hammer(btn, { preventDefault: true, domEvents: true });
         hammer.on('tap', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+            e.srcEvent?.preventDefault();
+            e.srcEvent?.stopPropagation();
             btn.blur();
             const threshold = getThreshold();
             const filtered = filterTags(threshold);
@@ -439,13 +439,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupCategoryCopyButtons() {
         document.querySelectorAll('.cat-copy-btn').forEach(btn => {
             if (btn._hammer) btn._hammer.destroy();
-            const hammer = new Hammer(btn, { preventDefault: true });
+            const hammer = new Hammer(btn, { preventDefault: true, domEvents: true });
             const category = btn.dataset.category;
             const type = btn.dataset.type;
             const threshold = type === 'confident' ? confidentThreshold : allThreshold;
             hammer.on('tap', async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+                e.srcEvent?.preventDefault();
+                e.srcEvent?.stopPropagation();
                 btn.blur();
                 if (btn.disabled) return;
                 const filtered = filterTagsByCategory(category, threshold);
@@ -459,10 +459,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function attachTagEvents(tagEl, tagObj) {
         let pressTimer = null;
-        const hammer = new Hammer(tagEl, { preventDefault: true });
+        const hammer = new Hammer(tagEl, { preventDefault: true, domEvents: true });
         hammer.on('tap', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+            e.srcEvent?.preventDefault();
+            e.srcEvent?.stopPropagation();
             if (pressBlockTap) {
                 pressBlockTap = false;
                 return;
@@ -471,9 +471,8 @@ document.addEventListener('DOMContentLoaded', () => {
             handleTagClick(tagObj, tagEl);
         });
         hammer.on('press', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            e.srcEvent.preventDefault();
+            e.srcEvent?.preventDefault();
+            e.srcEvent?.stopPropagation();
             if (pressTimer) clearTimeout(pressTimer);
             pressBlockTap = true;
             pressTimer = setTimeout(() => {
@@ -648,10 +647,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function attachHammerTap(element, handler) {
-        const hammer = new Hammer(element, { preventDefault: true });
+        const hammer = new Hammer(element, { preventDefault: true, domEvents: true });
         hammer.on('tap', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+            e.srcEvent?.preventDefault();
+            e.srcEvent?.stopPropagation();
             element.blur();
             handler();
         });
