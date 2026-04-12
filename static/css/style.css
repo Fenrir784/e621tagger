@@ -35,6 +35,8 @@
     --box-shadow-heavyplus: rgba(0, 0, 0, 0.3);
     --overlay-bg: rgba(0, 0, 0, 0.5);
     --animation-duration: 0.3s;
+    --tag-bg: var(--low-bg);
+    --tag-text: var(--low-text);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -628,13 +630,13 @@ h1 {
 
 .category-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .tag {
-    background-color: var(--low-bg);
-    color: var(--low-text);
+    background-color: var(--tag-bg, var(--low-bg));
+    color: var(--tag-text, var(--low-text));
     padding: 0.2rem 0.6rem;
     border-radius: 12px;
     font-size: 0.8rem;
     border: 1px solid transparent;
-    transition: filter 0.2s, opacity 0.2s, transform 0.1s;
+    transition: background-color 0.2s, color 0.2s, opacity 0.2s, transform 0.1s;
     opacity: 0.6;
     animation: fadeInScale 0.2s;
     cursor: pointer;
