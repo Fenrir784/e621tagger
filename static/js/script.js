@@ -424,8 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupGlobalCopyButton(btn, getThreshold) {
         const hammer = new Hammer(btn);
-        hammer.on('tap', async (e) => {
-            btn.blur();
+        hammer.on('tap', async () => {
             const threshold = getThreshold();
             const filtered = filterTags(threshold);
             if (filtered.length === 0) { showNotification('No tags meet the threshold.', 'error'); return; }
@@ -441,8 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const category = btn.dataset.category;
             const type = btn.dataset.type;
             const threshold = type === 'confident' ? confidentThreshold : allThreshold;
-            hammer.on('tap', async (e) => {
-                btn.blur();
+            hammer.on('tap', async () => {
                 if (btn.disabled) return;
                 const filtered = filterTagsByCategory(category, threshold);
                 if (filtered.length === 0) { showNotification(`No ${type} tags in ${category}.`, 'error'); return; }
@@ -461,12 +459,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 pressBlockTap = false;
                 return;
             }
-            tagEl.blur();
             handleTagClick(tagObj, tagEl);
         });
         hammer.on('press', (e) => {
-            e.srcEvent?.preventDefault();
-            e.srcEvent?.stopPropagation();
+            e.srcEvent.preventDefault();
             if (pressTimer) clearTimeout(pressTimer);
             pressBlockTap = true;
             pressTimer = setTimeout(() => {
@@ -641,15 +637,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function attachHammerTap(element, handler) {
-        element.onclick = function(e) {
-            element.blur();
-            handler();
-        };
-        element.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            element.blur();
-            handler();
-        }, { passive: false });
+        const hammer = new Hammer(element);
+        hammer.on('tap', handler);
     }
 
     function initHammer() {
