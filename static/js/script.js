@@ -516,8 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="category-header">
                     <span class="category-name">${cat}</span>
                     <div class="category-buttons">
-                        <button class="cat-copy-btn confident" data-category="${cat}" data-type="confident" title="Copy confident tags">C</button>
-                        <button class="cat-copy-btn all" data-category="${cat}" data-type="all" title="Copy all tags">A</button>
+                        <button type="button" class="cat-copy-btn confident" data-category="${cat}" data-type="confident" title="Copy confident tags">C</button>
+                        <button type="button" class="cat-copy-btn all" data-category="${cat}" data-type="all" title="Copy all tags">A</button>
                     </div>
                 </div>
                 <div class="category-tags"></div>
