@@ -439,7 +439,7 @@ h1 {
     padding: 3rem 2rem;
     text-align: center;
     cursor: pointer;
-    transition: transform var(--animation-duration), filter var(--animation-duration), box-shadow 0.3s;
+    transition: transform var(--animation-duration), filter var(--animation-duration), box-shadow 0.3s, border-color 0.3s, background-color 0.3s;
     margin-bottom: 2rem;
     min-height: 200px;
     display: flex;
