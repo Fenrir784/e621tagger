@@ -423,10 +423,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupGlobalCopyButton(btn, getThreshold) {
-        const hammer = new Hammer(btn, { preventDefault: true, domEvents: true });
+        const hammer = new Hammer(btn);
         hammer.on('tap', async (e) => {
-            e.srcEvent?.preventDefault();
-            e.srcEvent?.stopPropagation();
             btn.blur();
             const threshold = getThreshold();
             const filtered = filterTags(threshold);
@@ -439,13 +437,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupCategoryCopyButtons() {
         document.querySelectorAll('.cat-copy-btn').forEach(btn => {
             if (btn._hammer) btn._hammer.destroy();
-            const hammer = new Hammer(btn, { preventDefault: true, domEvents: true });
+            const hammer = new Hammer(btn);
             const category = btn.dataset.category;
             const type = btn.dataset.type;
             const threshold = type === 'confident' ? confidentThreshold : allThreshold;
             hammer.on('tap', async (e) => {
-                e.srcEvent?.preventDefault();
-                e.srcEvent?.stopPropagation();
                 btn.blur();
                 if (btn.disabled) return;
                 const filtered = filterTagsByCategory(category, threshold);
@@ -459,10 +455,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function attachTagEvents(tagEl, tagObj) {
         let pressTimer = null;
-        const hammer = new Hammer(tagEl, { preventDefault: true, domEvents: true });
+        const hammer = new Hammer(tagEl);
         hammer.on('tap', (e) => {
-            e.srcEvent?.preventDefault();
-            e.srcEvent?.stopPropagation();
             if (pressBlockTap) {
                 pressBlockTap = false;
                 return;
@@ -647,13 +641,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function attachHammerTap(element, handler) {
-        const hammer = new Hammer(element, { preventDefault: true, domEvents: true });
-        hammer.on('tap', (e) => {
-            e.srcEvent?.preventDefault();
-            e.srcEvent?.stopPropagation();
+        element.onclick = function(e) {
             element.blur();
             handler();
-        });
+        };
+        element.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            element.blur();
+            handler();
+        }, { passive: false });
     }
 
     function initHammer() {
@@ -666,8 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             eggContainer.classList.toggle('open');
         });
-        attachHammerTap(settingsToggle, (e) => {
-            e.srcEvent.stopPropagation();
+        attachHammerTap(settingsToggle, () => {
             settingsToggle.classList.add('pressed');
             setTimeout(() => settingsToggle.classList.remove('pressed'), 150);
             toggleSettings(!settingsMenu.classList.contains('show'));
