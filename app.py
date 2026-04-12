@@ -248,17 +248,22 @@ def detect_meta_tags_for_image_path(image_path: str):
             if w >= 10000 and h >= 10000:
                 tags.add('superabsurd_res')
             ratio = w / h if h else 0
-            ratio_exact = [
-                ('1:1', 1, 1), ('2:1', 2, 1), ('3:1', 3, 1), ('3:2', 3, 2), ('4:3', 4, 3), ('5:3', 5, 3),
-                ('5:4', 5, 4), ('6:5', 6, 5), ('7:4', 7, 4), ('7:3', 7, 3), ('16:10', 16, 10),
-                ('11:8', 11, 8), ('14:9', 14, 9), ('16:9', 16, 9), ('21:9', 21, 9)
-            ]
-            for tagname, a, b in ratio_exact:
-                if w * b == h * a:
-                    tags.add(tagname)
-            if w * 9 == h * 16:
-                tags.add('16:9')
-                tags.add('widescreen')
+            if w > 0 and h > 0:
+                if ratio >= 4 or ratio <= 0.25:
+                    tags.add('long_image')
+                if ratio <= 0.25:
+                    tags.add('tall_image')
+                exact = [
+                    ('1:1', 1, 1), ('2:1', 2, 1), ('3:1', 3, 1), ('3:2', 3, 2), ('4:3', 4, 3), ('5:3', 5, 3),
+                    ('5:4', 5, 4), ('6:5', 6, 5), ('7:4', 7, 4), ('7:3', 7, 3), ('16:10', 16, 10),
+                    ('11:8', 11, 8), ('14:9', 14, 9), ('16:9', 16, 9), ('21:9', 21, 9)
+                ]
+                for tagname, a, b in exact:
+                    if w * b == h * a:
+                        tags.add(tagname)
+                if w * 9 == h * 16:
+                    tags.add('16:9')
+                    tags.add('widescreen')
             
     except Exception:
         pass
