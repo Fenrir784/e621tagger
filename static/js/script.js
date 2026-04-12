@@ -600,8 +600,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             if (data.success) {
-                allTags = data.tags;
-                autoMetaTagSet = new Set(data.auto_meta || []);
+                const baseTags = data.tags || [];
+                const autoMeta = data.auto_meta || [];
+                const merged = baseTags.slice();
+                autoMeta.forEach(t => {
+                    if (!merged.find(x => x.tag === t)) {
+                        merged.push({ tag: t, prob: 0.0, category: 'Meta' });
+                    }
+                });
+                allTags = merged;
+                autoMetaTagSet = new Set(autoMeta);
                 addedTags.clear();
                 removedTags.clear();
                 currentFormat = savedFormat;
