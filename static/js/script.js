@@ -140,24 +140,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const tagName = el.dataset.tag;
             const tagObj = allTags.find(t => t.tag === tagName);
             if (!tagObj) return;
-            el.classList.remove('confident', 'all');
-            el.style.setProperty('--tag-bg', 'var(--low-bg)');
-            el.style.setProperty('--tag-text', 'var(--low-text)');
-            el.style.opacity = '0.6';
-            if (tagObj.prob >= confidentThreshold) {
-                el.classList.add('confident');
-                el.style.setProperty('--tag-bg', 'var(--confident-bg)');
-                el.style.setProperty('--tag-text', 'var(--confident-text)');
-                el.style.opacity = '1';
+            el.removeAttribute('data-level');
+            if (addedTags.has(tagName)) {
+                el.setAttribute('data-level', 'added');
+            } else if (removedTags.has(tagName)) {
+                el.setAttribute('data-level', 'removed');
+            } else if (tagObj.prob >= confidentThreshold) {
+                el.setAttribute('data-level', 'confident');
             } else if (tagObj.prob >= allThreshold) {
-                el.classList.add('all');
-                el.style.setProperty('--tag-bg', 'var(--all-bg)');
-                el.style.setProperty('--tag-text', 'var(--all-text)');
-                el.style.opacity = '1';
+                el.setAttribute('data-level', 'all');
             }
-            el.classList.remove('added', 'removed');
-            if (addedTags.has(tagName)) el.classList.add('added');
-            else if (removedTags.has(tagName)) el.classList.add('removed');
         });
         updateCategoryButtonsDisabled();
     }
@@ -331,13 +323,14 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (wasRemoved) removedTags.delete(tag);
         }
         document.querySelectorAll(`.tag[data-tag="${tag}"]`).forEach(el => updateTagElement(el, tagObj));
+        refreshTagClasses();
         updateCategoryButtonsDisabled();
     }
 
     function updateTagElement(el, tagObj) {
-        el.classList.remove('added', 'removed');
-        if (addedTags.has(tagObj.tag)) el.classList.add('added');
-        else if (removedTags.has(tagObj.tag)) el.classList.add('removed');
+        el.removeAttribute('data-level');
+        if (addedTags.has(tagObj.tag)) el.setAttribute('data-level', 'added');
+        else if (removedTags.has(tagObj.tag)) el.setAttribute('data-level', 'removed');
     }
 
     function updateCategoryButtonsDisabled() {
@@ -540,22 +533,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 tagEl.className = 'tag';
                 tagEl.setAttribute('data-tag', item.tag);
                 tagEl.textContent = item.tag;
-                tagEl.style.setProperty('--tag-bg', 'var(--low-bg)');
-                tagEl.style.setProperty('--tag-text', 'var(--low-text)');
-                tagEl.style.opacity = '0.6';
-                if (item.prob >= confidentThreshold) {
-                    tagEl.classList.add('confident');
-                    tagEl.style.setProperty('--tag-bg', 'var(--confident-bg)');
-                    tagEl.style.setProperty('--tag-text', 'var(--confident-text)');
-                    tagEl.style.opacity = '1';
+                if (addedTags.has(item.tag)) {
+                    tagEl.setAttribute('data-level', 'added');
+                } else if (removedTags.has(item.tag)) {
+                    tagEl.setAttribute('data-level', 'removed');
+                } else if (item.prob >= confidentThreshold) {
+                    tagEl.setAttribute('data-level', 'confident');
                 } else if (item.prob >= allThreshold) {
-                    tagEl.classList.add('all');
-                    tagEl.style.setProperty('--tag-bg', 'var(--all-bg)');
-                    tagEl.style.setProperty('--tag-text', 'var(--all-text)');
-                    tagEl.style.opacity = '1';
+                    tagEl.setAttribute('data-level', 'all');
                 }
-                if (addedTags.has(item.tag)) tagEl.classList.add('added');
-                else if (removedTags.has(item.tag)) tagEl.classList.add('removed');
                 
                 attachTagEvents(tagEl, item);
                 tagsContainer.appendChild(tagEl);

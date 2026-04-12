@@ -35,8 +35,6 @@
     --box-shadow-heavyplus: rgba(0, 0, 0, 0.3);
     --overlay-bg: rgba(0, 0, 0, 0.5);
     --animation-duration: 0.3s;
-    --tag-bg: var(--low-bg);
-    --tag-text: var(--low-text);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -630,47 +628,24 @@ h1 {
 
 .category-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .tag {
-    background-color: var(--tag-bg, var(--low-bg));
-    color: var(--tag-text, var(--low-text));
+    background-color: var(--low-bg);
+    color: var(--low-text);
     padding: 0.2rem 0.6rem;
     border-radius: 12px;
     font-size: 0.8rem;
     border: 1px solid transparent;
-    transition: background-color 0.2s, color 0.2s, opacity 0.2s, transform 0.1s;
     opacity: 0.6;
     animation: fadeInScale 0.2s;
     cursor: pointer;
     line-height: 1.2;
     touch-action: manipulation;
-}
-.tag.all, .tag.confident {
-    border-color: transparent;
+    transition: background-color 0.2s, color 0.2s, opacity 0.2s, transform 0.1s;
 }
 .tag:active { transform: scale(0.97); }
-.tag.all {
-    background-color: var(--all-bg);
-    color: var(--all-text);
-    opacity: 1;
-}
-.tag.confident {
-    background-color: var(--confident-bg);
-    color: var(--confident-text);
-    font-weight: 600;
-    opacity: 1;
-}
-.tag.added {
-    background-color: var(--added-bg);
-    color: var(--added-text);
-    opacity: 1;
-    border-color: var(--success-color);
-}
-.tag.removed {
-    background-color: var(--removed-bg);
-    color: var(--removed-text);
-    text-decoration: line-through;
-    opacity: 0.7;
-    border-color: var(--error-border);
-}
+.tag[data-level="all"] { background-color: var(--all-bg); color: var(--all-text); border-color: transparent; opacity: 1; }
+.tag[data-level="confident"] { background-color: var(--confident-bg); color: var(--confident-text); border-color: transparent; font-weight: 600; opacity: 1; }
+.tag[data-level="added"] { background-color: var(--added-bg); color: var(--added-text); border-color: var(--success-color); opacity: 1; }
+.tag[data-level="removed"] { background-color: var(--removed-bg); color: var(--removed-text); border-color: var(--error-border); text-decoration: line-through; opacity: 0.7; }
 
 .site-info {
     text-align: center;
