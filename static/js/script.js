@@ -416,7 +416,14 @@ document.addEventListener('DOMContentLoaded', () => {
     fallbackTextarea.style.position = 'fixed';
     fallbackTextarea.style.opacity = '0';
     fallbackTextarea.setAttribute('aria-hidden', 'true');
+    fallbackTextarea.setAttribute('inputmode', 'none');
     document.body.appendChild(fallbackTextarea);
+
+    document.addEventListener('focusin', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            e.target.blur();
+        }
+    });
 
     function fallbackCopy(text, btn, count, format) {
         fallbackTextarea.value = text;
