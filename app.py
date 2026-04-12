@@ -241,16 +241,31 @@ def detect_meta_tags_for_image_path(image_path: str):
                 tags.add('hi_res')
             if w >= 3200 or h >= 2400:
                 tags.add('absurd_res')
-            if w and h:
-                ratio = w / h
-                def close_to(target, tol=0.05):
-                    return abs(ratio - target) <= tol
-                if close_to(16/9):
-                    tags.add('16:9')
-                if close_to(1.0):
-                    tags.add('1:1')
-                if close_to(4/3):
-                    tags.add('4:3')
+            ratio = w / h if h else 0
+            ratio_map = [
+                ('1:1', 1.0), ('2:1', 2.0), ('3:1', 3.0), ('3:2', 1.5), ('4:3', 4/3), ('5:3', 5/3),
+                ('5:4', 1.25), ('6:5', 1.2), ('7:4', 1.75), ('7:3', 7/3), ('16:10', 16/10), ('11:8', 11/8),
+                ('14:9', 14/9), ('16:9', 16/9), ('21:9', 21/9), ('256:135', 256/135), ('8:5', 8/5)
+            ]
+            for tagname, tval in ratio_map:
+                if h:
+                    if abs((ratio) - tval) <= 0.08:
+                        tags.add(tagname)
+            vertical_map = [
+                ('1:2', 0.5), ('1:3', 1/3), ('2:3', 2/3), ('3:4', 0.75), ('3:5', 0.6), ('4:5', 0.8),
+                ('4:7', 4/7), ('5:6', 5/6), ('9:16', 9/16), ('9:14', 9/14), ('10:16', 10/16), ('18:39', 18/39), ('135:256', 135/256)
+            ]
+            for tagname, tval in vertical_map:
+                if w:
+                    if abs((ratio) - (tval)) <= 0.08:
+                        tags.add(tagname)
+            ratio_val = 16/9
+            if h:
+                if ratio >= ratio_val - 0.04:
+                    tags.add('widescreen')
+            if w == 2160 and (h == 3840 or h == 4096):
+                tags.add('4k')
+            
     except Exception:
         pass
     return tags
