@@ -241,6 +241,8 @@ def detect_meta_tags_for_image_path(image_path: str):
                 tags.add('hi_res')
             if w >= 3200 or h >= 2400:
                 tags.add('absurd_res')
+            if (w == 2160 and (h == 3840 or h == 4096)) or (w == 3840 and h == 2160):
+                tags.add('4k')
             ratio = w / h if h else 0
             ratio_map = [
                 ('1:1', 1.0), ('2:1', 2.0), ('3:1', 3.0), ('3:2', 1.5), ('4:3', 4/3), ('5:3', 5/3),
@@ -263,8 +265,6 @@ def detect_meta_tags_for_image_path(image_path: str):
             if h:
                 if ratio >= ratio_val - 0.04:
                     tags.add('widescreen')
-            if w == 2160 and (h == 3840 or h == 4096):
-                tags.add('4k')
             
     except Exception:
         pass

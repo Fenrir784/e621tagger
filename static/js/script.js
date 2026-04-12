@@ -382,11 +382,11 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 let finalText = text;
                 if (autoMetaTagSet && autoMetaTagSet.size > 0) {
-                    const filteredTagNames = new Set(allTags.map(t => t.tag));
                     const extras = [];
                     autoMetaTagSet.forEach(t => {
                         if (perTagAutoDisable.has(t)) return;
-                        if (!filteredTagNames.has(t) && extras.indexOf(t) === -1) extras.push(t);
+                        if (text.includes(t) || text.includes(t.replace(/_/g, ' '))) return;
+                        extras.push(t);
                     });
                     if (extras.length > 0) {
                         const joiner = (format === 'e621') ? ' ' : ', ';
@@ -533,20 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (removedTags.has(item.tag)) tagEl.classList.add('removed');
                 
                 if (autoMetaTagSet.has(item.tag)) {
-                    tagEl.style.color = '#FADE00';
-                    let toggle = document.createElement('input');
-                    toggle.type = 'checkbox';
-                    toggle.className = 'auto-toggle';
-                    toggle.style.marginLeft = '6px';
-                    toggle.checked = true;
-                    toggle.title = 'Disable auto-add for this tag for this copy';
-                    toggle.dataset.tag = item.tag;
-                    toggle.addEventListener('change', (ev) => {
-                        const t = ev.target.dataset.tag;
-                        if (ev.target.checked) perTagAutoDisable.delete(t);
-                        else perTagAutoDisable.add(t);
-                    });
-                    tagEl.appendChild(toggle);
+                    tagEl.classList.add('auto-meta');
                 }
                 attachTagEvents(tagEl, item);
                 tagsContainer.appendChild(tagEl);
