@@ -132,7 +132,7 @@ body {
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    transition: background-color 0.3s, color 0.3s;
+    transition: filter 0.3s, opacity 0.3s;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
@@ -174,11 +174,11 @@ h1 {
     align-items: center;
     justify-content: center;
     color: var(--text-color);
-    transition: transform 0.1s ease-out, background-color 0.2s;
+    transition: transform 0.1s ease-out, filter 0.2s;
     box-shadow: 0 2px 8px var(--box-shadow-light);
     touch-action: manipulation;
 }
-.settings-toggle:active, .settings-toggle.pressed { transform: scale(0.95); }
+.settings-toggle:active, .settings-toggle.pressed { transform: scale(0.95); filter: brightness(0.95); }
 .settings-toggle.open { transform: scale(1.1); }
 
 .egg-container {
@@ -250,7 +250,7 @@ h1 {
     cursor: pointer;
     font-size: 0.8rem;
     color: var(--text-color);
-    transition: background-color 0.2s;
+    transition: filter 0.2s;
     border: 1px solid transparent;
     touch-action: manipulation;
 }
@@ -260,6 +260,7 @@ h1 {
     background-color: var(--confident-bg);
     color: white;
     border-color: var(--confident-bg);
+    filter: brightness(1.1);
 }
 
 .close-settings {
@@ -271,7 +272,7 @@ h1 {
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
 }
-.close-settings:hover { background-color: var(--border-color); }
+.close-settings:hover { filter: brightness(0.9); }
 
 .settings-section {
     margin-bottom: 1.2rem;
@@ -304,9 +305,8 @@ h1 {
     cursor: pointer;
     padding: 0.2rem 0.4rem;
     border-radius: 4px;
-    transition: background-color 0.2s;
 }
-.help-btn:hover { background-color: var(--bg-color); }
+.help-btn:hover { filter: brightness(0.95); }
 
 .preset-buttons {
     display: flex;
@@ -323,12 +323,13 @@ h1 {
     cursor: pointer;
     font-size: 0.9rem;
     text-align: center;
-    transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+    transition: filter 0.2s, transform 0.15s;
 }
 .preset-btn:hover {
     background-color: var(--confident-bg);
     color: white;
     border-color: var(--confident-bg);
+    filter: brightness(1.15);
 }
 
 .custom-thresholds-panel {
@@ -379,12 +380,13 @@ h1 {
     cursor: pointer;
     font-size: 0.9rem;
     width: 100%;
-    transition: background-color 0.2s, transform 0.15s, opacity 0.15s;
+    transition: filter 0.2s, transform 0.15s, opacity 0.15s;
 }
 .reset-btn:active {
     background-color: var(--error-bg);
     color: var(--error-text);
     border-color: var(--error-border);
+    filter: brightness(0.85);
 }
 
 #notification-container {
@@ -435,7 +437,7 @@ h1 {
     padding: 3rem 2rem;
     text-align: center;
     cursor: pointer;
-    transition: all var(--animation-duration), box-shadow 0.3s;
+    transition: transform var(--animation-duration), filter var(--animation-duration), box-shadow 0.3s;
     margin-bottom: 2rem;
     min-height: 200px;
     display: flex;
@@ -446,8 +448,7 @@ h1 {
     touch-action: manipulation;
 }
 #dropZone.dragover {
-    border-color: var(--confident-bg);
-    background-color: var(--glow-strong);
+    filter: brightness(1.1);
     transform: scale(1.02);
 }
 #dropZone.has-image { padding: 0; border-style: solid; }
@@ -526,7 +527,7 @@ h1 {
     box-shadow: 0 4px 12px var(--box-shadow-medium);
     width: 240px;
     text-align: center;
-    transition: background-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    transition: filter 0.2s, box-shadow 0.2s, transform 0.15s;
     white-space: nowrap;
     touch-action: manipulation;
 }
@@ -539,7 +540,7 @@ h1 {
     color: var(--all-text);
 }
 .global-copy-btn.copied { background-color: var(--success-color); }
-.global-copy-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--box-shadow-heavy); }
+.global-copy-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--box-shadow-heavy); filter: brightness(1.1); }
 
 .rating-container {
     display: flex;
@@ -600,7 +601,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.2s, transform 0.15s, background-color 0.2s;
+    transition: opacity 0.2s, transform 0.15s, filter 0.2s;
     box-shadow: 0 2px 6px var(--box-shadow-medium);
     touch-action: manipulation;
 }
@@ -631,7 +632,7 @@ h1 {
     border-radius: 12px;
     font-size: 0.8rem;
     border: 1px solid transparent;
-    transition: background-color 0.2s, opacity 0.2s, transform 0.1s;
+    transition: filter 0.2s, opacity 0.2s, transform 0.1s;
     opacity: 0.6;
     animation: fadeInScale 0.2s;
     cursor: pointer;
@@ -670,7 +671,7 @@ h1 {
     font-size: 0.875rem;
     color: var(--low-text);
 }
-.site-info a { color: var(--confident-bg); text-decoration: none; transition: color 0.2s; }
+.site-info a { color: var(--confident-bg); text-decoration: none; }
 .site-info a:hover { text-decoration: underline; }
 
 @keyframes fadeInScale {
