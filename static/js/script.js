@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const merged = baseTags.slice();
                 autoMeta.forEach(t => {
                     if (!merged.find(x => x.tag === t)) {
-                        merged.push({ tag: t, prob: 0.0, category: 'Meta' });
+                        merged.push({ tag: t, prob: 1.0, category: 'Meta' });
                     }
                 });
                 allTags = merged;
