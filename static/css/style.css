@@ -180,6 +180,7 @@ h1 {
     touch-action: manipulation;
 }
 .settings-toggle:active, .settings-toggle.pressed { transform: scale(0.95); filter: brightness(0.95); }
+.egg-container:active { transform: scale(0.95); }
 .settings-toggle.open { transform: scale(1.1); }
 
 .egg-container {
@@ -701,7 +702,7 @@ input[type="number"]::-webkit-outer-spin-button {
 @media (hover: hover) {
     .settings-toggle:hover { transform: scale(1.1); }
     .close-settings:hover { filter: brightness(0.9); }
-    #dropZone:hover { filter: brightness(1.05); }
+    #dropZone:hover { border-color: var(--confident-bg); background-color: rgba(139, 92, 246, 0.1); }
 }
 input[type="number"]:hover::-webkit-inner-spin-button,
 input[type="number"]:hover::-webkit-outer-spin-button {
