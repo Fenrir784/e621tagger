@@ -696,7 +696,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 @media (hover: hover) {
     .settings-toggle:hover { transform: scale(1.1); }
-    .close-settings:hover { background-color: var(--border-color); }
+    .close-settings:hover { filter: brightness(0.9); }
     #dropZone:hover { border-color: var(--confident-bg); background-color: var(--glow-color); }
 }
 input[type="number"]:hover::-webkit-inner-spin-button,
@@ -745,7 +745,7 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     border-radius: 4px;
     touch-action: manipulation;
 }
-.close-popup:hover { background-color: var(--border-color); }
+.close-popup:hover { filter: brightness(0.9); }
 .tag-popup-content {
     padding: 1rem;
     max-height: 300px;
