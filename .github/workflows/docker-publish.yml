@@ -102,7 +102,7 @@ jobs:
           delete-orphaned-images: true
 
       - name: Trigger Dockhand deployment (latest)
-        if: github.head_ref == 'latest'
+        if: github.event_name == 'push' && github.ref_name == 'latest'
         env:
           WEBHOOK_URL: ${{ secrets.DOCKHAND_WEBHOOK_URL }}
           WEBHOOK_SECRET: ${{ secrets.DOCKHAND_WEBHOOK_SECRET }}
@@ -125,7 +125,7 @@ jobs:
             -d "$PAYLOAD"
 
       - name: Trigger Dockhand deployment (test)
-        if: github.head_ref == 'test'
+        if: github.event_name == 'pull_request' && github.head_ref == 'test'
         env:
           WEBHOOK_URL: ${{ secrets.DOCKHAND_WEBHOOK_URL_TEST }}
           WEBHOOK_SECRET: ${{ secrets.DOCKHAND_WEBHOOK_SECRET_TEST }}
