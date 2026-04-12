@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupGlobalCopyButton(btn, getThreshold) {
-        const hammer = new Hammer(btn);
+        const hammer = new Hammer(btn, { preventDefault: true });
         hammer.on('tap', async () => {
             const threshold = getThreshold();
             const filtered = filterTags(threshold);
@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupCategoryCopyButtons() {
         document.querySelectorAll('.cat-copy-btn').forEach(btn => {
             if (btn._hammer) btn._hammer.destroy();
-            const hammer = new Hammer(btn);
+            const hammer = new Hammer(btn, { preventDefault: true });
             const category = btn.dataset.category;
             const type = btn.dataset.type;
             const threshold = type === 'confident' ? confidentThreshold : allThreshold;
@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function attachTagEvents(tagEl, tagObj) {
         let pressTimer = null;
-        const hammer = new Hammer(tagEl);
+        const hammer = new Hammer(tagEl, { preventDefault: true });
         hammer.on('tap', (e) => {
             if (pressBlockTap) {
                 pressBlockTap = false;
@@ -637,7 +637,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function attachHammerTap(element, handler) {
-        const hammer = new Hammer(element);
+        const hammer = new Hammer(element, { preventDefault: true });
         hammer.on('tap', handler);
     }
 
