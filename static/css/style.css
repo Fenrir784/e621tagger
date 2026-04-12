@@ -256,8 +256,8 @@ h1 {
     touch-action: manipulation;
 }
 .format-option, .max-tag-option, .toggle-btn { padding: 0.4rem 0; flex: 1; text-align: center; font-weight: 500; border-radius: 30px; }
-.toggle-btn { min-width: 60px; padding: 0.3rem 0.8rem; border: 1px solid var(--border-color); }
-.theme-option.active, .format-option.active, .max-tag-option.active, .toggle-btn.active, .preset-btn.active, .tag.confident, .tag.all {
+.toggle-btn { min-width: 80px; padding: 0.3rem 0.8rem; border: 1px solid var(--border-color); }
+.theme-option.active, .format-option.active, .max-tag-option.active, .toggle-btn.active, .preset-btn.active, .tag.confident {
     background-color: var(--confident-bg);
     color: white;
     border-color: var(--confident-bg);
@@ -639,6 +639,9 @@ h1 {
     cursor: pointer;
     line-height: 1.2;
     touch-action: manipulation;
+}
+.tag.all, .tag.confident {
+    border-color: transparent;
 }
 .tag:active { transform: scale(0.97); }
 .tag.all {
