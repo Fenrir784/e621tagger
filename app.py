@@ -249,9 +249,9 @@ def detect_meta_tags_for_image_path(image_path: str):
                 tags.add('superabsurd_res')
             if w > 0 and h > 0:
                 ratio = w / h
-                if ratio >= 4:
+                if ratio >= 4 or ratio <= 0.25:
                     tags.add('long_image')
-                elif ratio <= 0.25:
+                if ratio <= 0.25:
                     tags.add('tall_image')
                 ratios = [
                     ('1:1', 1, 1),
