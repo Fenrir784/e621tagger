@@ -532,9 +532,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (addedTags.has(item.tag)) tagEl.classList.add('added');
                 else if (removedTags.has(item.tag)) tagEl.classList.add('removed');
                 
-                if (autoMetaTagSet.has(item.tag)) {
-                    tagEl.classList.add('auto-meta');
-                }
                 attachTagEvents(tagEl, item);
                 tagsContainer.appendChild(tagEl);
             });

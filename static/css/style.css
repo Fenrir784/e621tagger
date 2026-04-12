@@ -664,10 +664,6 @@ h1 {
     touch-action: manipulation;
 }
 
-.tag.auto-meta {
-  background-color: #FADE00;
-  color: #000;
-}
 .tag:active { transform: scale(0.97); }
 .tag.all {
     background-color: var(--all-bg);

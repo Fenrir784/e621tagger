@@ -235,8 +235,6 @@ def detect_meta_tags_for_image_path(image_path: str):
                         tags.add('animated')
                 except Exception:
                     pass
-            if 'A' in im.getbands():
-                tags.add('alpha_channel')
             if w <= 250 and h <= 250:
                 tags.add('thumbnail')
             if w <= 500 and h <= 500:
@@ -253,7 +251,7 @@ def detect_meta_tags_for_image_path(image_path: str):
             ratio_exact = [
                 ('1:1', 1, 1), ('2:1', 2, 1), ('3:1', 3, 1), ('3:2', 3, 2), ('4:3', 4, 3), ('5:3', 5, 3),
                 ('5:4', 5, 4), ('6:5', 6, 5), ('7:4', 7, 4), ('7:3', 7, 3), ('16:10', 16, 10),
-                ('11:8', 11, 8), ('14:9', 14, 9), ('16:9', 16, 9), ('21:9', 21, 9), ('8:5', 8, 5)
+                ('11:8', 11, 8), ('14:9', 14, 9), ('16:9', 16, 9), ('21:9', 21, 9)
             ]
             for tagname, a, b in ratio_exact:
                 if w * b == h * a:
