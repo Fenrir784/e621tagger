@@ -308,7 +308,15 @@ def index():
 
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory('static', 'favicon.ico')
+    response = make_response(send_from_directory('static', 'favicon.ico'))
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
+
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    response = make_response(send_from_directory('static', filename))
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
 
 @app.route('/service-worker.js')
 def service_worker():

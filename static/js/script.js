@@ -407,18 +407,19 @@ document.addEventListener('DOMContentLoaded', () => {
         btn._copyTimeout = setTimeout(() => btn.classList.remove('copied'), 1000);
     }
 
+    const fallbackTextarea = document.createElement('textarea');
+    fallbackTextarea.style.position = 'fixed';
+    fallbackTextarea.style.opacity = '0';
+    fallbackTextarea.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(fallbackTextarea);
+
     function fallbackCopy(text, btn, count, format) {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
+        fallbackTextarea.value = text;
+        fallbackTextarea.select();
         try {
             if (document.execCommand('copy')) showCopySuccess(btn, count, format);
             else showNotification('Unable to copy. Please copy manually.', 'error');
         } catch { showNotification('Copy failed. Please copy manually.', 'error'); }
-        document.body.removeChild(textarea);
     }
 
     function setupGlobalCopyButton(btn, getThreshold) {
