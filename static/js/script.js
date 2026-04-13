@@ -579,7 +579,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showPreview(file) {
-        if (!file.type.startsWith('image/')) return;
         const existingImg = dropZone.querySelector('img');
         if (existingImg) existingImg.remove();
         uploadContent.style.display = 'none';
@@ -608,7 +607,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function uploadImage(file) {
-        if (!file.type.startsWith('image/')) return;
         showPreview(file);
         dropZone.classList.add('uploading');
         const wasVisible = results.classList.contains('visible');
