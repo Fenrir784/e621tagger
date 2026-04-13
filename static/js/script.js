@@ -113,6 +113,66 @@ document.addEventListener('DOMContentLoaded', () => {
         themeOptions.forEach(opt => {
             opt.classList.toggle('active', opt.dataset.theme === theme);
         });
+        updateToggleIndicator(document.querySelector('.theme-toggle-group'));
+    }
+
+    function updateLocalFormatUI() {
+        formatE621.classList.toggle('active', currentFormat === 'e621');
+        formatPosty.classList.toggle('active', currentFormat === 'posty');
+        updateToggleIndicator(document.querySelector('.format-toggle-group'));
+    }
+
+    function updateSettingsFormatUI() {
+        formatOptions.forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.format === savedFormat);
+        });
+        updateToggleIndicator(document.querySelector('.format-toggle-group'));
+    }
+
+    function updateThresholdUI() {
+        presetBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.preset === activePreset);
+        });
+        customPanel.classList.toggle('open', activePreset === 'custom');
+        customAllInput.value = allThreshold.toFixed(2);
+        customConfidentInput.value = confidentThreshold.toFixed(2);
+    }
+
+    function updateMaxTagsUI() {
+        maxTagBtns.forEach(btn => {
+            const val = parseInt(btn.dataset.max);
+            btn.classList.toggle('active', val === maxTags);
+        });
+        updateToggleIndicator(document.querySelector('.max-tags-group'));
+    }
+
+    function updateToggleIndicator(group) {
+        if (!group) return;
+        const activeBtn = group.querySelector('.active');
+        if (!activeBtn) return;
+        
+        let indicator = group.querySelector('.toggle-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.className = 'toggle-indicator';
+            group.appendChild(indicator);
+        }
+        
+        const rect = activeBtn.getBoundingClientRect();
+        const groupRect = group.getBoundingClientRect();
+        
+        requestAnimationFrame(() => {
+            indicator.style.width = `${activeBtn.offsetWidth}px`;
+            indicator.style.height = `${activeBtn.offsetHeight}px`;
+            indicator.style.left = `${activeBtn.offsetLeft}px`;
+            indicator.style.top = `${activeBtn.offsetTop}px`;
+        });
+    }
+
+    function initToggleIndicators() {
+        updateToggleIndicator(document.querySelector('.theme-toggle-group'));
+        updateToggleIndicator(document.querySelector('.format-toggle-group'));
+        updateToggleIndicator(document.querySelector('.max-tags-group'));
     }
 
     function updateLocalFormatUI() {
@@ -787,7 +847,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === helpModal || (helpModal.contains(e.target) && modalContent && !modalContent.contains(e.target))) closeHelpModal();
         }
     });
-    window.addEventListener('resize', () => { if (settingsMenu.classList.contains('show')) positionSettingsMenu(); });
+    window.addEventListener('resize', () => { 
+        if (settingsMenu.classList.contains('show')) positionSettingsMenu(); 
+        initToggleIndicators();
+    });
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (helpModal && helpModal.style.display === 'flex') closeHelpModal();
@@ -811,6 +874,7 @@ document.addEventListener('DOMContentLoaded', () => {
     results.style.display = 'none';
     loadSettings();
     initHammer();
+    initToggleIndicators();
     setupGlobalCopyButton(copyGlobalConfident, () => confidentThreshold);
     setupGlobalCopyButton(copyGlobalAll, () => allThreshold);
 });
