@@ -521,6 +521,7 @@ h1 {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    margin-left: auto;
 }
 .toggle-label {
     font-size: 0.8rem;
