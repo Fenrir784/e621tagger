@@ -16,7 +16,7 @@ e621tagger is a web-based tool that automatically generates relevant tags for fu
 
 #### Have problems or suggestions? Contact me directly via [Telegram](https://t.me/fenrir784)
 
-![alt text](https://github.com/Fenrir784/e621tagger/blob/latest/static/screenshots/preview.png?raw=true)
+![alt text](https://github.com/Fenrir784/e621tagger/blob/latest/static/screenshots/preview.webp?raw=true)
 > ⚠️ **Note:** This repository contains the source code for the app. A live, fully functional instance is available at the link above.
 
 ---
