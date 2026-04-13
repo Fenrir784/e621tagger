@@ -192,6 +192,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return unsafe.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
     }
 
+    function sanitizeHtml(html) {
+        if (!html) return '';
+        return html.replace(/<(?!\/?(?:strong|em|u|sup|span|br)\b)[^>]*>/gi, (match) => {
+            return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        });
+    }
+
     function parseDText(dtext) {
         if (!dtext) return '';
         let text = escapeHtml(dtext.slice(0, 1000));
@@ -294,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closeBtn.addEventListener('click', () => closePopup());
         fetchTagDescription(tagName).then(desc => {
             const content = popup.querySelector('.tag-popup-content');
-            if (desc.exists) content.innerHTML = `<div class="tag-popup-text">${parseDText(desc.body)}</div>`;
+            if (desc.exists) content.innerHTML = `<div class="tag-popup-text">${sanitizeHtml(parseDText(desc.body))}</div>`;
             else content.innerHTML = `<div class="tag-popup-error">${escapeHtml(desc.body)}</div>`;
         }).catch(() => {
             popup.querySelector('.tag-popup-content').innerHTML = '<div class="tag-popup-error">Failed to load description.</div>';
