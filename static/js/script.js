@@ -748,15 +748,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveSettings();
             });
         });
-
-        document.querySelectorAll('.toggle-pill label').forEach(label => {
-            const pill = label.closest('.toggle-pill');
-            const hammer = new Hammer(label);
-            hammer.on('tap', () => {
-                pill.classList.add('tapped');
-                setTimeout(() => pill.classList.remove('tapped'), 150);
-            });
-        });
     }
 
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, preventDefaults, false));

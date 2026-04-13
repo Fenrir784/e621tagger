@@ -239,19 +239,16 @@ h1 {
 
 .toggle-pill {
     display: flex;
-    position: relative;
     background-color: var(--bg-color);
-    padding: 0.15rem;
+    padding: 0.25rem;
     border-radius: 30px;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    box-sizing: border-box;
-    width: fit-content;
+    gap: 0.25rem;
 }
 
 .toggle-pill.wide {
     width: 100%;
+    gap: 0.15rem;
+    padding: 0.2rem;
 }
 
 .toggle-pill input[type="radio"] {
@@ -263,86 +260,36 @@ h1 {
 }
 
 .toggle-pill label {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 0.2rem 0.4rem;
+    padding: 0.4rem 0.8rem;
     border-radius: 20px;
     cursor: pointer;
     font-size: 0.8rem;
     color: var(--text-color);
-    position: relative;
-    z-index: 2;
-    transition: color 0.2s ease, transform 0.15s ease;
-    white-space: nowrap;
+    transition: background-color 0.3s ease, color 0.3s ease;
     border: none;
     background: none;
     text-align: center;
-    box-sizing: border-box;
     touch-action: manipulation;
+    white-space: nowrap;
+}
+
+.toggle-pill label:hover {
+    background-color: var(--secondary-color);
 }
 
 .toggle-pill label:active {
-    transform: scale(0.92);
-    filter: brightness(0.85);
+    transform: scale(0.96);
 }
 
 .toggle-pill.wide label {
-    flex: 1;
-    min-width: 0;
     padding: 0.3rem 0.2rem;
+    font-size: 0.75rem;
 }
 
-.toggle-pill .toggle-slider {
-    position: absolute;
-    height: calc(100% - 0.3rem);
+.toggle-pill input:checked + label {
     background-color: var(--confident-bg);
-    border-radius: 20px;
-    transition: left 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease;
-    z-index: 1;
-    pointer-events: none;
-    top: 0.15rem;
-    left: 0;
-    width: calc(33.33% - 0.2rem);
-    box-sizing: border-box;
-}
-
-.toggle-pill.wide .toggle-slider {
-    width: calc(16.66% - 0.2rem);
-}
-
-#themeToggle:has(#theme-system:checked) label[for="theme-system"],
-#themeToggle:has(#theme-light:checked) label[for="theme-light"],
-#themeToggle:has(#theme-dark:checked) label[for="theme-dark"],
-#defaultFormatToggle:has(#default-format-e621:checked) label[for="default-format-e621"],
-#defaultFormatToggle:has(#default-format-posty:checked) label[for="default-format-posty"],
-#maxTagsToggle:has(#max-50:checked) label[for="max-50"],
-#maxTagsToggle:has(#max-75:checked) label[for="max-75"],
-#maxTagsToggle:has(#max-100:checked) label[for="max-100"],
-#maxTagsToggle:has(#max-150:checked) label[for="max-150"],
-#maxTagsToggle:has(#max-200:checked) label[for="max-200"],
-#maxTagsToggle:has(#max-300:checked) label[for="max-300"],
-#resultsFormatToggle:has(#results-format-e621:checked) label[for="results-format-e621"],
-#resultsFormatToggle:has(#results-format-posty:checked) label[for="results-format-posty"] {
     color: var(--confident-text);
-    background-color: transparent;
 }
-
-.toggle-pill:has(#theme-system:checked) .toggle-slider { left: 0; }
-.toggle-pill:has(#theme-light:checked) .toggle-slider { left: 33.33%; }
-.toggle-pill:has(#theme-dark:checked) .toggle-slider { left: 66.66%; }
-
-.toggle-pill:has(#default-format-e621:checked) .toggle-slider { left: 0; width: calc(50% - 0.1rem); }
-.toggle-pill:has(#default-format-posty:checked) .toggle-slider { left: 50%; width: calc(50% - 0.1rem); }
-
-.toggle-pill:has(#results-format-e621:checked) .toggle-slider { left: 0; width: calc(50% - 0.1rem); }
-.toggle-pill:has(#results-format-posty:checked) .toggle-slider { left: 50%; width: calc(50% - 0.1rem); }
-
-.toggle-pill:has(#max-50:checked) .toggle-slider { left: 0; }
-.toggle-pill:has(#max-75:checked) .toggle-slider { left: calc(16.66% + 0.05rem); }
-.toggle-pill:has(#max-100:checked) .toggle-slider { left: calc(33.33% + 0.1rem); }
-.toggle-pill:has(#max-150:checked) .toggle-slider { left: calc(50% + 0.1rem); }
-.toggle-pill:has(#max-200:checked) .toggle-slider { left: calc(66.66% + 0.1rem); }
-.toggle-pill:has(#max-300:checked) .toggle-slider { left: calc(83.33% + 0.1rem); }
 
 #themeToggle {
     margin-left: 0.5rem;
@@ -598,30 +545,13 @@ h1 {
     color: var(--text-color);
     opacity: 0.7;
 }
-#defaultFormatToggle {
-    width: 100%;
-}
-#defaultFormatToggle label {
-    min-width: 60px;
-}
 .format-toggle .toggle-pill {
     width: fit-content;
     min-width: 140px;
-    box-sizing: border-box;
 }
 .format-toggle .toggle-pill label {
-    flex: 1 1 0;
-    padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
     font-weight: 500;
-    min-width: 65px;
-    box-sizing: border-box;
-    transition: color 0.2s ease, transform 0.15s ease;
-    touch-action: manipulation;
-}
-.format-toggle .toggle-pill label:active {
-    transform: scale(0.92);
-    filter: brightness(0.85);
 }
 
 .global-buttons {
