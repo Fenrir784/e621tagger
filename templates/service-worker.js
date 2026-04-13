@@ -7,6 +7,7 @@ const urlsToCache = [
   '/static/css/style.css',
   '/static/js/script.js',
   '/static/js/hammer.min.js',
+  '/static/js/sw-init.js',
   '/static/manifest.json',
   '/static/icons/favicon.svg',
   '/static/icons/favicon.ico',
