@@ -640,6 +640,8 @@ h1 {
 .tag[data-level="confident"] { background-color: var(--confident-bg); color: var(--confident-text); border-color: transparent; font-weight: 600; opacity: 1; }
 .tag[data-level="added"] { background-color: var(--added-bg); color: var(--added-text); border-color: var(--success-color); font-weight: 400; opacity: 1; }
 .tag[data-level="removed"] { background-color: var(--removed-bg); color: var(--removed-text); border-color: var(--error-border); text-decoration: line-through; font-weight: 400; opacity: 0.7; }
+.tag[data-level="added"][data-original-level="confident"],
+.tag[data-level="removed"][data-original-level="confident"] { font-weight: 600; }
 
 .site-info {
     text-align: center;

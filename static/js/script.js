@@ -556,6 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tagEl.setAttribute('data-level', 'removed');
                 } else if (item.prob >= confidentThreshold) {
                     tagEl.setAttribute('data-level', 'confident');
+                    tagEl.setAttribute('data-original-level', 'confident');
                 } else if (item.prob >= allThreshold) {
                     tagEl.setAttribute('data-level', 'all');
                 }
