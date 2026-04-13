@@ -195,9 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function sanitizeHtml(html) {
         if (!html) return '';
         const dangerousAttrs = /\s+(on\w+|style\s*=\s*["']?(?:javascript:|expression\()[^"']*)/gi;
-        html = html.replace(/<(?!\/?(?:strong|em|u|sup|span|br)\b)[^>]*>/gi, (match) => {
-            return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        });
+        let previous;
+        do {
+            previous = html;
+            html = html.replace(/<(?!\/?(?:strong|em|u|sup|span|br)\b)[^>]*>/gi, (match) => {
+                return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            });
+        } while (html !== previous);
         html = html.replace(dangerousAttrs, '');
         return html;
     }
@@ -291,15 +295,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         popup.style.visibility = 'hidden';
-        popup.style.position = 'fixed';
+        popup.style.position = 'absolute';
         const popupRect = popup.getBoundingClientRect();
         popup.style.visibility = '';
         let top = rect.bottom + 8;
         let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
         if (top + popupRect.height > viewportHeight - 10) top = rect.top - popupRect.height - 8;
         left = Math.max(10, Math.min(left, viewportWidth - popupRect.width - 10));
-        popup.style.top = `${top}px`;
-        popup.style.left = `${left}px`;
+        popup.style.top = `${top + window.scrollY}px`;
+        popup.style.left = `${left + window.scrollX}px`;
         const closeBtn = popup.querySelector('.close-popup');
         closeBtn.addEventListener('click', () => closePopup());
         fetchTagDescription(tagName).then(desc => {

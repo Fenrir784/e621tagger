@@ -686,7 +686,7 @@ input[type="number"]:hover::-webkit-outer-spin-button {
 .theme-dark input[type="number"]::-webkit-outer-spin-button { filter: invert(1); }
 
 .tag-popup {
-    position: fixed;
+    position: absolute;
     background-color: var(--bg-color);
     border: 1px solid var(--border-color);
     border-radius: 12px;
