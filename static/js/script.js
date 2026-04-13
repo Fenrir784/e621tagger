@@ -660,9 +660,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             eggContainer.classList.toggle('open');
         });
-        attachHammerTap(settingsToggle, () => {
-            settingsToggle.classList.add('open');
-            setTimeout(() => settingsToggle.classList.remove('open'), 150);
+        attachHammerTap(settingsToggle, (e) => {
+            settingsToggle.classList.add('pressed');
+            setTimeout(() => {
+                settingsToggle.classList.remove('pressed');
+            }, 100);
             toggleSettings(!settingsMenu.classList.contains('show'));
         });
         attachHammerTap(closeSettings, () => toggleSettings(false));
