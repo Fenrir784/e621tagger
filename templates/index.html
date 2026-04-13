@@ -126,7 +126,7 @@
             </div>
             <div class="settings-section">
                 <h2>Default format</h2>
-                <div class="format-toggle-group">
+                <div class="format-toggle-group" data-context="settings">
                     <button class="format-option active" data-format="e621">e621</button>
                     <button class="format-option" data-format="posty">PostyBirb</button>
                 </div>
@@ -152,10 +152,9 @@
                 <div class="results-content" id="resultsContent">
                     <div class="results-header">
                         <h2>Generated Tags</h2>
-                        <div class="format-toggle">
-                            <span class="toggle-label">Format:</span>
-                            <button class="toggle-btn active" id="formatE621">e621</button>
-                            <button class="toggle-btn" id="formatPosty">PostyBirb</button>
+                        <div class="format-toggle-group" data-context="results">
+                            <button class="format-option active" data-format="e621">e621</button>
+                            <button class="format-option" data-format="posty">PostyBirb</button>
                         </div>
                     </div>
                     <div class="global-buttons">
