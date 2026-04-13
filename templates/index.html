@@ -16,9 +16,9 @@
     <meta property="og:url" content="https://www.tagger.fenrir784.ru/">
     <meta property="og:title" content="e621tagger">
     <meta property="og:description" content="Free web-based e621 tagging app created for furries by furries.">
-    <meta property="og:image" content="https://www.tagger.fenrir784.ru/static/screenshots/preview.png">
-    <meta property="og:image:secure_url" content="https://www.tagger.fenrir784.ru/static/screenshots/preview.png">
-    <meta property="og:image:type" content="image/png">
+    <meta property="og:image" content="https://www.tagger.fenrir784.ru/static/screenshots/preview.webp">
+    <meta property="og:image:secure_url" content="https://www.tagger.fenrir784.ru/static/screenshots/preview.webp">
+    <meta property="og:image:type" content="image/webp">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="en-150">
@@ -26,7 +26,7 @@
     <meta name="twitter:url" content="https://www.tagger.fenrir784.ru/">
     <meta name="twitter:title" content="e621tagger">
     <meta name="twitter:description" content="Free web-based e621 tagging app created for furries by furries.">
-    <meta name="twitter:image" content="https://www.tagger.fenrir784.ru/static/screenshots/preview.png">
+    <meta name="twitter:image" content="https://www.tagger.fenrir784.ru/static/screenshots/preview.webp">
     <link rel="canonical" href="https://www.tagger.fenrir784.ru">
     <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
     <link rel="icon" type="image/svg+xml" href="/static/icons/favicon.svg">
@@ -56,7 +56,7 @@
         "url": "https://fenrir784.ru"
       },
       "keywords": "e621, tagging, AI, furry, image tags, automatic tagging, e621tagger, booru",
-      "screenshot": "https://www.tagger.fenrir784.ru/static/screenshots/preview.png",
+      "screenshot": "https://www.tagger.fenrir784.ru/static/screenshots/preview.webp",
       "thumbnailUrl": "https://www.tagger.fenrir784.ru/static/icons/maskable_icon_x512.png",
       "softwareVersion": "{{APP_VERSION}}"
     }
@@ -81,16 +81,16 @@
         <div id="settingsMenu" class="settings-menu">
             <div class="settings-header">
                 <span>Settings</span>
-                <div class="theme-toggle-group">
-                    <button class="theme-option active" data-theme="system">💻</button>
-                    <button class="theme-option" data-theme="light">☀️</button>
-                    <button class="theme-option" data-theme="dark">🌙</button>
+                <div class="theme-toggle-group" id="themeToggle">
+                    <button type="button" class="theme-option active" data-value="system">💻</button>
+                    <button type="button" class="theme-option" data-value="light">☀️</button>
+                    <button type="button" class="theme-option" data-value="dark">🌙</button>
                 </div>
                 <button id="closeSettings" class="close-settings">✕</button>
             </div>
             <div class="settings-section">
                 <div class="settings-section-header">
-                    <h3>Thresholds</h3>
+                    <h2>Thresholds</h2>
                     <button id="helpThresholdsBtn" class="help-btn">Need help?</button>
                 </div>
                 <div class="preset-buttons">
@@ -114,21 +114,21 @@
                 </div>
             </div>
             <div class="settings-section">
-                <h3>Max tags</h3>
-                <div class="max-tags-group">
-                    <button class="max-tag-option" data-max="50">50</button>
-                    <button class="max-tag-option" data-max="75">75</button>
-                    <button class="max-tag-option" data-max="100">100</button>
-                    <button class="max-tag-option" data-max="150">150</button>
-                    <button class="max-tag-option active" data-max="200">200</button>
-                    <button class="max-tag-option" data-max="300">300</button>
+                <h2>Max tags</h2>
+                <div class="max-tags-group" id="maxTagsToggle">
+                    <button type="button" class="max-tag-option" data-value="50">50</button>
+                    <button type="button" class="max-tag-option" data-value="75">75</button>
+                    <button type="button" class="max-tag-option" data-value="100">100</button>
+                    <button type="button" class="max-tag-option" data-value="150">150</button>
+                    <button type="button" class="max-tag-option active" data-value="200">200</button>
+                    <button type="button" class="max-tag-option" data-value="300">300</button>
                 </div>
             </div>
             <div class="settings-section">
-                <h3>Default format</h3>
-                <div class="format-toggle-group">
-                    <button class="format-option active" data-format="e621">e621</button>
-                    <button class="format-option" data-format="posty">PostyBirb</button>
+                <h2>Default format</h2>
+                <div class="format-toggle-group" id="defaultFormatToggle">
+                    <button type="button" class="format-option active" data-value="e621">e621</button>
+                    <button type="button" class="format-option" data-value="posty">PostyBirb</button>
                 </div>
             </div>
             <div class="settings-section">
@@ -154,8 +154,10 @@
                         <h2>Generated Tags</h2>
                         <div class="format-toggle">
                             <span class="toggle-label">Format:</span>
-                            <button class="toggle-btn active" id="formatE621">e621</button>
-                            <button class="toggle-btn" id="formatPosty">PostyBirb</button>
+                            <div class="format-toggle-group" id="resultsFormatToggle">
+                                <button type="button" class="format-option active" data-value="e621">e621</button>
+                                <button type="button" class="format-option" data-value="posty">PostyBirb</button>
+                            </div>
                         </div>
                     </div>
                     <div class="global-buttons">

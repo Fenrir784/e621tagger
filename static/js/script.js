@@ -9,8 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const ratingDisplay = document.getElementById('ratingDisplay');
     const copyGlobalAll = document.getElementById('copyGlobalAll');
     const copyGlobalConfident = document.getElementById('copyGlobalConfident');
-    const formatE621 = document.getElementById('formatE621');
-    const formatPosty = document.getElementById('formatPosty');
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsMenu = document.getElementById('settingsMenu');
     const closeSettings = document.getElementById('closeSettings');
@@ -19,10 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const customAllInput = document.getElementById('customAll');
     const customConfidentInput = document.getElementById('customConfident');
     const applyCustom = document.getElementById('applyCustom');
-    const formatOptions = document.querySelectorAll('.format-option');
     const resetBtn = document.getElementById('resetSettings');
-    const themeOptions = document.querySelectorAll('.theme-option');
-    const maxTagBtns = document.querySelectorAll('.max-tag-option');
     const eggContainer = document.getElementById('eggContainer');
     const eggCreature = document.getElementById('eggCreature');
     const helpBtn = document.getElementById('helpThresholdsBtn');
@@ -75,11 +70,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 activePreset = settings.activePreset ?? 'standard';
                 maxTags = settings.maxTags ?? 200;
                 if (!ALLOWED_MAX_TAGS.includes(maxTags)) maxTags = 200;
+                
+                document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.value === currentTheme);
+                });
+                
+                document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.value === savedFormat);
+                });
+                
+                document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.value === String(maxTags));
+                });
+                
                 updateTheme(currentTheme);
-                updateLocalFormatUI();
-                updateSettingsFormatUI();
                 updateThresholdUI();
-                updateMaxTagsUI();
             } catch (e) {
                 console.warn('Failed to load settings', e);
             }
@@ -87,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
             activePreset = 'standard';
             maxTags = 200;
             updateThresholdUI();
-            updateMaxTagsUI();
         }
     }
 
@@ -98,31 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     }
 
-    function updateMaxTagsUI() {
-        maxTagBtns.forEach(btn => {
-            const val = parseInt(btn.dataset.max);
-            btn.classList.toggle('active', val === maxTags);
-        });
-    }
-
     function updateTheme(theme) {
         currentTheme = theme;
         document.body.classList.remove('theme-light', 'theme-dark');
         if (theme === 'light') document.body.classList.add('theme-light');
         else if (theme === 'dark') document.body.classList.add('theme-dark');
-        themeOptions.forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.theme === theme);
-        });
     }
 
     function updateLocalFormatUI() {
-        formatE621.classList.toggle('active', currentFormat === 'e621');
-        formatPosty.classList.toggle('active', currentFormat === 'posty');
-    }
-
-    function updateSettingsFormatUI() {
-        formatOptions.forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.format === savedFormat);
+        document.querySelectorAll('#resultsFormatToggle .format-option').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === currentFormat);
         });
     }
 
@@ -166,7 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleSettings(show) {
         settingsMenu.classList.toggle('show', show);
         settingsToggle.classList.toggle('open', show);
-        if (show) positionSettingsMenu();
+        if (show) {
+            positionSettingsMenu();
+        }
     }
 
     function positionSettingsMenu() {
@@ -586,6 +577,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const img = document.createElement('img');
         img.src = URL.createObjectURL(file);
         img.alt = 'Preview';
+        img.onload = function() {
+            img.width = img.naturalWidth;
+            img.height = img.naturalHeight;
+        };
         dropZone.appendChild(img);
         dropZone.classList.add('has-image');
     }
@@ -705,11 +700,21 @@ document.addEventListener('DOMContentLoaded', () => {
         attachHammerTap(resetBtn, () => {
             allThreshold = 0.55; confidentThreshold = 0.75; savedFormat = 'e621';
             currentFormat = savedFormat; currentTheme = 'system'; activePreset = 'standard'; maxTags = 200;
-            updateTheme('system'); updateLocalFormatUI(); updateSettingsFormatUI();
-            updateMaxTagsUI(); applyThresholds(); saveSettings();
+            
+            document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === 'system');
+            });
+            document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === 'e621');
+            });
+            document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === '200');
+            });
+            
+            updateTheme('system');
+            applyThresholds();
+            saveSettings();
         });
-        attachHammerTap(formatE621, () => { currentFormat = 'e621'; updateLocalFormatUI(); });
-        attachHammerTap(formatPosty, () => { currentFormat = 'posty'; updateLocalFormatUI(); });
 
         presetBtns.forEach(btn => {
             attachHammerTap(btn, () => {
@@ -732,29 +737,40 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        formatOptions.forEach(opt => {
-            attachHammerTap(opt, () => {
-                savedFormat = opt.dataset.format;
-                updateSettingsFormatUI();
-                saveSettings();
-            });
-        });
-
-        themeOptions.forEach(opt => {
-            attachHammerTap(opt, () => {
-                updateTheme(opt.dataset.theme);
-                saveSettings();
-            });
-        });
-
-        maxTagBtns.forEach(btn => {
+        document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
             attachHammerTap(btn, () => {
-                const val = parseInt(btn.dataset.max);
-                if (ALLOWED_MAX_TAGS.includes(val)) {
-                    maxTags = val;
-                    updateMaxTagsUI();
-                    saveSettings();
-                }
+                document.querySelectorAll('#themeToggle .theme-option').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTheme = btn.dataset.value;
+                updateTheme(currentTheme);
+                saveSettings();
+            });
+        });
+
+        document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
+            attachHammerTap(btn, () => {
+                document.querySelectorAll('#defaultFormatToggle .format-option').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                savedFormat = btn.dataset.value;
+                currentFormat = savedFormat;
+                saveSettings();
+            });
+        });
+
+        document.querySelectorAll('#resultsFormatToggle .format-option').forEach(btn => {
+            attachHammerTap(btn, () => {
+                document.querySelectorAll('#resultsFormatToggle .format-option').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFormat = btn.dataset.value;
+            });
+        });
+
+        document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
+            attachHammerTap(btn, () => {
+                document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                maxTags = parseInt(btn.dataset.value);
+                saveSettings();
             });
         });
     }
@@ -783,7 +799,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === helpModal || (helpModal.contains(e.target) && modalContent && !modalContent.contains(e.target))) closeHelpModal();
         }
     });
-    window.addEventListener('resize', () => { if (settingsMenu.classList.contains('show')) positionSettingsMenu(); });
+    window.addEventListener('resize', () => { 
+        if (settingsMenu.classList.contains('show')) positionSettingsMenu(); 
+    });
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (helpModal && helpModal.style.display === 'flex') closeHelpModal();
