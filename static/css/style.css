@@ -241,11 +241,13 @@ h1 {
     display: flex;
     position: relative;
     background-color: var(--bg-color);
-    padding: 2px;
+    padding: 0.15rem;
     border-radius: 30px;
+    gap: 0;
     align-items: center;
+    position: relative;
+    overflow: visible;
     box-sizing: border-box;
-    width: fit-content;
 }
 
 .toggle-pill.wide {
@@ -253,77 +255,87 @@ h1 {
 }
 
 .toggle-pill input[type="radio"] {
-    display: none;
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
 }
 
 .toggle-pill label {
     flex: 1;
-    padding: 0.25rem 0.4rem;
-    border-radius: 30px;
+    min-width: 0;
+    padding: 0.2rem 0.3rem;
+    border-radius: 20px;
     cursor: pointer;
     font-size: 0.8rem;
     color: var(--text-color);
     position: relative;
     z-index: 2;
-    text-align: center;
+    transition: color 0.2s ease;
     white-space: nowrap;
-    background: transparent;
+    border: none;
+    background: none;
+    text-align: center;
+    box-sizing: border-box;
 }
 
 .toggle-pill.wide label {
-    padding: 0.25rem 0.2rem;
+    padding: 0.3rem 0.1rem;
+    font-size: 0.75rem;
 }
 
 .toggle-pill .toggle-slider {
     position: absolute;
-    top: 2px;
-    left: 2px;
-    height: calc(100% - 4px);
+    top: 0.15rem;
+    bottom: 0.15rem;
+    left: 0.15rem;
+    width: calc(100% / 3 - 0.3rem);
     background-color: var(--confident-bg);
-    border-radius: 30px;
-    transition: transform 0.2s ease;
-    pointer-events: none;
+    border-radius: 20px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1;
+    pointer-events: none;
     box-sizing: border-box;
 }
 
-.toggle-pill:not(.wide) .toggle-slider {
-    width: calc(33.33% - 2px);
-}
-
 .toggle-pill.wide .toggle-slider {
-    width: calc(16.66% - 2px);
+    width: calc(100% / 6 - 0.3rem);
 }
 
-#defaultFormatToggle .toggle-slider,
-#resultsFormatToggle .toggle-slider {
-    width: calc(50% - 2px);
-}
-
-#themeToggle input:checked + label,
-#defaultFormatToggle input:checked + label,
-#maxTagsToggle input:checked + label,
-#resultsFormatToggle input:checked + label {
+#themeToggle:has(#theme-system:checked) label[for="theme-system"],
+#themeToggle:has(#theme-light:checked) label[for="theme-light"],
+#themeToggle:has(#theme-dark:checked) label[for="theme-dark"],
+#defaultFormatToggle:has(#default-format-e621:checked) label[for="default-format-e621"],
+#defaultFormatToggle:has(#default-format-posty:checked) label[for="default-format-posty"],
+#maxTagsToggle:has(#max-50:checked) label[for="max-50"],
+#maxTagsToggle:has(#max-75:checked) label[for="max-75"],
+#maxTagsToggle:has(#max-100:checked) label[for="max-100"],
+#maxTagsToggle:has(#max-150:checked) label[for="max-150"],
+#maxTagsToggle:has(#max-200:checked) label[for="max-200"],
+#maxTagsToggle:has(#max-300:checked) label[for="max-300"],
+#resultsFormatToggle:has(#results-format-e621:checked) label[for="results-format-e621"],
+#resultsFormatToggle:has(#results-format-posty:checked) label[for="results-format-posty"] {
     color: var(--confident-text);
+    background-color: transparent;
 }
 
-#themeToggle .toggle-slider { transform: translateX(0); }
-#themeToggle:has(#theme-light:checked) .toggle-slider { transform: translateX(100%); }
-#themeToggle:has(#theme-dark:checked) .toggle-slider { transform: translateX(200%); }
+.toggle-pill:has(#theme-system:checked) .toggle-slider { transform: translateX(0); }
+.toggle-pill:has(#theme-light:checked) .toggle-slider { transform: translateX(100%); }
+.toggle-pill:has(#theme-dark:checked) .toggle-slider { transform: translateX(200%); }
 
-#defaultFormatToggle .toggle-slider,
-#resultsFormatToggle .toggle-slider { transform: translateX(0); width: calc(50% - 2px); }
-#defaultFormatToggle:has(#default-format-posty:checked) .toggle-slider,
-#resultsFormatToggle:has(#results-format-posty:checked) .toggle-slider { transform: translateX(100%); }
+.toggle-pill:has(#default-format-e621:checked) .toggle-slider { transform: translateX(0); width: calc(50% - 0.3rem); }
+.toggle-pill:has(#default-format-posty:checked) .toggle-slider { transform: translateX(100%); width: calc(50% - 0.3rem); }
 
-#maxTagsToggle .toggle-slider { transform: translateX(0); }
-#maxTagsToggle:has(#max-75:checked) .toggle-slider { transform: translateX(100%); }
-#maxTagsToggle:has(#max-100:checked) .toggle-slider { transform: translateX(200%); }
-#maxTagsToggle:has(#max-150:checked) .toggle-slider { transform: translateX(300%); }
-#maxTagsToggle:has(#max-200:checked) .toggle-slider { transform: translateX(400%); }
-#maxTagsToggle:has(#max-300:checked) .toggle-slider { transform: translateX(500%); }
-.toggle-pill:has(#max-200:checked) .toggle-slider { left: calc(66.66% + 0.1rem); }
-.toggle-pill:has(#max-300:checked) .toggle-slider { left: calc(83.33% + 0.1rem); }
+.toggle-pill:has(#results-format-e621:checked) .toggle-slider { transform: translateX(0); width: calc(50% - 0.3rem); }
+.toggle-pill:has(#results-format-posty:checked) .toggle-slider { transform: translateX(100%); width: calc(50% - 0.3rem); }
+
+.toggle-pill:has(#max-50:checked) .toggle-slider { transform: translateX(0); width: calc(100% / 6 - 0.3rem); }
+.toggle-pill:has(#max-75:checked) .toggle-slider { transform: translateX(100%); width: calc(100% / 6 - 0.3rem); }
+.toggle-pill:has(#max-100:checked) .toggle-slider { transform: translateX(200%); width: calc(100% / 6 - 0.3rem); }
+.toggle-pill:has(#max-150:checked) .toggle-slider { transform: translateX(300%); width: calc(100% / 6 - 0.3rem); }
+.toggle-pill:has(#max-200:checked) .toggle-slider { transform: translateX(400%); width: calc(100% / 6 - 0.3rem); }
+.toggle-pill:has(#max-300:checked) .toggle-slider { transform: translateX(500%); width: calc(100% / 6 - 0.3rem); }
 
 #themeToggle {
     margin-left: 0.5rem;
@@ -587,15 +599,14 @@ h1 {
 }
 .format-toggle .toggle-pill {
     width: fit-content;
-    min-width: 140px;
+    min-width: 160px;
     box-sizing: border-box;
 }
 .format-toggle .toggle-pill label {
-    flex: 1 1 0;
-    padding: 0.4rem 0.8rem;
+    flex: 1;
+    padding: 0.4rem 0.6rem;
     font-size: 0.85rem;
     font-weight: 500;
-    min-width: 65px;
     box-sizing: border-box;
 }
 
