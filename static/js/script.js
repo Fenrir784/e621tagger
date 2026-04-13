@@ -749,10 +749,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        document.querySelectorAll('input[name="maxtags"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                maxTags = parseInt(radio.value);
-                saveSettings();
+        document.querySelectorAll('.toggle-pill label').forEach(label => {
+            const pill = label.closest('.toggle-pill');
+            const hammer = new Hammer(label);
+            hammer.on('tap', () => {
+                pill.classList.add('tapped');
+                setTimeout(() => pill.classList.remove('tapped'), 150);
             });
         });
     }
