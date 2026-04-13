@@ -118,8 +118,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateLocalFormatUI() {
-        formatE621.classList.toggle('active', currentFormat === 'e621');
-        formatPosty.classList.toggle('active', currentFormat === 'posty');
+        const resultsGroup = document.querySelector('.format-toggle .format-toggle-group[data-context="results"]');
+        if (!resultsGroup) return;
+        resultsGroup.querySelectorAll('.format-option').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.format === currentFormat);
+        });
+        updateToggleIndicator(resultsGroup);
     }
 
     function updateSettingsFormatUI() {
@@ -162,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initToggleIndicators() {
         updateToggleIndicator(document.querySelector('.theme-toggle-group'));
+        updateToggleIndicator(document.querySelector('.format-toggle .format-toggle-group[data-context="results"]'));
         updateToggleIndicator(document.querySelector('.format-toggle-group[data-context="settings"]'));
         updateToggleIndicator(document.querySelector('.max-tags-group'));
     }
@@ -746,8 +751,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTheme('system'); updateLocalFormatUI(); updateSettingsFormatUI();
             updateMaxTagsUI(); applyThresholds(); saveSettings();
         });
-        attachHammerTap(formatE621, () => { currentFormat = 'e621'; updateLocalFormatUI(); });
-        attachHammerTap(formatPosty, () => { currentFormat = 'posty'; updateLocalFormatUI(); });
 
         presetBtns.forEach(btn => {
             attachHammerTap(btn, () => {
@@ -772,9 +775,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         formatOptions.forEach(opt => {
             attachHammerTap(opt, () => {
-                savedFormat = opt.dataset.format;
-                updateSettingsFormatUI();
-                saveSettings();
+                const context = opt.closest('.format-toggle-group')?.dataset.context;
+                if (context === 'results') {
+                    currentFormat = opt.dataset.format;
+                    updateLocalFormatUI();
+                } else if (context === 'settings') {
+                    savedFormat = opt.dataset.format;
+                    updateSettingsFormatUI();
+                    saveSettings();
+                }
             });
         });
 
