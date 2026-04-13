@@ -582,20 +582,25 @@ h1 {
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
     margin-bottom: 1rem;
 }
+.rating-row.align-center {
+    align-items: center;
+}
 .format-toggle-group.compact {
-    padding: 0.1rem;
+    padding: 0.15rem;
     width: auto;
     flex-shrink: 0;
     flex-wrap: nowrap;
 }
 .format-toggle-group.compact .format-option {
-    padding: 0.2rem 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
     white-space: nowrap;
+    flex: 0 0 auto;
+    border-radius: 20px;
 }
 
 .categories-container { display: flex; flex-direction: column; gap: 1rem; }
