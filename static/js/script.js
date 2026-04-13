@@ -116,12 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateLocalFormatUI() {
-        const resultsGroup = document.querySelector('.format-toggle-group[data-context="results"]');
-        if (!resultsGroup) return;
-        resultsGroup.querySelectorAll('.format-option').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.format === currentFormat);
+        const resultsGroups = document.querySelectorAll('.format-toggle-group[data-context="results"], .format-toggle-group[data-context="results-inline"]');
+        resultsGroups.forEach(resultsGroup => {
+            resultsGroup.querySelectorAll('.format-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.format === currentFormat);
+            });
+            updateToggleIndicator(resultsGroup);
         });
-        updateToggleIndicator(resultsGroup);
     }
 
     function updateSettingsFormatUI() {
@@ -165,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function initToggleIndicators() {
         updateToggleIndicator(document.querySelector('.theme-toggle-group'));
         updateToggleIndicator(document.querySelector('.format-toggle-group[data-context="results"]'));
+        updateToggleIndicator(document.querySelector('.format-toggle-group[data-context="results-inline"]'));
         updateToggleIndicator(document.querySelector('.format-toggle-group[data-context="settings"]'));
         updateToggleIndicator(document.querySelector('.max-tags-group'));
     }
@@ -774,7 +776,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formatOptions.forEach(opt => {
             attachHammerTap(opt, () => {
                 const context = opt.closest('.format-toggle-group')?.dataset.context;
-                if (context === 'results') {
+                if (context === 'results' || context === 'results-inline') {
                     currentFormat = opt.dataset.format;
                     updateLocalFormatUI();
                 } else if (context === 'settings') {

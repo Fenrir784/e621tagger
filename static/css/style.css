@@ -578,6 +578,22 @@ h1 {
 .rating-display.questionable { background-color: var(--questionable-bg); }
 .rating-display.explicit { background-color: var(--explicit-bg); }
 
+.rating-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.format-toggle-group.compact {
+    padding: 0.1rem;
+}
+.format-toggle-group.compact .format-option {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+}
+
 .categories-container { display: flex; flex-direction: column; gap: 1rem; }
 .category-block {
     border: 1px solid var(--border-color);
@@ -880,6 +896,7 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     .settings-toggle { width: 40px; height: 40px; font-size: 1.5rem; }
     .egg-container { width: 60px; height: 60px; }
     .results-header { flex-wrap: wrap; justify-content: flex-start; }
+    .rating-row { flex-wrap: wrap; justify-content: flex-start; }
     .global-buttons { flex-wrap: wrap; gap: 1rem; }
     .global-copy-btn { width: 100%; }
     .category-header { flex-wrap: wrap; }
