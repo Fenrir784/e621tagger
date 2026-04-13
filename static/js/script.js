@@ -608,6 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function uploadImage(file) {
+        if (!file.type.startsWith('image/')) return;
         showPreview(file);
         dropZone.classList.add('uploading');
         const wasVisible = results.classList.contains('visible');
