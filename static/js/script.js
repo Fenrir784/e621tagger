@@ -281,15 +281,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         popup.style.visibility = 'hidden';
-        popup.style.position = 'absolute';
+        popup.style.position = 'fixed';
         const popupRect = popup.getBoundingClientRect();
         popup.style.visibility = '';
         let top = rect.bottom + 8;
         let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
         if (top + popupRect.height > viewportHeight - 10) top = rect.top - popupRect.height - 8;
         left = Math.max(10, Math.min(left, viewportWidth - popupRect.width - 10));
-        popup.style.top = `${top + window.scrollY}px`;
-        popup.style.left = `${left + window.scrollX}px`;
+        popup.style.top = `${top}px`;
+        popup.style.left = `${left}px`;
         const closeBtn = popup.querySelector('.close-popup');
         closeBtn.addEventListener('click', () => closePopup());
         fetchTagDescription(tagName).then(desc => {
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function handleTagClick(tagObj, element) {
+    function handleTagClick(tagObj) {
         if (pressBlockTap) return;
         const tag = tagObj.tag;
         const prob = tagObj.prob;
@@ -456,6 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function attachTagEvents(tagEl, tagObj) {
+        if (tagEl._hammer) tagEl._hammer.destroy();
         let pressTimer = null;
         const hammer = new Hammer(tagEl);
         hammer.on('tap', (e) => {
@@ -463,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pressBlockTap = false;
                 return;
             }
-            handleTagClick(tagObj, tagEl);
+            handleTagClick(tagObj);
         });
         hammer.on('press', (e) => {
             e.srcEvent.preventDefault();
@@ -637,12 +638,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeHelpModal() {
         helpModal.classList.remove('show');
-        helpModal.addEventListener('transitionend', () => {
+        const cleanup = () => {
             if (!helpModal.classList.contains('show')) {
                 helpModal.style.display = 'none';
                 document.body.classList.remove('modal-open');
             }
-        }, { once: true });
+            helpModal.removeEventListener('transitionend', cleanup);
+        };
+        helpModal.addEventListener('transitionend', cleanup, { once: true });
+        setTimeout(() => {
+            if (helpModal.style.display === 'flex') cleanup();
+        }, 500);
     }
 
     function attachHammerTap(element, handler) {
