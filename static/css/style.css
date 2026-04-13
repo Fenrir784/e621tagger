@@ -581,15 +581,20 @@ h1 {
 .rating-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 1rem;
+}
+.rating-container {
+    display: flex;
+    align-items: center;
 }
 .format-toggle-group.inline-toggle {
     width: auto;
     padding: 0.15rem;
     flex-shrink: 0;
+    margin-top: 0.15rem;
 }
 .format-toggle-group.inline-toggle .format-option {
     padding: 0.2rem 0.4rem;
@@ -652,7 +657,7 @@ h1 {
     box-shadow: none;
     pointer-events: none;
 }
-.cat-copy-btn.copied { background-color: var(--success-color) !important; transform: scale(0.95); }
+.cat-copy-btn.copied { background-color: var(--success-color); transform: scale(0.95); }
 .cat-copy-btn:hover:not(:disabled) { transform: scale(1.1); opacity: 0.9; }
 
 .category-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
@@ -901,8 +906,8 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     .settings-toggle { width: 40px; height: 40px; font-size: 1.5rem; }
     .egg-container { width: 60px; height: 60px; }
     .results-header { flex-wrap: wrap; justify-content: flex-start; }
-    .rating-row { gap: 0.75rem; }
-    .format-toggle-group.inline-toggle { width: 100%; justify-content: center; }
+    .rating-row { gap: 0.75rem; flex-wrap: nowrap; }
+    .format-toggle-group.inline-toggle { flex-shrink: 0; }
     .global-buttons { flex-wrap: wrap; gap: 1rem; }
     .global-copy-btn { width: 100%; }
     .category-header { flex-wrap: wrap; }
