@@ -202,7 +202,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
             });
         } while (html !== previous);
-        html = html.replace(dangerousAttrs, '');
+        do {
+            previous = html;
+            html = html.replace(dangerousAttrs, '');
+        } while (html !== previous);
         return html;
     }
 
