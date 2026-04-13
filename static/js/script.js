@@ -579,16 +579,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showPreview(file) {
+        if (!file.type.startsWith('image/')) return;
         const existingImg = dropZone.querySelector('img');
         if (existingImg) existingImg.remove();
         uploadContent.style.display = 'none';
         const img = document.createElement('img');
         img.src = URL.createObjectURL(file);
         img.alt = 'Preview';
-        img.style.opacity = '0';
         dropZone.appendChild(img);
         dropZone.classList.add('has-image');
-        setTimeout(() => { img.style.opacity = '1'; }, 10);
     }
 
     async function hideResults() {
