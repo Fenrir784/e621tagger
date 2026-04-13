@@ -234,6 +234,7 @@ h1 {
     margin-bottom: 1rem;
     font-weight: 600;
     color: var(--confident-bg);
+    position: relative;
 }
 
 .theme-toggle-group, .format-toggle-group, .max-tags-group {
@@ -277,12 +278,8 @@ h1 {
     color: var(--confident-text);
     border-color: var(--confident-bg);
     filter: brightness(1.1);
-    transition: background-color 0.25s, color 0.25s, border-color 0.25s;
 }
-.format-option.active, .max-tag-option.active { 
-    color: var(--confident-text); 
-    transition: color 0.25s;
-}
+.format-option.active, .max-tag-option.active { color: var(--confident-text); }
 
 .close-settings {
     background: none;

@@ -200,7 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleSettings(show) {
         settingsMenu.classList.toggle('show', show);
         settingsToggle.classList.toggle('open', show);
-        if (show) positionSettingsMenu();
+        if (show) {
+            positionSettingsMenu();
+            initToggleIndicators();
+        }
     }
 
     function positionSettingsMenu() {
