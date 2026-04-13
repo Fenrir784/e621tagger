@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const val = parseInt(btn.dataset.max);
             btn.classList.toggle('active', val === maxTags);
         });
+        updateToggleIndicator(document.querySelector('.max-tags-group'));
     }
 
     function updateTheme(theme) {
@@ -138,14 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
         customConfidentInput.value = confidentThreshold.toFixed(2);
     }
 
-    function updateMaxTagsUI() {
-        maxTagBtns.forEach(btn => {
-            const val = parseInt(btn.dataset.max);
-            btn.classList.toggle('active', val === maxTags);
-        });
-        updateToggleIndicator(document.querySelector('.max-tags-group'));
-    }
-
     function updateToggleIndicator(group) {
         if (!group) return;
         const activeBtn = group.querySelector('.active');
@@ -157,9 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
             indicator.className = 'toggle-indicator';
             group.appendChild(indicator);
         }
-        
-        const rect = activeBtn.getBoundingClientRect();
-        const groupRect = group.getBoundingClientRect();
         
         requestAnimationFrame(() => {
             indicator.style.width = `${activeBtn.offsetWidth}px`;
@@ -173,26 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateToggleIndicator(document.querySelector('.theme-toggle-group'));
         updateToggleIndicator(document.querySelector('.format-toggle-group'));
         updateToggleIndicator(document.querySelector('.max-tags-group'));
-    }
-
-    function updateLocalFormatUI() {
-        formatE621.classList.toggle('active', currentFormat === 'e621');
-        formatPosty.classList.toggle('active', currentFormat === 'posty');
-    }
-
-    function updateSettingsFormatUI() {
-        formatOptions.forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.format === savedFormat);
-        });
-    }
-
-    function updateThresholdUI() {
-        presetBtns.forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.preset === activePreset);
-        });
-        customPanel.classList.toggle('open', activePreset === 'custom');
-        customAllInput.value = allThreshold.toFixed(2);
-        customConfidentInput.value = confidentThreshold.toFixed(2);
     }
 
     function refreshTagClasses() {
