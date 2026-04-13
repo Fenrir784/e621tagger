@@ -278,7 +278,7 @@ h1 {
     border-color: var(--confident-bg);
     filter: brightness(1.1);
 }
-.format-option.active, .max-tag-option.active { background-color: transparent; color: var(--text-color); border-color: transparent; filter: none; }
+.format-option.active, .max-tag-option.active { color: var(--confident-text); }
 
 .close-settings {
     background: none;
