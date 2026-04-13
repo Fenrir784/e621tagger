@@ -81,10 +81,14 @@
         <div id="settingsMenu" class="settings-menu">
             <div class="settings-header">
                 <span>Settings</span>
-                <div class="theme-toggle-group">
-                    <button class="theme-option active" data-theme="system">💻</button>
-                    <button class="theme-option" data-theme="light">☀️</button>
-                    <button class="theme-option" data-theme="dark">🌙</button>
+                <div class="toggle-pill" id="themeToggle">
+                    <input type="radio" name="theme" value="system" id="theme-system" checked>
+                    <input type="radio" name="theme" value="light" id="theme-light">
+                    <input type="radio" name="theme" value="dark" id="theme-dark">
+                    <label for="theme-system">💻</label>
+                    <label for="theme-light">☀️</label>
+                    <label for="theme-dark">🌙</label>
+                    <span class="toggle-slider"></span>
                 </div>
                 <button id="closeSettings" class="close-settings">✕</button>
             </div>
@@ -115,20 +119,30 @@
             </div>
             <div class="settings-section">
                 <h2>Max tags</h2>
-                <div class="max-tags-group">
-                    <button class="max-tag-option" data-max="50">50</button>
-                    <button class="max-tag-option" data-max="75">75</button>
-                    <button class="max-tag-option" data-max="100">100</button>
-                    <button class="max-tag-option" data-max="150">150</button>
-                    <button class="max-tag-option active" data-max="200">200</button>
-                    <button class="max-tag-option" data-max="300">300</button>
+                <div class="toggle-pill wide" id="maxTagsToggle">
+                    <input type="radio" name="maxtags" value="50" id="max-50">
+                    <input type="radio" name="maxtags" value="75" id="max-75">
+                    <input type="radio" name="maxtags" value="100" id="max-100">
+                    <input type="radio" name="maxtags" value="150" id="max-150">
+                    <input type="radio" name="maxtags" value="200" id="max-200" checked>
+                    <input type="radio" name="maxtags" value="300" id="max-300">
+                    <label for="max-50">50</label>
+                    <label for="max-75">75</label>
+                    <label for="max-100">100</label>
+                    <label for="max-150">150</label>
+                    <label for="max-200">200</label>
+                    <label for="max-300">300</label>
+                    <span class="toggle-slider"></span>
                 </div>
             </div>
             <div class="settings-section">
                 <h2>Default format</h2>
-                <div class="format-toggle-group" data-context="settings">
-                    <button class="format-option active" data-format="e621">e621</button>
-                    <button class="format-option" data-format="posty">PostyBirb</button>
+                <div class="toggle-pill" id="defaultFormatToggle">
+                    <input type="radio" name="defaultFormat" value="e621" id="default-format-e621" checked>
+                    <input type="radio" name="defaultFormat" value="posty" id="default-format-posty">
+                    <label for="default-format-e621">e621</label>
+                    <label for="default-format-posty">PostyBirb</label>
+                    <span class="toggle-slider"></span>
                 </div>
             </div>
             <div class="settings-section">
@@ -154,9 +168,12 @@
                         <h2>Generated Tags</h2>
                         <div class="format-toggle">
                             <span class="toggle-label">Format:</span>
-                            <div class="format-toggle-group" data-context="results">
-                                <button class="format-option active" data-format="e621">e621</button>
-                                <button class="format-option" data-format="posty">PostyBirb</button>
+                            <div class="toggle-pill" id="resultsFormatToggle">
+                                <input type="radio" name="resultsFormat" value="e621" id="results-format-e621" checked>
+                                <input type="radio" name="resultsFormat" value="posty" id="results-format-posty">
+                                <label for="results-format-e621">e621</label>
+                                <label for="results-format-posty">PostyBirb</label>
+                                <span class="toggle-slider"></span>
                             </div>
                         </div>
                     </div>

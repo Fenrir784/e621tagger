@@ -17,10 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const customAllInput = document.getElementById('customAll');
     const customConfidentInput = document.getElementById('customConfident');
     const applyCustom = document.getElementById('applyCustom');
-    const formatOptions = document.querySelectorAll('.format-option');
     const resetBtn = document.getElementById('resetSettings');
-    const themeOptions = document.querySelectorAll('.theme-option');
-    const maxTagBtns = document.querySelectorAll('.max-tag-option');
     const eggContainer = document.getElementById('eggContainer');
     const eggCreature = document.getElementById('eggCreature');
     const helpBtn = document.getElementById('helpThresholdsBtn');
@@ -73,11 +70,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 activePreset = settings.activePreset ?? 'standard';
                 maxTags = settings.maxTags ?? 200;
                 if (!ALLOWED_MAX_TAGS.includes(maxTags)) maxTags = 200;
+                
+                const themeRadio = document.getElementById(`theme-${currentTheme}`);
+                if (themeRadio) themeRadio.checked = true;
+                
+                const formatRadio = document.getElementById(`default-format-${savedFormat}`);
+                if (formatRadio) formatRadio.checked = true;
+                
+                const maxRadio = document.getElementById(`max-${maxTags}`);
+                if (maxRadio) maxRadio.checked = true;
+                
                 updateTheme(currentTheme);
-                updateLocalFormatUI();
-                updateSettingsFormatUI();
                 updateThresholdUI();
-                updateMaxTagsUI();
             } catch (e) {
                 console.warn('Failed to load settings', e);
             }
@@ -85,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
             activePreset = 'standard';
             maxTags = 200;
             updateThresholdUI();
-            updateMaxTagsUI();
         }
     }
 
@@ -96,41 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     }
 
-    function updateMaxTagsUI() {
-        maxTagBtns.forEach(btn => {
-            const val = parseInt(btn.dataset.max);
-            btn.classList.toggle('active', val === maxTags);
-        });
-        updateToggleIndicator(document.querySelector('.max-tags-group'));
-    }
-
     function updateTheme(theme) {
         currentTheme = theme;
         document.body.classList.remove('theme-light', 'theme-dark');
         if (theme === 'light') document.body.classList.add('theme-light');
         else if (theme === 'dark') document.body.classList.add('theme-dark');
-        themeOptions.forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.theme === theme);
-        });
-        updateToggleIndicator(document.querySelector('.theme-toggle-group'));
-    }
-
-    function updateLocalFormatUI() {
-        const resultsGroup = document.querySelector('.format-toggle .format-toggle-group[data-context="results"]');
-        if (!resultsGroup) return;
-        resultsGroup.querySelectorAll('.format-option').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.format === currentFormat);
-        });
-        updateToggleIndicator(resultsGroup);
-    }
-
-    function updateSettingsFormatUI() {
-        const settingsGroup = document.querySelector('.format-toggle-group[data-context="settings"]');
-        if (!settingsGroup) return;
-        settingsGroup.querySelectorAll('.format-option').forEach(opt => {
-            opt.classList.toggle('active', opt.dataset.format === savedFormat);
-        });
-        updateToggleIndicator(settingsGroup);
     }
 
     function updateThresholdUI() {
@@ -140,33 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
         customPanel.classList.toggle('open', activePreset === 'custom');
         customAllInput.value = allThreshold.toFixed(2);
         customConfidentInput.value = confidentThreshold.toFixed(2);
-    }
-
-    function updateToggleIndicator(group) {
-        if (!group) return;
-        const activeBtn = group.querySelector('.active');
-        if (!activeBtn) return;
-        
-        let indicator = group.querySelector('.toggle-indicator');
-        if (!indicator) {
-            indicator = document.createElement('div');
-            indicator.className = 'toggle-indicator';
-            group.appendChild(indicator);
-        }
-        
-        requestAnimationFrame(() => {
-            indicator.style.width = `${activeBtn.offsetWidth}px`;
-            indicator.style.height = `${activeBtn.offsetHeight}px`;
-            indicator.style.left = `${activeBtn.offsetLeft}px`;
-            indicator.style.top = `${activeBtn.offsetTop}px`;
-        });
-    }
-
-    function initToggleIndicators() {
-        updateToggleIndicator(document.querySelector('.theme-toggle-group'));
-        updateToggleIndicator(document.querySelector('.format-toggle .format-toggle-group[data-context="results"]'));
-        updateToggleIndicator(document.querySelector('.format-toggle-group[data-context="settings"]'));
-        updateToggleIndicator(document.querySelector('.max-tags-group'));
     }
 
     function refreshTagClasses() {
@@ -202,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsToggle.classList.toggle('open', show);
         if (show) {
             positionSettingsMenu();
-            initToggleIndicators();
         }
     }
 
@@ -746,8 +691,14 @@ document.addEventListener('DOMContentLoaded', () => {
         attachHammerTap(resetBtn, () => {
             allThreshold = 0.55; confidentThreshold = 0.75; savedFormat = 'e621';
             currentFormat = savedFormat; currentTheme = 'system'; activePreset = 'standard'; maxTags = 200;
-            updateTheme('system'); updateLocalFormatUI(); updateSettingsFormatUI();
-            updateMaxTagsUI(); applyThresholds(); saveSettings();
+            
+            document.getElementById('theme-system').checked = true;
+            document.getElementById('default-format-e621').checked = true;
+            document.getElementById('max-200').checked = true;
+            
+            updateTheme('system');
+            applyThresholds();
+            saveSettings();
         });
 
         presetBtns.forEach(btn => {
@@ -771,35 +722,32 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        formatOptions.forEach(opt => {
-            attachHammerTap(opt, () => {
-                const context = opt.closest('.format-toggle-group')?.dataset.context;
-                if (context === 'results') {
-                    currentFormat = opt.dataset.format;
-                    updateLocalFormatUI();
-                } else if (context === 'settings') {
-                    savedFormat = opt.dataset.format;
-                    updateSettingsFormatUI();
-                    saveSettings();
-                }
-            });
-        });
-
-        themeOptions.forEach(opt => {
-            attachHammerTap(opt, () => {
-                updateTheme(opt.dataset.theme);
+        document.querySelectorAll('input[name="theme"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                currentTheme = radio.value;
+                updateTheme(currentTheme);
                 saveSettings();
             });
         });
 
-        maxTagBtns.forEach(btn => {
-            attachHammerTap(btn, () => {
-                const val = parseInt(btn.dataset.max);
-                if (ALLOWED_MAX_TAGS.includes(val)) {
-                    maxTags = val;
-                    updateMaxTagsUI();
-                    saveSettings();
-                }
+        document.querySelectorAll('input[name="resultsFormat"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                currentFormat = radio.value;
+            });
+        });
+
+        document.querySelectorAll('input[name="defaultFormat"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                savedFormat = radio.value;
+                currentFormat = savedFormat;
+                saveSettings();
+            });
+        });
+
+        document.querySelectorAll('input[name="maxtags"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                maxTags = parseInt(radio.value);
+                saveSettings();
             });
         });
     }
@@ -830,7 +778,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     window.addEventListener('resize', () => { 
         if (settingsMenu.classList.contains('show')) positionSettingsMenu(); 
-        initToggleIndicators();
     });
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
@@ -855,7 +802,6 @@ document.addEventListener('DOMContentLoaded', () => {
     results.style.display = 'none';
     loadSettings();
     initHammer();
-    initToggleIndicators();
     setupGlobalCopyButton(copyGlobalConfident, () => confidentThreshold);
     setupGlobalCopyButton(copyGlobalAll, () => allThreshold);
 });
