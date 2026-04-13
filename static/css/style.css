@@ -299,11 +299,20 @@ h1 {
     width: 16.66%;
 }
 
-#themeToggle input:checked + label,
-#defaultFormatToggle input:checked + label,
-#maxTagsToggle input:checked + label,
-#resultsFormatToggle input:checked + label {
-    color: var(--confident-text);
+#themeToggle:has(#theme-system:checked) label[for="theme-system"],
+#themeToggle:has(#theme-light:checked) label[for="theme-light"],
+#themeToggle:has(#theme-dark:checked) label[for="theme-dark"],
+#defaultFormatToggle:has(#default-format-e621:checked) label[for="default-format-e621"],
+#defaultFormatToggle:has(#default-format-posty:checked) label[for="default-format-posty"],
+#maxTagsToggle:has(#max-50:checked) label[for="max-50"],
+#maxTagsToggle:has(#max-75:checked) label[for="max-75"],
+#maxTagsToggle:has(#max-100:checked) label[for="max-100"],
+#maxTagsToggle:has(#max-150:checked) label[for="max-150"],
+#maxTagsToggle:has(#max-200:checked) label[for="max-200"],
+#maxTagsToggle:has(#max-300:checked) label[for="max-300"],
+#resultsFormatToggle:has(#results-format-e621:checked) label[for="results-format-e621"],
+#resultsFormatToggle:has(#results-format-posty:checked) label[for="results-format-posty"] {
+    color: var(--confident-text) !important;
     background-color: transparent;
 }
 
