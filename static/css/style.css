@@ -299,8 +299,12 @@ h1 {
     width: 16.66%;
 }
 
-.toggle-pill input[type="radio"]:checked + label {
+#themeToggle input:checked + label,
+#defaultFormatToggle input:checked + label,
+#maxTagsToggle input:checked + label,
+#resultsFormatToggle input:checked + label {
     color: var(--confident-text);
+    background-color: transparent;
 }
 
 .toggle-pill:has(#theme-system:checked) .toggle-slider { left: 0; }
@@ -579,8 +583,10 @@ h1 {
 }
 .format-toggle .toggle-pill label {
     flex: 1 1 0;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    min-width: 60px;
 }
 
 .global-buttons {
@@ -934,7 +940,8 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     h1 { font-size: 2rem; }
     .settings-toggle { width: 40px; height: 40px; font-size: 1.5rem; }
     .egg-container { width: 60px; height: 60px; }
-    .results-header { flex-wrap: wrap; justify-content: flex-start; }
+    .results-header { flex-direction: column; align-items: flex-start; }
+    .format-toggle { margin-left: 0; margin-top: 0.5rem; }
     .global-buttons { flex-wrap: wrap; gap: 1rem; }
     .global-copy-btn { width: 100%; }
     .category-header { flex-wrap: wrap; }
