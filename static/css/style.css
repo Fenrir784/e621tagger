@@ -39,9 +39,34 @@
 
 @media (prefers-color-scheme: dark) {
     :root:not(.theme-light):not(.theme-dark) {
-        color-scheme: dark;
+        --bg-color: #0a0c10;
+        --text-color: #e5e7eb;
+        --primary-color: #8b5cf6;
+        --secondary-color: #1f2937;
+        --border-color: #374151;
+        --success-color: #10b981;
+        --confident-bg: #c084fc;
+        --confident-text: #0a0c10;
+        --all-bg: #3b5b7a;
+        --all-text: #f3f4f6;
+        --low-bg: #2d2f36;
+        --low-text: #9ca3af;
+        --error-bg: #521822;
+        --error-text: #f8d7da;
+        --error-border: #a12b3a;
+        --safe-bg: #1e7e34;
+        --questionable-bg: #b8860b;
+        --explicit-bg: #a71d2a;
+        --disabled-bg: #4a4e54;
+        --disabled-text: #9ca3af;
+        --menu-bg: #1e2328;
+        --added-bg: #1e7e34;
+        --removed-bg: #a71d2a;
+        --success-bg: #1e7e34;
+        --success-border: #16632a;
     }
 }
+
 .theme-dark {
     --bg-color: #0a0c10;
     --text-color: #e5e7eb;
