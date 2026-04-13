@@ -194,9 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function sanitizeHtml(html) {
         if (!html) return '';
-        return html.replace(/<(?!\/?(?:strong|em|u|sup|span|br)\b)[^>]*>/gi, (match) => {
+        const dangerousAttrs = /\s+(on\w+|style\s*=\s*["']?(?:javascript:|expression\()[^"']*)/gi;
+        html = html.replace(/<(?!\/?(?:strong|em|u|sup|span|br)\b)[^>]*>/gi, (match) => {
             return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         });
+        html = html.replace(dangerousAttrs, '');
+        return html;
     }
 
     function parseDText(dtext) {
@@ -526,10 +529,10 @@ document.addEventListener('DOMContentLoaded', () => {
             catDiv.className = 'category-block';
             catDiv.innerHTML = `
                 <div class="category-header">
-                    <span class="category-name">${cat}</span>
+                    <span class="category-name">${escapeHtml(cat)}</span>
                     <div class="category-buttons">
-                        <button type="button" class="cat-copy-btn confident" data-category="${cat}" data-type="confident" title="Copy confident tags">C</button>
-                        <button type="button" class="cat-copy-btn all" data-category="${cat}" data-type="all" title="Copy all tags">A</button>
+                        <button type="button" class="cat-copy-btn confident" data-category="${escapeHtml(cat)}" data-type="confident" title="Copy confident tags">C</button>
+                        <button type="button" class="cat-copy-btn all" data-category="${escapeHtml(cat)}" data-type="all" title="Copy all tags">A</button>
                     </div>
                 </div>
                 <div class="category-tags"></div>
