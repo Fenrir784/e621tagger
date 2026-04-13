@@ -71,14 +71,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 maxTags = settings.maxTags ?? 200;
                 if (!ALLOWED_MAX_TAGS.includes(maxTags)) maxTags = 200;
                 
-                const themeRadio = document.getElementById(`theme-${currentTheme}`);
-                if (themeRadio) themeRadio.checked = true;
+                document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.value === currentTheme);
+                });
                 
-                const formatRadio = document.getElementById(`default-format-${savedFormat}`);
-                if (formatRadio) formatRadio.checked = true;
+                document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.value === savedFormat);
+                });
                 
-                const maxRadio = document.getElementById(`max-${maxTags}`);
-                if (maxRadio) maxRadio.checked = true;
+                document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.value === String(maxTags));
+                });
                 
                 updateTheme(currentTheme);
                 updateThresholdUI();
@@ -107,8 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateLocalFormatUI() {
-        const radio = document.querySelector(`input[name="resultsFormat"][value="${currentFormat}"]`);
-        if (radio) radio.checked = true;
+        document.querySelectorAll('#resultsFormatToggle .format-option').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === currentFormat);
+        });
     }
 
     function updateThresholdUI() {
@@ -697,9 +701,15 @@ document.addEventListener('DOMContentLoaded', () => {
             allThreshold = 0.55; confidentThreshold = 0.75; savedFormat = 'e621';
             currentFormat = savedFormat; currentTheme = 'system'; activePreset = 'standard'; maxTags = 200;
             
-            document.getElementById('theme-system').checked = true;
-            document.getElementById('default-format-e621').checked = true;
-            document.getElementById('max-200').checked = true;
+            document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === 'system');
+            });
+            document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === 'e621');
+            });
+            document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === '200');
+            });
             
             updateTheme('system');
             applyThresholds();
@@ -727,24 +737,39 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        document.querySelectorAll('input[name="theme"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                currentTheme = radio.value;
+        document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
+            attachHammerTap(btn, () => {
+                document.querySelectorAll('#themeToggle .theme-option').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTheme = btn.dataset.value;
                 updateTheme(currentTheme);
                 saveSettings();
             });
         });
 
-        document.querySelectorAll('input[name="resultsFormat"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                currentFormat = radio.value;
+        document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
+            attachHammerTap(btn, () => {
+                document.querySelectorAll('#defaultFormatToggle .format-option').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                savedFormat = btn.dataset.value;
+                currentFormat = savedFormat;
+                saveSettings();
             });
         });
 
-        document.querySelectorAll('input[name="defaultFormat"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                savedFormat = radio.value;
-                currentFormat = savedFormat;
+        document.querySelectorAll('#resultsFormatToggle .format-option').forEach(btn => {
+            attachHammerTap(btn, () => {
+                document.querySelectorAll('#resultsFormatToggle .format-option').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFormat = btn.dataset.value;
+            });
+        });
+
+        document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
+            attachHammerTap(btn, () => {
+                document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                maxTags = parseInt(btn.dataset.value);
                 saveSettings();
             });
         });

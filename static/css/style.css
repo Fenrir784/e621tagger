@@ -237,62 +237,35 @@ h1 {
     position: relative;
 }
 
-.toggle-pill {
+.theme-toggle-group, .format-toggle-group, .max-tags-group {
     display: flex;
+    gap: 0.2rem;
     background-color: var(--bg-color);
-    padding: 0.25rem;
+    padding: 0.15rem;
     border-radius: 30px;
-    gap: 0.25rem;
 }
+.theme-toggle-group { margin-left: 0.5rem; }
+.format-toggle-group, .max-tags-group { width: 100%; padding: 0.2rem; }
 
-.toggle-pill.wide {
-    width: 100%;
-    gap: 0.15rem;
-    padding: 0.2rem;
-}
-
-.toggle-pill input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-    pointer-events: none;
-}
-
-.toggle-pill label {
-    padding: 0.4rem 0.8rem;
+.theme-option, .format-option, .max-tag-option {
+    border: none;
+    background: none;
+    padding: 0.2rem 0.4rem;
     border-radius: 20px;
     cursor: pointer;
     font-size: 0.8rem;
     color: var(--text-color);
-    transition: background-color 0.3s ease, color 0.3s ease;
-    border: none;
-    background: none;
-    text-align: center;
+    transition: filter 0.2s;
+    border: 1px solid transparent;
     touch-action: manipulation;
-    white-space: nowrap;
 }
+.format-option, .max-tag-option { padding: 0.4rem 0; flex: 1; text-align: center; font-weight: 500; border-radius: 30px; }
 
-.toggle-pill label:hover {
-    background-color: var(--secondary-color);
-}
-
-.toggle-pill label:active {
-    transform: scale(0.96);
-}
-
-.toggle-pill.wide label {
-    padding: 0.3rem 0.2rem;
-    font-size: 0.75rem;
-}
-
-.toggle-pill input:checked + label {
+.theme-option.active, .format-option.active, .max-tag-option.active, .preset-btn.active, .tag.confident {
     background-color: var(--confident-bg);
     color: var(--confident-text);
-}
-
-#themeToggle {
-    margin-left: 0.5rem;
+    border-color: var(--confident-bg);
+    filter: brightness(1.1);
 }
 
 .close-settings {
@@ -545,13 +518,12 @@ h1 {
     color: var(--text-color);
     opacity: 0.7;
 }
-.format-toggle .toggle-pill {
+.format-toggle-group {
     width: fit-content;
     min-width: 140px;
 }
-.format-toggle .toggle-pill label {
+.format-toggle-group .format-option {
     font-size: 0.85rem;
-    font-weight: 500;
 }
 
 .global-buttons {
