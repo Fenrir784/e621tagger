@@ -215,7 +215,7 @@ h1 {
     position: absolute;
     width: 300px;
     background-color: var(--menu-bg);
-    border: 1px solid var(--menu-border);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     box-shadow: 0 8px 24px var(--box-shadow-heavy);
     padding: 1rem;
@@ -256,7 +256,7 @@ h1 {
     cursor: pointer;
     font-size: 0.8rem;
     color: var(--text-color);
-    transition: filter 0.2s;
+    transition: filter 0.2s, background-color 0.2s, color 0.2s, transform 0.15s;
     border: 1px solid transparent;
     touch-action: manipulation;
 }
@@ -678,7 +678,10 @@ h1 {
     transform: scale(0.98);
     opacity: 0.9;
 }
-.theme-option:active, .format-option:active, .toggle-btn:active { transform: none; opacity: 1; }
+.theme-option:active, .format-option:active, .max-tag-option:active {
+    transform: scale(0.95);
+    opacity: 0.9;
+}
 
 input[type="number"] {
     appearance: textfield;
