@@ -587,14 +587,8 @@ h1 {
     box-shadow: 0 2px 6px var(--box-shadow-medium);
     touch-action: manipulation;
 }
-.cat-copy-btn.confident {
-    background-color: var(--confident-bg);
-    color: var(--confident-text);
-}
-.cat-copy-btn.all {
-    background-color: var(--all-bg);
-    color: var(--all-text);
-}
+.cat-copy-btn.confident, .tag-example.confident { background-color: var(--confident-bg); color: var(--confident-text); }
+.cat-copy-btn.all, .tag-example.all { background-color: var(--all-bg); color: var(--all-text); }
 .cat-copy-btn:disabled {
     background-color: var(--disabled-bg);
     color: var(--disabled-text);
@@ -621,9 +615,16 @@ h1 {
     transition: background-color 0.2s, color 0.2s, opacity 0.2s, transform 0.1s;
 }
 .tag:active { transform: scale(0.97); }
-.tag[data-level="all"] { background-color: var(--all-bg); color: var(--all-text); border-color: transparent; font-weight: 400; opacity: 1; }
-.tag[data-level="confident"] { background-color: var(--confident-bg); color: var(--confident-text); border-color: transparent; font-weight: 600; opacity: 1; }
-.tag[data-level="added"] { background-color: var(--added-bg); color: var(--added-text); border-color: var(--success-color); font-weight: 400; opacity: 1; }
+.tag[data-level="all"],
+.tag[data-level="confident"],
+.tag[data-level="added"],
+.tag[data-level="removed"] {
+    border-color: transparent;
+    opacity: 1;
+}
+.tag[data-level="all"] { background-color: var(--all-bg); color: var(--all-text); font-weight: 400; }
+.tag[data-level="confident"] { background-color: var(--confident-bg); color: var(--confident-text); font-weight: 600; }
+.tag[data-level="added"] { background-color: var(--added-bg); color: var(--added-text); border-color: var(--success-color); }
 .tag[data-level="removed"] { background-color: var(--removed-bg); color: var(--removed-text); border-color: var(--error-border); text-decoration: line-through; font-weight: 400; opacity: 0.7; }
 .tag[data-level="added"][data-original-level="confident"],
 .tag[data-level="removed"][data-original-level="confident"] { font-weight: 600; }
@@ -708,16 +709,14 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     color: var(--confident-bg);
     word-break: break-word;
 }
-.close-popup {
+.close-popup, .close-help-modal {
     background: none;
     border: none;
-    font-size: 1.2rem;
     cursor: pointer;
     color: var(--text-color);
-    padding: 0 0.25rem;
-    border-radius: 4px;
-    touch-action: manipulation;
 }
+.close-popup { font-size: 1.2rem; padding: 0 0.25rem; border-radius: 4px; touch-action: manipulation; }
+.close-help-modal { font-size: 1.5rem; padding: 0; line-height: 1; }
 .tag-popup-content {
     padding: 1rem;
     max-height: 300px;
@@ -736,7 +735,6 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     white-space: pre-wrap;
     user-select: text;
 }
-.tag-popup-text strong { font-weight: 600; color: var(--confident-bg); }
 .tag-popup-text em { font-style: italic; }
 .tag-popup-text u { text-decoration: underline; }
 .tag-popup-text a { color: var(--primary-color); text-decoration: none; }
@@ -803,22 +801,14 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     color: var(--confident-bg);
     margin: 0;
 }
-.close-help-modal {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-color);
-    padding: 0;
-    line-height: 1;
-}
+.close-help-modal { font-size: 1.5rem; padding: 0; line-height: 1; }
 .help-modal-body {
     padding: 1.5rem;
     font-size: 0.9rem;
     line-height: 1.5;
 }
 .help-modal-body p { margin-bottom: 0.8rem; }
-.help-modal-body strong { color: var(--confident-bg); }
+.help-modal-body strong, .tag-popup-text strong { font-weight: 600; color: var(--confident-bg); }
 .tag-example {
     display: inline-block;
     padding: 0.1rem 0.4rem;
@@ -827,18 +817,7 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     font-weight: 500;
     margin: 0 0.2rem;
 }
-.tag-example.confident {
-    background-color: var(--confident-bg);
-    color: var(--confident-text);
-}
-.tag-example.all {
-    background-color: var(--all-bg);
-    color: var(--all-text);
-}
-.tag-example.low {
-    background-color: var(--low-bg);
-    color: var(--low-text);
-}
+.tag-example.low { background-color: var(--low-bg); color: var(--low-text); }
 .help-footer {
     margin-top: 1rem;
     font-size: 0.75rem;
