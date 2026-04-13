@@ -586,6 +586,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const img = document.createElement('img');
         img.src = URL.createObjectURL(file);
         img.alt = 'Preview';
+        img.onload = function() {
+            img.width = img.naturalWidth;
+            img.height = img.naturalHeight;
+        };
         dropZone.appendChild(img);
         dropZone.classList.add('has-image');
     }
