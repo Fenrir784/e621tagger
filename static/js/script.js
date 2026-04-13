@@ -106,6 +106,11 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (theme === 'dark') document.body.classList.add('theme-dark');
     }
 
+    function updateLocalFormatUI() {
+        const radio = document.querySelector(`input[name="resultsFormat"][value="${currentFormat}"]`);
+        if (radio) radio.checked = true;
+    }
+
     function updateThresholdUI() {
         presetBtns.forEach(btn => {
             btn.classList.toggle('active', btn.dataset.preset === activePreset);
