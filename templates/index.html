@@ -144,7 +144,7 @@
                         <line x1="12" y1="3" x2="12" y2="15" />
                     </svg>
                     <p>Drag & drop image here, Ctrl+V or click to select</p>
-                    <p class="small">Supports: PNG, JPG, GIF, WebP, BMP, TIFF (max 20MB)</p>
+                    <p class="small">Supports: PNG, JPG, GIF, WebP (max 20MB)</p>
                 </div>
                 <input type="file" id="fileInput" accept="image/*" hidden>
             </div>
@@ -159,8 +159,8 @@
                         </div>
                     </div>
                     <div class="global-buttons">
-                        <button class="global-copy-btn confident" id="copyGlobalConfident">Copy Confident Tags</button>
-                        <button class="global-copy-btn all" id="copyGlobalAll">Copy All Tags</button>
+                        <button type="button" class="global-copy-btn confident" id="copyGlobalConfident">Copy Confident Tags</button>
+                        <button type="button" class="global-copy-btn all" id="copyGlobalAll">Copy All Tags</button>
                     </div>
                     <div class="rating-container">
                         <div class="rating-display" id="ratingDisplay"></div>
@@ -219,22 +219,6 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js').then(reg => {
-                    console.log('Service Worker registered:', reg);
-                }).catch(err => {
-                    console.error('Service Worker registration failed:', err);
-                });
-            });
-
-            navigator.serviceWorker.addEventListener('message', event => {
-                if (event.data && event.data.action === 'reload') {
-                    window.location.reload();
-                }
-            });
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/sw-init.js') }}" defer></script>
 </body>
 </html>

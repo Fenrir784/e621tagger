@@ -119,7 +119,7 @@ jobs:
           PAYLOAD='{}'
           SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | awk '{print $NF}')
           echo "Sending webhook to $WEBHOOK_URL"
-          curl -sf -X POST "$WEBHOOK_URL" \
+          curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
             -d "$PAYLOAD"
@@ -142,7 +142,7 @@ jobs:
           PAYLOAD='{}'
           SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | awk '{print $NF}')
           echo "Sending webhook to $WEBHOOK_URL"
-          curl -sf -X POST "$WEBHOOK_URL" \
+          curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
             -d "$PAYLOAD"

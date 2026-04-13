@@ -140,12 +140,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const tagName = el.dataset.tag;
             const tagObj = allTags.find(t => t.tag === tagName);
             if (!tagObj) return;
-            el.classList.remove('confident', 'all');
-            if (tagObj.prob >= confidentThreshold) el.classList.add('confident');
-            else if (tagObj.prob >= allThreshold) el.classList.add('all');
-            el.classList.remove('added', 'removed');
-            if (addedTags.has(tagName)) el.classList.add('added');
-            else if (removedTags.has(tagName)) el.classList.add('removed');
+            el.removeAttribute('data-level');
+            if (addedTags.has(tagName)) {
+                el.setAttribute('data-level', 'added');
+            } else if (removedTags.has(tagName)) {
+                el.setAttribute('data-level', 'removed');
+            } else if (tagObj.prob >= confidentThreshold) {
+                el.setAttribute('data-level', 'confident');
+            } else if (tagObj.prob >= allThreshold) {
+                el.setAttribute('data-level', 'all');
+            }
         });
         updateCategoryButtonsDisabled();
     }
@@ -186,6 +190,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
         return unsafe.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+
+    function sanitizeHtml(html) {
+        if (!html) return '';
+        const dangerousAttrs = /\s+(on\w+|style\s*=\s*["']?(?:javascript:|expression\()[^"']*)/gi;
+        let previous;
+        do {
+            previous = html;
+            html = html.replace(/<(?!\/?(?:strong|em|u|sup|span|br)\b)[^>]*>/gi, (match) => {
+                return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            });
+        } while (html !== previous);
+        do {
+            previous = html;
+            html = html.replace(dangerousAttrs, '');
+        } while (html !== previous);
+        return html;
     }
 
     function parseDText(dtext) {
@@ -290,14 +311,14 @@ document.addEventListener('DOMContentLoaded', () => {
         closeBtn.addEventListener('click', () => closePopup());
         fetchTagDescription(tagName).then(desc => {
             const content = popup.querySelector('.tag-popup-content');
-            if (desc.exists) content.innerHTML = `<div class="tag-popup-text">${parseDText(desc.body)}</div>`;
+            if (desc.exists) content.innerHTML = `<div class="tag-popup-text">${sanitizeHtml(parseDText(desc.body))}</div>`;
             else content.innerHTML = `<div class="tag-popup-error">${escapeHtml(desc.body)}</div>`;
         }).catch(() => {
             popup.querySelector('.tag-popup-content').innerHTML = '<div class="tag-popup-error">Failed to load description.</div>';
         });
     }
 
-    function handleTagClick(tagObj, element) {
+    function handleTagClick(tagObj) {
         if (pressBlockTap) return;
         const tag = tagObj.tag;
         const prob = tagObj.prob;
@@ -319,13 +340,14 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (wasRemoved) removedTags.delete(tag);
         }
         document.querySelectorAll(`.tag[data-tag="${tag}"]`).forEach(el => updateTagElement(el, tagObj));
+        refreshTagClasses();
         updateCategoryButtonsDisabled();
     }
 
     function updateTagElement(el, tagObj) {
-        el.classList.remove('added', 'removed');
-        if (addedTags.has(tagObj.tag)) el.classList.add('added');
-        else if (removedTags.has(tagObj.tag)) el.classList.add('removed');
+        el.removeAttribute('data-level');
+        if (addedTags.has(tagObj.tag)) el.setAttribute('data-level', 'added');
+        else if (removedTags.has(tagObj.tag)) el.setAttribute('data-level', 'removed');
     }
 
     function updateCategoryButtonsDisabled() {
@@ -416,8 +438,8 @@ document.addEventListener('DOMContentLoaded', () => {
         textarea.select();
         try {
             if (document.execCommand('copy')) showCopySuccess(btn, count, format);
-            else showNotification('Unable to copy. Please copy manually.', 'error');
-        } catch { showNotification('Copy failed. Please copy manually.', 'error'); }
+            else showNotification('Unable to copy.', 'error');
+        } catch { showNotification('Copy failed.', 'error'); }
         document.body.removeChild(textarea);
     }
 
@@ -451,6 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function attachTagEvents(tagEl, tagObj) {
+        if (tagEl._hammer) tagEl._hammer.destroy();
         let pressTimer = null;
         const hammer = new Hammer(tagEl);
         hammer.on('tap', (e) => {
@@ -458,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pressBlockTap = false;
                 return;
             }
-            handleTagClick(tagObj, tagEl);
+            handleTagClick(tagObj);
         });
         hammer.on('press', (e) => {
             e.srcEvent.preventDefault();
@@ -513,10 +536,10 @@ document.addEventListener('DOMContentLoaded', () => {
             catDiv.className = 'category-block';
             catDiv.innerHTML = `
                 <div class="category-header">
-                    <span class="category-name">${cat}</span>
+                    <span class="category-name">${escapeHtml(cat)}</span>
                     <div class="category-buttons">
-                        <button class="cat-copy-btn confident" data-category="${cat}" data-type="confident" title="Copy confident tags">C</button>
-                        <button class="cat-copy-btn all" data-category="${cat}" data-type="all" title="Copy all tags">A</button>
+                        <button type="button" class="cat-copy-btn confident" data-category="${escapeHtml(cat)}" data-type="confident" title="Copy confident tags">C</button>
+                        <button type="button" class="cat-copy-btn all" data-category="${escapeHtml(cat)}" data-type="all" title="Copy all tags">A</button>
                     </div>
                 </div>
                 <div class="category-tags"></div>
@@ -527,10 +550,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 tagEl.className = 'tag';
                 tagEl.setAttribute('data-tag', item.tag);
                 tagEl.textContent = item.tag;
-                if (item.prob >= confidentThreshold) tagEl.classList.add('confident');
-                else if (item.prob >= allThreshold) tagEl.classList.add('all');
-                if (addedTags.has(item.tag)) tagEl.classList.add('added');
-                else if (removedTags.has(item.tag)) tagEl.classList.add('removed');
+                if (addedTags.has(item.tag)) {
+                    tagEl.setAttribute('data-level', 'added');
+                } else if (removedTags.has(item.tag)) {
+                    tagEl.setAttribute('data-level', 'removed');
+                } else if (item.prob >= confidentThreshold) {
+                    tagEl.setAttribute('data-level', 'confident');
+                } else if (item.prob >= allThreshold) {
+                    tagEl.setAttribute('data-level', 'all');
+                }
                 
                 attachTagEvents(tagEl, item);
                 tagsContainer.appendChild(tagEl);
@@ -551,16 +579,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showPreview(file) {
+        if (!file.type.startsWith('image/')) return;
         const existingImg = dropZone.querySelector('img');
         if (existingImg) existingImg.remove();
         uploadContent.style.display = 'none';
         const img = document.createElement('img');
         img.src = URL.createObjectURL(file);
         img.alt = 'Preview';
-        img.style.opacity = '0';
         dropZone.appendChild(img);
         dropZone.classList.add('has-image');
-        setTimeout(() => { img.style.opacity = '1'; }, 10);
     }
 
     async function hideResults() {
@@ -627,12 +654,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeHelpModal() {
         helpModal.classList.remove('show');
-        helpModal.addEventListener('transitionend', () => {
+        const cleanup = () => {
             if (!helpModal.classList.contains('show')) {
                 helpModal.style.display = 'none';
                 document.body.classList.remove('modal-open');
             }
-        }, { once: true });
+            helpModal.removeEventListener('transitionend', cleanup);
+        };
+        helpModal.addEventListener('transitionend', cleanup, { once: true });
+        setTimeout(() => {
+            if (helpModal.style.display === 'flex') cleanup();
+        }, 500);
     }
 
     function attachHammerTap(element, handler) {
@@ -651,9 +683,10 @@ document.addEventListener('DOMContentLoaded', () => {
             eggContainer.classList.toggle('open');
         });
         attachHammerTap(settingsToggle, (e) => {
-            e.srcEvent.stopPropagation();
             settingsToggle.classList.add('pressed');
-            setTimeout(() => settingsToggle.classList.remove('pressed'), 150);
+            setTimeout(() => {
+                settingsToggle.classList.remove('pressed');
+            }, 100);
             toggleSettings(!settingsMenu.classList.contains('show'));
         });
         attachHammerTap(closeSettings, () => toggleSettings(false));

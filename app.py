@@ -139,6 +139,13 @@ def log_request_start():
 
 @app.after_request
 def log_request_end(response):
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    response.headers['Content-Security-Policy'] = "default-src 'self'; img-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://e621.net; object-src 'none'; base-uri 'self';"
+    
     if hasattr(g, 'start_time'):
         duration = (time.time() - g.start_time) * 1000
         status = response.status_code
@@ -308,7 +315,15 @@ def index():
 
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory('static', 'favicon.ico')
+    response = make_response(send_from_directory('static', 'favicon.ico'))
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
+
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    response = make_response(send_from_directory('static', filename))
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
 
 @app.route('/service-worker.js')
 def service_worker():
