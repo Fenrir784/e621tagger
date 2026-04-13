@@ -241,7 +241,7 @@ h1 {
     display: flex;
     position: relative;
     background-color: var(--bg-color);
-    padding: 0.2rem;
+    padding: 2px;
     border-radius: 30px;
     align-items: center;
     box-sizing: border-box;
@@ -253,49 +253,77 @@ h1 {
 }
 
 .toggle-pill input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-    pointer-events: none;
+    display: none;
 }
 
 .toggle-pill label {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 0.3rem 0.6rem;
-    border-radius: 20px;
+    flex: 1;
+    padding: 0.25rem 0.4rem;
+    border-radius: 30px;
     cursor: pointer;
     font-size: 0.8rem;
     color: var(--text-color);
     position: relative;
     z-index: 2;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    border: none;
-    background: transparent;
     text-align: center;
-    box-sizing: border-box;
+    white-space: nowrap;
+    background: transparent;
 }
 
 .toggle-pill.wide label {
-    flex: 1;
-    min-width: 0;
-    padding: 0.35rem 0.25rem;
-    font-size: 0.75rem;
+    padding: 0.25rem 0.2rem;
 }
 
-#themeToggle label { min-width: 28px; }
-#defaultFormatToggle label { min-width: 50px; }
-#resultsFormatToggle label { min-width: 50px; }
+.toggle-pill .toggle-slider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    height: calc(100% - 4px);
+    background-color: var(--confident-bg);
+    border-radius: 30px;
+    transition: transform 0.2s ease;
+    pointer-events: none;
+    z-index: 1;
+    box-sizing: border-box;
+}
+
+.toggle-pill:not(.wide) .toggle-slider {
+    width: calc(33.33% - 2px);
+}
+
+.toggle-pill.wide .toggle-slider {
+    width: calc(16.66% - 2px);
+}
+
+#defaultFormatToggle .toggle-slider,
+#resultsFormatToggle .toggle-slider {
+    width: calc(50% - 2px);
+}
 
 #themeToggle input:checked + label,
 #defaultFormatToggle input:checked + label,
 #maxTagsToggle input:checked + label,
 #resultsFormatToggle input:checked + label {
-    background-color: var(--confident-bg);
     color: var(--confident-text);
 }
+
+#themeToggle .toggle-slider { transform: translateX(0); }
+#themeToggle:has(#theme-light:checked) .toggle-slider { transform: translateX(100%); }
+#themeToggle:has(#theme-dark:checked) .toggle-slider { transform: translateX(200%); }
+
+#defaultFormatToggle .toggle-slider,
+#resultsFormatToggle .toggle-slider { transform: translateX(0); width: calc(50% - 2px); }
+#defaultFormatToggle:has(#default-format-posty:checked) .toggle-slider,
+#resultsFormatToggle:has(#results-format-posty:checked) .toggle-slider { transform: translateX(100%); }
+
+#maxTagsToggle .toggle-slider { transform: translateX(0); }
+#maxTagsToggle:has(#max-75:checked) .toggle-slider { transform: translateX(100%); }
+#maxTagsToggle:has(#max-100:checked) .toggle-slider { transform: translateX(200%); }
+#maxTagsToggle:has(#max-150:checked) .toggle-slider { transform: translateX(300%); }
+#maxTagsToggle:has(#max-200:checked) .toggle-slider { transform: translateX(400%); }
+#maxTagsToggle:has(#max-300:checked) .toggle-slider { transform: translateX(500%); }
+.toggle-pill:has(#max-200:checked) .toggle-slider { left: calc(66.66% + 0.1rem); }
+.toggle-pill:has(#max-300:checked) .toggle-slider { left: calc(83.33% + 0.1rem); }
 
 #themeToggle {
     margin-left: 0.5rem;
