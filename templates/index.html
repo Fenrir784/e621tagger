@@ -152,19 +152,18 @@
                 <div class="results-content" id="resultsContent">
                     <div class="results-header">
                         <h2>Generated Tags</h2>
+                        <div class="format-toggle">
+                            <span class="toggle-label">Format:</span>
+                            <button class="toggle-btn active" id="formatE621">e621</button>
+                            <button class="toggle-btn" id="formatPosty">PostyBirb</button>
+                        </div>
                     </div>
                     <div class="global-buttons">
                         <button type="button" class="global-copy-btn confident" id="copyGlobalConfident">Copy Confident Tags</button>
                         <button type="button" class="global-copy-btn all" id="copyGlobalAll">Copy All Tags</button>
                     </div>
-                    <div class="rating-row">
-                        <div class="rating-container">
-                            <div class="rating-display" id="ratingDisplay"></div>
-                        </div>
-                        <div class="format-toggle-group inline-toggle" data-context="results-inline">
-                            <button class="format-option active" data-format="e621">e621</button>
-                            <button class="format-option" data-format="posty">PostyBirb</button>
-                        </div>
+                    <div class="rating-container">
+                        <div class="rating-display" id="ratingDisplay"></div>
                     </div>
                     <div class="categories-container" id="categoriesContainer"></div>
                 </div>

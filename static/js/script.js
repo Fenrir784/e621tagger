@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const ratingDisplay = document.getElementById('ratingDisplay');
     const copyGlobalAll = document.getElementById('copyGlobalAll');
     const copyGlobalConfident = document.getElementById('copyGlobalConfident');
+    const formatE621 = document.getElementById('formatE621');
+    const formatPosty = document.getElementById('formatPosty');
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsMenu = document.getElementById('settingsMenu');
     const closeSettings = document.getElementById('closeSettings');
@@ -116,13 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateLocalFormatUI() {
-        const resultsGroups = document.querySelectorAll('.format-toggle-group[data-context="results"], .format-toggle-group[data-context="results-inline"]');
-        resultsGroups.forEach(resultsGroup => {
-            resultsGroup.querySelectorAll('.format-option').forEach(opt => {
-                opt.classList.toggle('active', opt.dataset.format === currentFormat);
-            });
-            updateToggleIndicator(resultsGroup);
-        });
+        formatE621.classList.toggle('active', currentFormat === 'e621');
+        formatPosty.classList.toggle('active', currentFormat === 'posty');
     }
 
     function updateSettingsFormatUI() {
@@ -165,8 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initToggleIndicators() {
         updateToggleIndicator(document.querySelector('.theme-toggle-group'));
-        updateToggleIndicator(document.querySelector('.format-toggle-group[data-context="results"]'));
-        updateToggleIndicator(document.querySelector('.format-toggle-group[data-context="results-inline"]'));
         updateToggleIndicator(document.querySelector('.format-toggle-group[data-context="settings"]'));
         updateToggleIndicator(document.querySelector('.max-tags-group'));
     }
@@ -751,6 +746,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTheme('system'); updateLocalFormatUI(); updateSettingsFormatUI();
             updateMaxTagsUI(); applyThresholds(); saveSettings();
         });
+        attachHammerTap(formatE621, () => { currentFormat = 'e621'; updateLocalFormatUI(); });
+        attachHammerTap(formatPosty, () => { currentFormat = 'posty'; updateLocalFormatUI(); });
 
         presetBtns.forEach(btn => {
             attachHammerTap(btn, () => {
@@ -775,15 +772,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         formatOptions.forEach(opt => {
             attachHammerTap(opt, () => {
-                const context = opt.closest('.format-toggle-group')?.dataset.context;
-                if (context === 'results' || context === 'results-inline') {
-                    currentFormat = opt.dataset.format;
-                    updateLocalFormatUI();
-                } else if (context === 'settings') {
-                    savedFormat = opt.dataset.format;
-                    updateSettingsFormatUI();
-                    saveSettings();
-                }
+                savedFormat = opt.dataset.format;
+                updateSettingsFormatUI();
+                saveSettings();
             });
         });
 
