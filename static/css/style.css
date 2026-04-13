@@ -243,10 +243,11 @@ h1 {
     background-color: var(--bg-color);
     padding: 0.15rem;
     border-radius: 30px;
-    gap: 0.2rem;
     align-items: center;
     position: relative;
     overflow: hidden;
+    box-sizing: border-box;
+    width: fit-content;
 }
 
 .toggle-pill.wide {
@@ -263,7 +264,8 @@ h1 {
 
 .toggle-pill label {
     flex: 1 1 0;
-    padding: 0.2rem 0.5rem;
+    min-width: 0;
+    padding: 0.2rem 0.4rem;
     border-radius: 20px;
     cursor: pointer;
     font-size: 0.8rem;
@@ -275,11 +277,13 @@ h1 {
     border: none;
     background: none;
     text-align: center;
+    box-sizing: border-box;
 }
 
 .toggle-pill.wide label {
     flex: 1;
-    padding: 0.4rem 0;
+    min-width: 0;
+    padding: 0.3rem 0.2rem;
 }
 
 .toggle-pill .toggle-slider {
@@ -291,12 +295,13 @@ h1 {
     z-index: 1;
     pointer-events: none;
     top: 0.15rem;
-    left: 0;
-    width: 33.33%;
+    left: 0.15rem;
+    width: calc(33.33% - 0.3rem);
+    box-sizing: border-box;
 }
 
 .toggle-pill.wide .toggle-slider {
-    width: 16.66%;
+    width: calc(16.66% - 0.3rem);
 }
 
 #themeToggle:has(#theme-system:checked) label[for="theme-system"],
@@ -316,22 +321,22 @@ h1 {
     background-color: transparent;
 }
 
-.toggle-pill:has(#theme-system:checked) .toggle-slider { left: 0; }
-.toggle-pill:has(#theme-light:checked) .toggle-slider { left: 33.33%; }
-.toggle-pill:has(#theme-dark:checked) .toggle-slider { left: 66.66%; }
+.toggle-pill:has(#theme-system:checked) .toggle-slider { left: 0.15rem; }
+.toggle-pill:has(#theme-light:checked) .toggle-slider { left: calc(33.33% + 0.15rem); }
+.toggle-pill:has(#theme-dark:checked) .toggle-slider { left: calc(66.66% + 0.15rem); }
 
-.toggle-pill:has(#default-format-e621:checked) .toggle-slider { left: 0; width: 50%; }
-.toggle-pill:has(#default-format-posty:checked) .toggle-slider { left: 50%; width: 50%; }
+.toggle-pill:has(#default-format-e621:checked) .toggle-slider { left: 0.15rem; width: calc(50% - 0.35rem); }
+.toggle-pill:has(#default-format-posty:checked) .toggle-slider { left: calc(50% + 0.15rem); width: calc(50% - 0.35rem); }
 
-.toggle-pill:has(#results-format-e621:checked) .toggle-slider { left: 0; width: 50%; }
-.toggle-pill:has(#results-format-posty:checked) .toggle-slider { left: 50%; width: 50%; }
+.toggle-pill:has(#results-format-e621:checked) .toggle-slider { left: 0.15rem; width: calc(50% - 0.35rem); }
+.toggle-pill:has(#results-format-posty:checked) .toggle-slider { left: calc(50% + 0.15rem); width: calc(50% - 0.35rem); }
 
-.toggle-pill:has(#max-50:checked) .toggle-slider { left: 0; }
-.toggle-pill:has(#max-75:checked) .toggle-slider { left: 16.66%; }
-.toggle-pill:has(#max-100:checked) .toggle-slider { left: 33.33%; }
-.toggle-pill:has(#max-150:checked) .toggle-slider { left: 50%; }
-.toggle-pill:has(#max-200:checked) .toggle-slider { left: 66.66%; }
-.toggle-pill:has(#max-300:checked) .toggle-slider { left: 83.33%; }
+.toggle-pill:has(#max-50:checked) .toggle-slider { left: 0.15rem; }
+.toggle-pill:has(#max-75:checked) .toggle-slider { left: calc(16.66% + 0.15rem); }
+.toggle-pill:has(#max-100:checked) .toggle-slider { left: calc(33.33% + 0.15rem); }
+.toggle-pill:has(#max-150:checked) .toggle-slider { left: calc(50% + 0.15rem); }
+.toggle-pill:has(#max-200:checked) .toggle-slider { left: calc(66.66% + 0.15rem); }
+.toggle-pill:has(#max-300:checked) .toggle-slider { left: calc(83.33% + 0.15rem); }
 
 #themeToggle {
     margin-left: 0.5rem;
@@ -590,21 +595,21 @@ h1 {
 #defaultFormatToggle {
     width: 100%;
 }
-#defaultFormatToggle .toggle-slider {
-    width: 50%;
-}
 #defaultFormatToggle label {
     min-width: 60px;
 }
 .format-toggle .toggle-pill {
-    width: auto;
+    width: fit-content;
+    min-width: 140px;
+    box-sizing: border-box;
 }
 .format-toggle .toggle-pill label {
     flex: 1 1 0;
-    padding: 0.4rem 0.6rem;
+    padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
     font-weight: 500;
-    min-width: 60px;
+    min-width: 65px;
+    box-sizing: border-box;
 }
 
 .global-buttons {
