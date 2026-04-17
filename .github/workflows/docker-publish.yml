@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "latest" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -49,6 +53,27 @@ jobs:
           fi
           echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
           echo "Using version: $APP_VERSION"
+
+      - name: Cache ML model assets
+        id: cache-model
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: |
+            models/
+            data/
+          key: ml-models-${{ hashFiles('.github/workflows/docker-publish.yml') }}
+          restore-keys: |
+            ml-models-
+
+      - name: Download ML model assets
+        if: steps.cache-model.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p models data
+          curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
+            "https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors"
+          curl -L --retry 3 --fail -o data/jtp-3-hydra-tags.csv \
+            "https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv"
+          echo "Downloaded model files (cache miss)"
 
       - name: Install cosign
         uses: sigstore/cosign-installer@ba7bc0a3fef59531c69a25acd34668d6d3fe6f22 #v4.1.0

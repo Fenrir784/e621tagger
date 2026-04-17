@@ -30,6 +30,10 @@ on:
   pull_request:
     branches: [ "latest" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -78,7 +82,47 @@ env:
 
 ---
 
-### Stage 3: Cosign Setup
+### Stage 3: Model Cache
+
+```yaml
+- name: Cache ML model assets
+  id: cache-model
+  uses: actions/cache@v4
+  with:
+    path: |
+      models/
+      data/
+    key: ml-models-${{ hashFiles('.github/workflows/docker-publish.yml') }}
+    restore-keys: |
+      ml-models-
+```
+
+**Purpose**: Cache ML model files (~500MB) to avoid re-downloading on subsequent builds.
+- Cache key based on workflow file hash - invalidates only when download config changes
+- Falls back to any `ml-models-*` cache if exact key not found
+
+---
+
+### Stage 4: Model Download
+
+```yaml
+- name: Download ML model assets
+  if: steps.cache-model.outputs.cache-hit != 'true'
+  run: |
+    mkdir -p models data
+    curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
+      "https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors"
+    curl -L --retry 3 --fail -o data/jtp-3-hydra-tags.csv \
+      "https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv"
+```
+
+**Purpose**: Download ML model files only on cache miss.
+- Uses `curl` with retry logic instead of deprecated `ADD` with remote URLs
+- Only runs when cache is cold, skipping on cache hit (~seconds vs ~2-3 minutes)
+
+---
+
+### Stage 5: Cosign Setup
 
 ```yaml
 - name: Install cosign
@@ -89,7 +133,7 @@ env:
 
 ---
 
-### Stage 4: Docker Buildx Setup
+### Stage 6: Docker Buildx Setup
 
 ```yaml
 - name: Set up Docker Buildx
@@ -100,7 +144,7 @@ env:
 
 ---
 
-### Stage 5: Registry Login
+### Stage 7: Registry Login
 
 ```yaml
 - name: Log into registry
@@ -115,7 +159,7 @@ env:
 
 ---
 
-### Stage 6: Metadata Extraction
+### Stage 8: Metadata Extraction
 
 ```yaml
 - name: Extract Docker metadata
@@ -135,7 +179,7 @@ env:
 
 ---
 
-### Stage 7: Build and Push
+### Stage 9: Build and Push
 
 ```yaml
 - name: Build and push Docker image
@@ -153,13 +197,14 @@ env:
 ```
 
 **Features**:
-- GitHub Actions cache for layers
+- Uses local model files from previous steps
+- GitHub Actions cache for Docker layers
 - Build argument for version
 - Push to registry
 
 ---
 
-### Stage 8: Image Signing
+### Stage 10: Image Signing
 
 ```yaml
 - name: Sign the published Docker image
@@ -173,7 +218,7 @@ env:
 
 ---
 
-### Stage 9: Image Cleanup
+### Stage 11: Image Cleanup
 
 ```yaml
 - name: Clean up docker images
@@ -195,7 +240,7 @@ env:
 
 ---
 
-### Stage 10: Deployment Trigger (Production)
+### Stage 12: Deployment Trigger (Production)
 
 ```yaml
 - name: Trigger Dockhand deployment (latest)
@@ -216,7 +261,7 @@ env:
 
 ---
 
-### Stage 11: Deployment Trigger (Test)
+### Stage 13: Deployment Trigger (Test)
 
 ```yaml
 - name: Trigger Dockhand deployment (test)
@@ -230,7 +275,7 @@ env:
 
 ---
 
-### Stage 12: Summary Output
+### Stage 14: Summary Output
 
 ```yaml
 - name: Print published image info
@@ -285,8 +330,7 @@ env:
                                │
                                ▼
 ┌──────────────────────────────────────────────────────┐
-│                  1. Checkout                          │
-│                  fetch-depth: 0                       │
+│                  1. Checkout                        │
 └──────────────────────┬───────────────────────────────┘
                        │
                        ▼
@@ -298,24 +342,36 @@ env:
                        │
                        ▼
 ┌──────────────────────────────────────────────────────┐
-│              3. Build & Push                        │
-│  - Docker build with buildx                        │
-│  - Push to GHCR                                   │
-│  - GHA cache                                     │
+│              3. Model Cache                         │
+│  - Check GHA cache for model files                 │
+└──────────────────────┬───────────────────────────────┘
+                       │
+           ┌───────────┴───────────┐
+           │ Cache hit?            │
+           ▼                       ▼
+    ┌─────────────┐        ┌─────────────┐
+    │ Skip        │        │ Download    │
+    │ (~5 sec)    │        │ (~2-3 min)  │
+    └─────────────┘        └─────────────┘
+           │                       │
+           └───────────┬───────────┘
+                       ▼
+┌──────────────────────────────────────────────────────┐
+│              4-8. Build & Push                       │
+│  - Cosign, buildx, login, metadata, docker build   │
 └──────────────────────┬───────────────────────────────┘
                        │
                        ▼
 ┌──────────────────────────────────────────────────────┐
-│              4. Sign Image                          │
+│              9. Sign Image                          │
 │  - cosign sign                                     │
 └──────────────────────┬───────────────────────────────┘
                        │
                        ▼
 ┌──────────────────────────────────────────────────────┐
-│              5. Cleanup                            │
+│              10. Cleanup                           │
 │  - Keep 4 tagged, exclude latest/test              │
 └──────────────────────┬───────────────────────────────┘
-                       │
               ┌────────┴────────┐
               │                 │
               ▼                 ▼
@@ -324,6 +380,26 @@ env:
 │  (push to latest) │  │  (PR from test)    │
 └─────────────────────┘  └─────────────────────┘
 ```
+
+---
+
+## Concurrency Control
+
+```yaml
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+```
+
+| Scenario | Before | After |
+|----------|--------|-------|
+| Push A → Push B (same branch) | Both build | B cancels A |
+| PR update (force push) | Both build | New cancels old |
+| Push to main while PR building | Both build | Main cancels PR |
+
+**Benefits**:
+- Saves CI minutes by canceling stale builds
+- Prevents race conditions in deployment
 
 ---
 
@@ -358,6 +434,25 @@ cache-to: type=gha,mode=max
 |--------|-------------|
 | `type=gha` | GitHub Actions cache |
 | `mode=max` | Cache all layers |
+
+### Model Cache
+
+```yaml
+- uses: actions/cache@v4
+  with:
+    path: |
+      models/
+      data/
+    key: ml-models-${{ hashFiles('.github/workflows/docker-publish.yml') }}
+    restore-keys: |
+      ml-models-
+```
+
+| Aspect | Value |
+|--------|-------|
+| First run | Download ~500MB (2-3 min) |
+| Subsequent (cache hit) | Restore from cache (< 5 sec) |
+| Invalidation | Only when workflow file changes |
 
 ---
 
@@ -430,6 +525,7 @@ ghcr.io/fenrir784/e621tagger
 | Action | Version | Purpose |
 |--------|---------|---------|
 | actions/checkout | v6 | Clone repository |
+| actions/cache | v4 | Cache ML model files |
 | sigstore/cosign-installer | v4 | Install cosign |
 | docker/setup-buildx-action | v4 | Docker buildx |
 | docker/login-action | v4 | GHCR login |
@@ -480,6 +576,10 @@ on:
   pull_request:
     branches: [ "latest" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -501,6 +601,26 @@ jobs:
         id: version
         run: |
           # Version logic
+
+      - name: Cache ML model assets
+        id: cache-model
+        uses: actions/cache@v4
+        with:
+          path: |
+            models/
+            data/
+          key: ml-models-${{ hashFiles('.github/workflows/docker-publish.yml') }}
+          restore-keys: |
+            ml-models-
+
+      - name: Download ML model assets
+        if: steps.cache-model.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p models data
+          curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
+            "https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors"
+          curl -L --retry 3 --fail -o data/jtp-3-hydra-tags.csv \
+            "https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv"
 
       - uses: sigstore/cosign-installer@v4
 
