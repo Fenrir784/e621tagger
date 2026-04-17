@@ -12,7 +12,8 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import torch
 from PIL import Image
-from ua_parser import user_agent_parser
+import dataclasses
+from ua_parser import parse
 
 from model import load_model, load_image
 from inference import load_metadata
@@ -91,12 +92,12 @@ def get_country_flag(accept_lang):
 
 def parse_user_agent(ua_str):
     try:
-        parsed = user_agent_parser.Parse(ua_str)
-        ua = parsed.get('user_agent', {})
-        os = parsed.get('os', {})
-        device = parsed.get('device', {})
+        parsed = parse(ua_str)
+        ua = parsed.user_agent
+        os_info = parsed.os
+        device = parsed.device
 
-        device_family = device.get('family', '').lower()
+        device_family = device.family.lower() if device.family else ''
 
         if device_family in ('spider', 'bot', 'crawler'):
             device_type = 'bot'
@@ -112,15 +113,15 @@ def parse_user_agent(ua_str):
             device_type = 'desktop'
 
         parts = []
-        if ua.get('family') and ua.get('family') != 'Other':
-            ua_str_short = ua['family']
-            if ua.get('major'):
-                ua_str_short += f"/{ua['major']}"
+        if ua and ua.family and ua.family != 'Other':
+            ua_str_short = ua.family
+            if ua.major:
+                ua_str_short += f"/{ua.major}"
             parts.append(ua_str_short)
-        if os.get('family') and os.get('family') != 'Other':
-            os_str = os['family']
-            if os.get('major'):
-                os_str += f"/{os['major']}"
+        if os_info and os_info.family and os_info.family != 'Other':
+            os_str = os_info.family
+            if os_info.major:
+                os_str += f"/{os_info.major}"
             parts.append(os_str)
 
         if parts:
