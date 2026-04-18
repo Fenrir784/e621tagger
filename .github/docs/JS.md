@@ -80,6 +80,8 @@ let perTagAutoDisable = new Set();   // Per-tag auto disable
 let currentPopup = null;            // Active popup DOM element
 let activePopupTagElement = null;    // Popup trigger element
 let pressBlockTap = false;           // Press event blocking flag
+let fullscreenImageModal = null;     // Fullscreen modal DOM element
+let isFullscreenActive = false;      // Fullscreen modal state
 ```
 
 | Variable | Type | Default | Description |
@@ -973,13 +975,112 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closePopup();
         toggleSettings(false);
+        if (isFullscreenActive) hideFullscreenImage();
+    }
+    if (e.code === 'KeyF' && !e.ctrlKey && !e.metaKey) {
+        if (isFullscreenActive) {
+            hideFullscreenImage();
+        } else {
+            const currentImg = dropZone.querySelector('img');
+            if (currentImg && currentImg.src) {
+                showFullscreenImage(currentImg.src);
+            }
+        }
     }
 });
 ```
 
 ---
 
-## 15. API Reference
+## 15. Fullscreen Image Functions
+
+### State Variables
+
+```javascript
+let fullscreenImageModal = null;  // Modal DOM element (dynamically created)
+let isFullscreenActive = false;    // Current state
+```
+
+### createFullscreenModal()
+
+Creates the fullscreen modal DOM element dynamically. Called on first use.
+
+```javascript
+function createFullscreenModal() {
+    const modal = document.createElement('div');
+    modal.id = 'fullscreenImageModal';
+    modal.className = 'fullscreen-image-modal';
+    modal.innerHTML = `
+        <div class="fullscreen-image-modal-overlay"></div>
+        <div class="fullscreen-image-container" id="fullscreenImageContainer">
+            <img class="fullscreen-image" id="fullscreenImage" alt="Fullscreen preview">
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.addEventListener('click', hideFullscreenImage);
+
+    return modal;
+}
+```
+
+### Modal Click
+
+Shows the fullscreen modal with the provided image source.
+
+```javascript
+function showFullscreenImage(src) {
+    if (!fullscreenImageModal) {
+        fullscreenImageModal = createFullscreenModal();
+    }
+    const img = document.getElementById('fullscreenImage');
+    img.src = src;
+    fullscreenImageModal.classList.add('show');
+    document.body.classList.add('modal-open');
+    isFullscreenActive = true;
+}
+```
+
+### hideFullscreenImage()
+
+Hides the fullscreen modal and resets state. Uses transition cleanup to properly hide the modal after fade animation completes.
+
+```javascript
+function hideFullscreenImage() {
+    if (!fullscreenImageModal) return;
+    fullscreenImageModal.classList.remove('show');
+    const cleanup = () => {
+        if (!fullscreenImageModal.classList.contains('show')) {
+            fullscreenImageModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+        fullscreenImageModal.removeEventListener('transitionend', cleanup);
+    };
+    fullscreenImageModal.addEventListener('transitionend', cleanup, { once: true });
+    isFullscreenActive = false;
+}
+```
+
+### Keyboard Shortcuts
+
+> **Note:** Uses `e.code` for layout-independent key detection (works on all keyboard layouts).
+
+| Key | Action |
+|-----|--------|
+| `F` (or `KeyF` position) | Toggle fullscreen (open/close) |
+| `ESC` | Close fullscreen |
+
+### Modal Click
+
+Clicking anywhere within the fullscreen modal (overlay or image) closes it.
+
+### LocalStorage
+
+None - fullscreen state is ephemeral and not persisted.
+
+---
+
+## 16. API Reference
 
 ### /predict Endpoint
 

@@ -52,6 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let activePopupTagElement = null;
     let pressBlockTap = false;
 
+    let fullscreenImageModal = null;
+    let isFullscreenActive = false;
+
     function preloadCreatures() {
         creaturePaths.forEach(path => { new Image().src = path; });
     }
@@ -176,6 +179,49 @@ document.addEventListener('DOMContentLoaded', () => {
             notification.style.animation = 'slideOut 0.3s ease forwards';
             setTimeout(() => notification.remove(), 300);
         }, duration);
+    }
+
+    function createFullscreenModal() {
+        const modal = document.createElement('div');
+        modal.id = 'fullscreenImageModal';
+        modal.className = 'fullscreen-image-modal';
+        modal.innerHTML = `
+            <div class="fullscreen-image-modal-overlay"></div>
+            <div class="fullscreen-image-container" id="fullscreenImageContainer">
+                <img class="fullscreen-image" id="fullscreenImage" alt="Fullscreen preview">
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        modal.addEventListener('click', hideFullscreenImage);
+
+        return modal;
+    }
+
+    function showFullscreenImage(src) {
+        if (!fullscreenImageModal) {
+            fullscreenImageModal = createFullscreenModal();
+        }
+        fullscreenImageModal.style.display = 'flex';
+        const img = document.getElementById('fullscreenImage');
+        img.src = src;
+        fullscreenImageModal.classList.add('show');
+        document.body.classList.add('modal-open');
+        isFullscreenActive = true;
+    }
+
+    function hideFullscreenImage() {
+        if (!fullscreenImageModal) return;
+        fullscreenImageModal.classList.remove('show');
+        const cleanup = () => {
+            if (!fullscreenImageModal.classList.contains('show')) {
+                fullscreenImageModal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+            fullscreenImageModal.removeEventListener('transitionend', cleanup);
+        };
+        fullscreenImageModal.addEventListener('transitionend', cleanup, { once: true });
+        isFullscreenActive = false;
     }
 
     function escapeHtml(unsafe) {
@@ -806,6 +852,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') {
             if (helpModal && helpModal.style.display === 'flex') closeHelpModal();
             if (settingsMenu.classList.contains('show')) toggleSettings(false);
+            if (isFullscreenActive) hideFullscreenImage();
+        }
+        if (e.code === 'KeyF' && !e.ctrlKey && !e.metaKey) {
+            if (isFullscreenActive) {
+                hideFullscreenImage();
+            } else {
+                const currentImg = dropZone.querySelector('img');
+                if (currentImg && currentImg.src) {
+                    showFullscreenImage(currentImg.src);
+                }
+            }
         }
     });
 

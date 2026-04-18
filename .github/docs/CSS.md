@@ -1073,7 +1073,6 @@ Tags default to low confidence state (opacity 0.6) before classification:
     width: 280px;
     max-width: 80vw;
     z-index: 1000;
-    backdrop-filter: blur(4px);
     animation: fadeInScale 0.2s;
 }
 ```
@@ -1151,12 +1150,10 @@ Tags default to low confidence state (opacity 0.6) before classification:
     justify-content: center;
     z-index: 1100;
     opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 .help-modal.show {
     opacity: 1;
-    visibility: visible;
 }
 ```
 
@@ -1170,7 +1167,6 @@ Tags default to low confidence state (opacity 0.6) before classification:
     width: 100%;
     height: 100%;
     background-color: var(--overlay-bg);
-    backdrop-filter: blur(4px);
     opacity: 0;
     transition: opacity 0.2s ease;
 }
@@ -1269,6 +1265,74 @@ Tags default to low confidence state (opacity 0.6) before classification:
     text-decoration: none;
 }
 ```
+
+---
+
+## Fullscreen Image Modal
+
+### Modal Structure
+
+```css
+.fullscreen-image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.fullscreen-image-modal.show {
+    opacity: 1;
+}
+```
+
+### Modal Overlay
+
+```css
+.fullscreen-image-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--overlay-bg);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.fullscreen-image-modal.show .fullscreen-image-modal-overlay {
+    opacity: 1;
+}
+```
+
+### Image Container
+
+```css
+.fullscreen-image-container {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.fullscreen-image {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+}
+```
+
+### Z-Index Reference
+
+| Modal | z-index |
+|-------|---------|
+| Help Modal | 1100 |
+| Fullscreen Image Modal | 1200 |
 
 ---
 
