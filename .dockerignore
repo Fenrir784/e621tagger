@@ -17,6 +17,7 @@ ENV
 *.log
 .git
 .gitignore
+.github
 .dockerignore
 Dockerfile
 README.md

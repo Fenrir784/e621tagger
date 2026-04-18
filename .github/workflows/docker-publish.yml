@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "latest" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -49,6 +53,36 @@ jobs:
           fi
           echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
           echo "Using version: $APP_VERSION"
+
+      - name: Cache ML model assets
+        id: cache-model
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: |
+            models/
+            data/
+          key: ml-models-${{ hashFiles('.github/workflows/docker-publish.yml') }}
+          restore-keys: |
+            ml-models-
+
+      - name: Check if model exists
+        id: model-exists
+        run: |
+          if [[ -f "models/jtp-3-hydra.safetensors" && -f "data/jtp-3-hydra-tags.csv" ]]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download ML model assets
+        if: steps.model-exists.outputs.exists != 'true'
+        run: |
+          mkdir -p models data
+          curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
+            "https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors"
+          curl -L --retry 3 --fail -o data/jtp-3-hydra-tags.csv \
+            "https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv"
+          echo "Downloaded model files (cache miss)"
 
       - name: Install cosign
         uses: sigstore/cosign-installer@ba7bc0a3fef59531c69a25acd34668d6d3fe6f22 #v4.1.0
@@ -119,10 +153,14 @@ jobs:
           PAYLOAD='{}'
           SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | awk '{print $NF}')
           echo "Sending webhook to $WEBHOOK_URL"
-          curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
+          if ! curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
-            -d "$PAYLOAD"
+            -d "$PAYLOAD"; then
+            echo "❌ Latest deployment trigger failed" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          echo "✅ Latest deployed" >> $GITHUB_STEP_SUMMARY
 
       - name: Trigger Dockhand deployment (test)
         if: github.event_name == 'pull_request' && github.head_ref == 'test'
@@ -142,10 +180,14 @@ jobs:
           PAYLOAD='{}'
           SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | awk '{print $NF}')
           echo "Sending webhook to $WEBHOOK_URL"
-          curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
+          if ! curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
-            -d "$PAYLOAD"
+            -d "$PAYLOAD"; then
+            echo "❌ Test deployment trigger failed" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          echo "✅ Test deployed" >> $GITHUB_STEP_SUMMARY
 
       - name: Print published image info
         run: |
