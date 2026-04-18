@@ -1324,6 +1324,11 @@ Tags default to low confidence state (opacity 0.6) before classification:
     max-width: 100%;
     max-height: 90vh;
     object-fit: contain;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.fullscreen-image-modal.show .fullscreen-image {
+    opacity: 1;
 }
 ```
 
