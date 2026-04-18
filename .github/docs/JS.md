@@ -500,7 +500,7 @@ function updateTagElement(el, tagObj) {
 
 ### refreshTagClasses()
 
-Refreshes all tag elements' data-level attributes while preserving data-original-level for bold font preservation.
+Refreshes all tag elements' data-level attributes when thresholds change. Updates data-original-level to reflect current baseline so that manual toggles afterward preserve bold correctly.
 
 ```javascript
 function refreshTagClasses() {
@@ -508,7 +508,6 @@ function refreshTagClasses() {
         const tagName = el.dataset.tag;
         const tagObj = allTags.find(t => t.tag === tagName);
         if (!tagObj) return;
-        const origLevel = el.dataset.originalLevel;
         el.removeAttribute('data-level');
         if (addedTags.has(tagName)) {
             el.setAttribute('data-level', 'added');
@@ -516,10 +515,10 @@ function refreshTagClasses() {
             el.setAttribute('data-level', 'removed');
         } else if (tagObj.prob >= confidentThreshold) {
             el.setAttribute('data-level', 'confident');
-            if (origLevel) el.setAttribute('data-original-level', origLevel);
+            el.setAttribute('data-original-level', 'confident');
         } else if (tagObj.prob >= allThreshold) {
             el.setAttribute('data-level', 'all');
-            if (origLevel) el.setAttribute('data-original-level', origLevel);
+            el.setAttribute('data-original-level', 'all');
         }
     });
 }
