@@ -144,10 +144,14 @@ jobs:
           PAYLOAD='{}'
           SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | awk '{print $NF}')
           echo "Sending webhook to $WEBHOOK_URL"
-          curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
+          if ! curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
-            -d "$PAYLOAD"
+            -d "$PAYLOAD"; then
+            echo "❌ Latest deployment trigger failed" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          echo "✅ Latest deployed" >> $GITHUB_STEP_SUMMARY
 
       - name: Trigger Dockhand deployment (test)
         if: github.event_name == 'pull_request' && github.head_ref == 'test'
@@ -167,10 +171,14 @@ jobs:
           PAYLOAD='{}'
           SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | awk '{print $NF}')
           echo "Sending webhook to $WEBHOOK_URL"
-          curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
+          if ! curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
-            -d "$PAYLOAD"
+            -d "$PAYLOAD"; then
+            echo "❌ Test deployment trigger failed" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          echo "✅ Test deployed" >> $GITHUB_STEP_SUMMARY
 
       - name: Print published image info
         run: |

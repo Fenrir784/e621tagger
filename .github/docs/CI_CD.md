@@ -249,15 +249,19 @@ env:
     WEBHOOK_URL: ${{ secrets.DOCKHAND_WEBHOOK_URL }}
     WEBHOOK_SECRET: ${{ secrets.DOCKHAND_WEBHOOK_SECRET }}
   run: |
-    PAYLOAD='{}'
-    SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET")
-    curl -sf -X POST "$WEBHOOK_URL" \
+    # ... validation checks ...
+    if ! curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
       -H "Content-Type: application/json" \
       -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
-      -d "$PAYLOAD"
+      -d "$PAYLOAD"; then
+      echo "❌ Deployment trigger failed" >> $GITHUB_STEP_SUMMARY
+      exit 0
+    fi
+    echo "✅ Deployment triggered" >> $GITHUB_STEP_SUMMARY
 ```
 
 **Trigger Condition**: Push to `latest` branch
+**Note**: Failure does not fail the job - status is appended to build summary
 
 ---
 
@@ -269,9 +273,20 @@ env:
   env:
     WEBHOOK_URL: ${{ secrets.DOCKHAND_WEBHOOK_URL_TEST }}
     WEBHOOK_SECRET: ${{ secrets.DOCKHAND_WEBHOOK_SECRET_TEST }}
+  run: |
+    # ... validation checks ...
+    if ! curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
+      -H "Content-Type: application/json" \
+      -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
+      -d "$PAYLOAD"; then
+      echo "❌ Test deployment trigger failed" >> $GITHUB_STEP_SUMMARY
+      exit 0
+    fi
+    echo "✅ Test deployment triggered" >> $GITHUB_STEP_SUMMARY
 ```
 
 **Trigger Condition**: PR to `test` branch
+**Note**: Failure does not fail the job - status is appended to build summary
 
 ---
 
@@ -667,5 +682,13 @@ jobs:
       - name: Trigger Dockhand deployment
         if: github.event_name == 'push'
         run: |
-          # Webhook logic
+          # ... validation and webhook logic ...
+          if ! curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
+            -d "$PAYLOAD"; then
+            echo "❌ Deployment trigger failed" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          echo "✅ Deployment triggered" >> $GITHUB_STEP_SUMMARY
 ```
