@@ -103,11 +103,28 @@ env:
 
 ---
 
-### Stage 4: Model Download
+### Stage 4: Check if model exists
+
+```yaml
+- name: Check if model exists
+  id: model-exists
+  run: |
+    if [[ -f "models/jtp-3-hydra.safetensors" && -f "data/jtp-3-hydra-tags.csv" ]]; then
+      echo "exists=true" >> $GITHUB_OUTPUT
+    else
+      echo "exists=false" >> $GITHUB_OUTPUT
+    fi
+```
+
+**Purpose**: Check if model files exist (from cache or previous run).
+
+---
+
+### Stage 5: Model Download
 
 ```yaml
 - name: Download ML model assets
-  if: steps.cache-model.outputs.cache-hit != 'true'
+  if: steps.model-exists.outputs.exists != 'true'
   run: |
     mkdir -p models data
     curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
@@ -116,13 +133,14 @@ env:
       "https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv"
 ```
 
-**Purpose**: Download ML model files only on cache miss.
+**Purpose**: Download ML model files only if not already present.
 - Uses `curl` with retry logic instead of deprecated `ADD` with remote URLs
-- Only runs when cache is cold, skipping on cache hit (~seconds vs ~2-3 minutes)
+- Only runs when model files don't exist (~2-3 min vs ~5 sec)
+- Works correctly with `restore-keys` fallback
 
 ---
 
-### Stage 5: Cosign Setup
+### Stage 6: Cosign Setup
 
 ```yaml
 - name: Install cosign
@@ -230,8 +248,6 @@ env:
     delete-partial-images: true
     delete-orphaned-images: true
 
-- name: Cleanup complete
-  run: echo "✅ Old images cleaned up" >> $GITHUB_STEP_SUMMARY
 ```
 
 **Cleanup Rules**:
@@ -240,7 +256,6 @@ env:
 - Delete untagged: Yes
 - Delete partial: Yes
 - Delete orphaned: Yes
-**Note**: Summary generation suppressed with custom message
 
 ---
 
@@ -632,8 +647,17 @@ jobs:
           restore-keys: |
             ml-models-
 
+      - name: Check if model exists
+        id: model-exists
+        run: |
+          if [[ -f "models/jtp-3-hydra.safetensors" && -f "data/jtp-3-hydra-tags.csv" ]]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Download ML model assets
-        if: steps.cache-model.outputs.cache-hit != 'true'
+        if: steps.model-exists.outputs.exists != 'true'
         run: |
           mkdir -p models data
           curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
@@ -682,9 +706,6 @@ jobs:
           keep-n-tagged: 4
           exclude-tags: latest,test
           delete-untagged: true
-
-      - name: Cleanup complete
-        run: echo "✅ Old images cleaned up" >> $GITHUB_STEP_SUMMARY
 
       - name: Trigger Dockhand deployment
         if: github.event_name == 'push'

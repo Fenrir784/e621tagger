@@ -65,8 +65,17 @@ jobs:
           restore-keys: |
             ml-models-
 
+      - name: Check if model exists
+        id: model-exists
+        run: |
+          if [[ -f "models/jtp-3-hydra.safetensors" && -f "data/jtp-3-hydra-tags.csv" ]]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Download ML model assets
-        if: steps.cache-model.outputs.cache-hit != 'true'
+        if: steps.model-exists.outputs.exists != 'true'
         run: |
           mkdir -p models data
           curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
@@ -125,9 +134,6 @@ jobs:
           delete-untagged: true
           delete-partial-images: true
           delete-orphaned-images: true
-
-      - name: Cleanup complete
-        run: echo "✅ Old images cleaned up" >> $GITHUB_STEP_SUMMARY
 
       - name: Trigger Dockhand deployment (latest)
         if: github.event_name == 'push' && github.ref_name == 'latest'
