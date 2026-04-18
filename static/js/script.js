@@ -848,7 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (settingsMenu.classList.contains('show')) toggleSettings(false);
             if (isFullscreenActive) hideFullscreenImage();
         }
-        if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
+        if (e.code === 'KeyF' && !e.ctrlKey && !e.metaKey) {
             if (isFullscreenActive) {
                 hideFullscreenImage();
             } else {
