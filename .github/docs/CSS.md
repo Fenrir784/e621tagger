@@ -633,9 +633,6 @@ Critical hover interactions defined in `@media (hover: hover)` block:
         filter: brightness(1.1);
     }
 
-    /* Category copy buttons */
-    .cat-copy-btn:hover:not(:disabled) { transform: scale(1.1); opacity: 0.9; }
-
     /* Close popup buttons */
     .close-popup:hover { filter: brightness(0.9); }
 
@@ -935,38 +932,6 @@ Critical hover interactions defined in `@media (hover: hover)` block:
     color: var(--confident-bg);
     text-transform: uppercase;
 }
-.category-buttons { display: flex; gap: 0.3rem; }
-```
-
-### Category Copy Button
-
-```css
-.cat-copy-btn {
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.2s, transform 0.15s, filter 0.2s;
-    box-shadow: 0 2px 6px var(--box-shadow-medium);
-    touch-action: manipulation;
-}
-.cat-copy-btn.confident { background-color: var(--confident-bg); color: var(--confident-text); }
-.cat-copy-btn.all { background-color: var(--all-bg); color: var(--all-text); }
-.cat-copy-btn:disabled {
-    background-color: var(--disabled-bg);
-    color: var(--disabled-text);
-    cursor: not-allowed;
-    opacity: 0.5;
-    box-shadow: none;
-    pointer-events: none;
-}
-.cat-copy-btn.copied { background-color: var(--success-color); transform: scale(0.95); }
 ```
 
 ---
@@ -1004,6 +969,14 @@ Critical hover interactions defined in `@media (hover: hover)` block:
 | `confident` | var(--confident-bg) | var(--confident-text) | 600 |
 | `added` | var(--added-bg) | var(--added-text) | border success |
 | `removed` | var(--removed-bg) | var(--removed-text) | strikethrough, 400 |
+
+**Original Level Preservation:**
+The `data-original-level` attribute preserves the original confidence level when tags are manually added/removed or thresholds change in-flight. This ensures bold font is preserved for tags that were originally confident even after state changes.
+
+| data-original-level | Font Weight |
+|--------------------|-------------|
+| confident | 600 (bold) |
+| all | 400 (normal) |
 
 **Key Implementation Detail:**
 ```css
@@ -1248,6 +1221,8 @@ Tags default to low confidence state (opacity 0.6) before classification:
     margin: 0 0.2rem;
 }
 .tag-example.low { background-color: var(--low-bg); color: var(--low-text); }
+.tag-example.confident { background-color: var(--confident-bg); color: var(--confident-text); }
+.tag-example.all { background-color: var(--all-bg); color: var(--all-text); }
 ```
 
 ### Help Footer
@@ -1319,11 +1294,21 @@ Tags default to low confidence state (opacity 0.6) before classification:
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.fullscreen-image-modal.show .fullscreen-image-container {
+    opacity: 1;
 }
 .fullscreen-image {
     max-width: 100%;
     max-height: 90vh;
     object-fit: contain;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.fullscreen-image-modal.show .fullscreen-image {
+    opacity: 1;
 }
 ```
 

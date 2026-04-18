@@ -109,14 +109,14 @@ env:
 - name: Check if model exists
   id: model-exists
   run: |
-    if [[ -f "models/jtp-3-hydra.safetensors" && -f "data/jtp-3-hydra-tags.csv" ]]; then
+    if [[ -f "models/jtp-3-hydra.safetensors" ]]; then
       echo "exists=true" >> $GITHUB_OUTPUT
     else
       echo "exists=false" >> $GITHUB_OUTPUT
     fi
 ```
 
-**Purpose**: Check if model files exist (from cache or previous run).
+**Purpose**: Check if model file exists (from cache or previous run). The tag CSV file (`data/jtp-3-hydra-tags.csv`) is now stored in the repository and copied during Docker build.
 
 ---
 
@@ -126,17 +126,16 @@ env:
 - name: Download ML model assets
   if: steps.model-exists.outputs.exists != 'true'
   run: |
-    mkdir -p models data
+    mkdir -p models
     curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
       "https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors"
-    curl -L --retry 3 --fail -o data/jtp-3-hydra-tags.csv \
-      "https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv"
 ```
 
-**Purpose**: Download ML model files only if not already present.
+**Purpose**: Download ML model file (~500MB) only if not already cached.
 - Uses `curl` with retry logic instead of deprecated `ADD` with remote URLs
-- Only runs when model files don't exist (~2-3 min vs ~5 sec)
+- Only runs when model file doesn't exist (~2-3 min vs ~5 sec)
 - Works correctly with `restore-keys` fallback
+- Tag CSV is now included via repository (copied in Docker build)
 
 ---
 
@@ -650,7 +649,7 @@ jobs:
       - name: Check if model exists
         id: model-exists
         run: |
-          if [[ -f "models/jtp-3-hydra.safetensors" && -f "data/jtp-3-hydra-tags.csv" ]]; then
+          if [[ -f "models/jtp-3-hydra.safetensors" ]]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -659,11 +658,9 @@ jobs:
       - name: Download ML model assets
         if: steps.model-exists.outputs.exists != 'true'
         run: |
-          mkdir -p models data
+          mkdir -p models
           curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
             "https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors"
-          curl -L --retry 3 --fail -o data/jtp-3-hydra-tags.csv \
-            "https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv"
 
       - uses: sigstore/cosign-installer@v4
 

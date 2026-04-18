@@ -225,7 +225,7 @@ The model supports extension files for adding new classification tags. Extension
 - Metadata required:
   - `modelspec.implementation`: `redrocket.extension.label.v1`
   - `classifier.label`: Tag name
-  - `classifier.label.category`: Category (general, artist, etc.)
+  - `classifier.label.category`: Category ID (0-8, 100-111)
   - `classifier.label.implies`: Space-separated implied tags
 
 ### Extension Loading

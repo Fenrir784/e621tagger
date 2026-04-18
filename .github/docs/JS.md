@@ -47,7 +47,17 @@ const creaturePaths = [
     '/static/icons/egg/f4.png', '/static/icons/egg/f5.png', '/static/icons/egg/f6.png',
     '/static/icons/egg/f7.png', '/static/icons/egg/f8.png', '/static/icons/egg/f9.png'
 ];
-const categoryOrder = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+const copyCategoryOrder = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+const displayCategoryOrder = [
+    'General', 'Artist', 'Contributor', 'Copyright', 'Character', 'Species',
+    'Invalid', 'Meta',
+    'Accessories, Items, Clothing', 'Actions, Positions, State',
+    'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Interactions',
+    'Genders, Demographics', 'Locations, Backgrounds, Setting',
+    'Poses, Scenarios, Situations', 'Style, Perspective',
+    'Text, Symbols, UI, Vocalization', 'Other',
+    'Body Color', 'Lore'
+];
 const tagDescriptionCache = new Map();  // Cache for e621 wiki tag descriptions
 ```
 
@@ -57,7 +67,8 @@ const tagDescriptionCache = new Map();  // Cache for e621 wiki tag descriptions
 | `ALLOWED_MAX_TAGS` | [50,75,100,150,200,300] | Valid top_k values |
 | `ratingTags` | {safe, questionable, explicit} | Rating tag names |
 | `creaturePaths` | 9 image paths | Easter egg creature images |
-| `categoryOrder` | 6 categories | e621 display order |
+| `copyCategoryOrder` | 6 categories | e621 category order for copy action (100-111 merged into General) |
+| `displayCategoryOrder` | 22 categories | Visual order for site display (Body Color and Lore at bottom) |
 | `tagDescriptionCache` | Map | Caches wiki descriptions to reduce API calls |
 
 ---
@@ -457,7 +468,6 @@ function handleTagClick(tagObj) {
     // Update all matching tag elements
     document.querySelectorAll(`.tag[data-tag="${tag}"]`).forEach(el => updateTagElement(el, tagObj));
     refreshTagClasses();
-    updateCategoryButtonsDisabled();
 }
 ```
 
@@ -472,19 +482,25 @@ function handleTagClick(tagObj) {
 
 ### updateTagElement(el, tagObj)
 
-Updates a single tag element's data-level attribute.
+Updates a single tag element's data-level attribute while preserving data-original-level.
 
 ```javascript
 function updateTagElement(el, tagObj) {
+    const origLevel = el.dataset.originalLevel;
     el.removeAttribute('data-level');
-    if (addedTags.has(tagObj.tag)) el.setAttribute('data-level', 'added');
-    else if (removedTags.has(tagObj.tag)) el.setAttribute('data-level', 'removed');
+    if (addedTags.has(tagObj.tag)) {
+        el.setAttribute('data-level', 'added');
+        if (origLevel) el.setAttribute('data-original-level', origLevel);
+    } else if (removedTags.has(tagObj.tag)) {
+        el.setAttribute('data-level', 'removed');
+        if (origLevel) el.setAttribute('data-original-level', origLevel);
+    }
 }
 ```
 
 ### refreshTagClasses()
 
-Refreshes all tag elements' data-level attributes.
+Refreshes all tag elements' data-level attributes when thresholds change. Updates data-original-level to reflect current baseline so that manual toggles afterward preserve bold correctly.
 
 ```javascript
 function refreshTagClasses() {
@@ -493,12 +509,18 @@ function refreshTagClasses() {
         const tagObj = allTags.find(t => t.tag === tagName);
         if (!tagObj) return;
         el.removeAttribute('data-level');
-        if (addedTags.has(tagName)) el.setAttribute('data-level', 'added');
-        else if (removedTags.has(tagName)) el.setAttribute('data-level', 'removed');
-        else if (tagObj.prob >= confidentThreshold) el.setAttribute('data-level', 'confident');
-        else if (tagObj.prob >= allThreshold) el.setAttribute('data-level', 'all');
+        if (addedTags.has(tagName)) {
+            el.setAttribute('data-level', 'added');
+        } else if (removedTags.has(tagName)) {
+            el.setAttribute('data-level', 'removed');
+        } else if (tagObj.prob >= confidentThreshold) {
+            el.setAttribute('data-level', 'confident');
+            el.setAttribute('data-original-level', 'confident');
+        } else if (tagObj.prob >= allThreshold) {
+            el.setAttribute('data-level', 'all');
+            el.setAttribute('data-original-level', 'all');
+        }
     });
-    updateCategoryButtonsDisabled();
 }
 ```
 
@@ -523,33 +545,6 @@ Filters tags by probability threshold.
 ```javascript
 function filterTags(threshold) {
     return allTags.filter(t => !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
-}
-```
-
-### filterTagsByCategory(category, threshold)
-
-Filters tags by category and threshold.
-
-```javascript
-function filterTagsByCategory(category, threshold) {
-    return allTags.filter(t => t.category === category && !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
-}
-```
-
-### updateCategoryButtonsDisabled()
-
-Updates disabled state of category copy buttons.
-
-```javascript
-function updateCategoryButtonsDisabled() {
-    document.querySelectorAll('.cat-copy-btn').forEach(btn => {
-        const category = btn.dataset.category;
-        const type = btn.dataset.type;
-        const threshold = type === 'confident' ? confidentThreshold : allThreshold;
-        const categoryTags = allTags.filter(t => t.category === category && !ratingTags.has(t.tag));
-        const hasAny = categoryTags.some(t => isTagIncluded(t, threshold));
-        btn.disabled = !hasAny;
-    });
 }
 ```
 
@@ -599,12 +594,18 @@ function displayTags(tags) {
 
 **IMPORTANT:** Tags use `data-level` attribute, NOT CSS classes.
 
+Tag bold font is preserved when manually adding/removing tags by storing original confidence level in `data-original-level` attribute. This allows CSS to keep bold font for tags that were originally confident even after threshold changes or manual state toggles.
+
 ```javascript
 // Setting data-level attribute
 el.setAttribute('data-level', 'confident');  // High confidence
 el.setAttribute('data-level', 'all');       // Above all threshold
 el.setAttribute('data-level', 'added');     // User added
 el.setAttribute('data-level', 'removed');   // User removed
+
+// Preserving original level for bold font
+el.setAttribute('data-original-level', 'confident');  // Preserve bold when manually toggling
+el.setAttribute('data-original-level', 'all');       // Preserve normal weight
 ```
 
 | data-level | Condition | CSS Variable |
@@ -614,6 +615,11 @@ el.setAttribute('data-level', 'removed');   // User removed
 | added | addedTags.has(tag) | --added-bg (green) |
 | removed | removedTags.has(tag) | --removed-bg (red) |
 | (none) | Below allThreshold | --low-bg (gray) |
+
+| data-original-level | CSS Effect |
+|--------------------|-----------|
+| confident | font-weight: 600 (bold) |
+| all | font-weight: 400 (normal) |
 
 ---
 
@@ -627,16 +633,25 @@ Formats tags for clipboard output.
 function formatTags(tags) {
     if (currentFormat === 'e621') {
         // Group by category, sort categories, join with space
+        // Categories 100-111 are merged into General for copy
         const grouped = {};
         tags.forEach(t => {
-            const cat = t.category || 'Other';
+            let cat = t.category || 'Other';
+            // Merge fine categories into General for copy
+            if (['Body Color', 'Accessories, Items, Clothing', 'Actions, Positions, State',
+                'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Interactions',
+                'Genders, Demographics', 'Locations, Backgrounds, Setting',
+                'Poses, Scenarios, Situations', 'Style, Perspective',
+                'Text, Symbols, UI, Vocalization', 'Other'].includes(cat)) {
+                cat = 'General';
+            }
             if (!grouped[cat]) grouped[cat] = [];
             grouped[cat].push(t.tag);
         });
-        // Sort categories by categoryOrder
+        // Sort by copyCategoryOrder (e621 order)
         const sortedCats = Object.keys(grouped).sort((a, b) => {
-            const ia = categoryOrder.indexOf(a);
-            const ib = categoryOrder.indexOf(b);
+            const ia = copyCategoryOrder.indexOf(a);
+            const ib = copyCategoryOrder.indexOf(b);
             // ... sorting logic
             return /* result */;
         });
@@ -922,7 +937,6 @@ Applies threshold settings and re-renders.
 function applyThresholds() {
     if (allTags.length) {
         refreshTagClasses();
-        setupCategoryCopyButtons();
     }
     updateThresholdUI();
     saveSettings();
@@ -1033,10 +1047,11 @@ function showFullscreenImage(src) {
     if (!fullscreenImageModal) {
         fullscreenImageModal = createFullscreenModal();
     }
+    fullscreenImageModal.style.display = 'flex';
     const img = document.getElementById('fullscreenImage');
     img.src = src;
-    fullscreenImageModal.classList.add('show');
     document.body.classList.add('modal-open');
+    requestAnimationFrame(() => fullscreenImageModal.classList.add('show'));
     isFullscreenActive = true;
 }
 ```

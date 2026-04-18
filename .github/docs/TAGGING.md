@@ -54,14 +54,29 @@ Tags are organized into e621 categories with numeric IDs:
 
 | Category ID | Name | Description | Example Tags |
 |-------------|------|-------------|--------------|
-| 0 | General | General subject matter | `female`, `male`, `anthro`, `solo` |
+| 0 | General | General subject matter (includes 100-111) | `female`, `male`, `anthro`, `solo` |
 | 1 | Artist | Artist names | `artist:fenrir784`, `oc:request` |
+| 2 | Contributor | Contributor tags | (rarely used) |
 | 3 | Copyright | Series/franchise | `sonic_the_hedgehog`, `nintendo` |
 | 4 | Character | Fictional characters | `miles_tails_prower` |
 | 5 | Species | Species/body types | `wolf`, `dragon`, `fox` |
+| 6 | Invalid | Invalid tags | (rarely used) |
 | 7 | Meta | Rating and technical | `safe`, `questionable`, `hi_res` |
 | 8 | Lore | Story elements | `backstory`, `backview` |
-| - | Other | Tags from unrecognized categories | Legacy or custom tags |
+| 100 | Accessories, Items, Clothing | Clothing and items | `scarf`, `hat`, `belt` |
+| 101 | Actions, Positions, State | Actions and poses | `sitting`, `walking`, `sleeping` |
+| 102 | Body Color | Color markings | `red_fur`, `blue_eyes`, `black_markings` |
+| 103 | Body Features | Body parts/features | `tail`, `wings`, `horns` |
+| 104 | Effects, Fluids | Visual effects | `cum`, `sparkles`, `glowing` |
+| 105 | Fetishes, Specifics, Interactions | Adult content | `anal`, `footjob`, `bondage` |
+| 106 | Genders, Demographics | Gender-related | `male`, `female`, `herm`, `femboy` |
+| 107 | Locations, Backgrounds, Setting | Environments | `forest`, `bedroom`, `beach` |
+| 108 | Poses, Scenarios, Situations | Scene setup | `profile_view`, `closeup`, `action_pose` |
+| 109 | Style, Perspective | Art style | `chibi`, `realistic`, `comic` |
+| 110 | Text, Symbols, UI, Vocalization | Text elements | `speech_bubble`, `sound_effect`, `onomatopoeia` |
+| 111 | Other | Miscellaneous | Tags from unrecognized categories |
+
+> **Note:** When copying tags to clipboard, categories 100-111 are merged into "General" to maintain e621 compatibility. The web interface displays all 21 categories separately for better visual organization.
 
 ### From Code
 
@@ -70,11 +85,25 @@ Tags are organized into e621 categories with numeric IDs:
 TAG_CATEGORIES = {
     0: "General",
     1: "Artist",
+    2: "Contributor",
     3: "Copyright",
     4: "Character",
     5: "Species",
+    6: "Invalid",
     7: "Meta",
     8: "Lore",
+    100: "Accessories, Items, Clothing",
+    101: "Actions, Positions, State",
+    102: "Body Color",
+    103: "Body Features",
+    104: "Effects, Fluids",
+    105: "Fetishes, Specifics, Interactions",
+    106: "Genders, Demographics",
+    107: "Locations, Backgrounds, Setting",
+    108: "Poses, Scenarios, Situations",
+    109: "Style, Perspective",
+    110: "Text, Symbols, UI, Vocalization",
+    111: "Other",
 }
 ```
 
@@ -358,14 +387,42 @@ python inference.py -x artist -x lore image.png
 
 ## Display Order
 
-Tags are presented in e621 category order:
+There are two category orderings:
+
+### Copy Action (e621 format)
+Tags are presented in e621 category order when copying to clipboard. Categories 100-111 (fine-grained General sub-categories) are merged into General:
 
 1. Copyright
 2. Character
 3. Species
 4. Meta
-5. General
+5. General (includes tags from IDs 100-111)
 6. Lore
+
+### Site Display (Web UI)
+The web interface displays all 21 categories separately for better visual organization. Body Color and Lore are placed at the bottom:
+
+1. General
+2. Artist
+3. Contributor
+4. Copyright
+5. Character
+6. Species
+7. Invalid
+8. Meta
+9. Accessories, Items, Clothing
+10. Actions, Positions, State
+11. Body Features
+12. Effects, Fluids
+13. Fetishes, Specifics, Interactions
+14. Genders, Demographics
+15. Locations, Backgrounds, Setting
+16. Poses, Scenarios, Situations
+17. Style, Perspective
+18. Text, Symbols, UI, Vocalization
+19. Other
+20. Body Color
+21. Lore
 
 Within each category, tags are sorted by probability (highest first).
 
@@ -439,7 +496,7 @@ anthro,5,
 | Field | Description |
 |-------|-------------|
 | `tag` | Tag name |
-| `category` | Category ID (0-8) |
+| `category` | Category ID (0-8, 100-111) |
 | `implications` | Space-separated list of implied tags |
 
 ### Loading

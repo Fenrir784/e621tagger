@@ -32,7 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
         '/static/icons/egg/f4.png', '/static/icons/egg/f5.png', '/static/icons/egg/f6.png',
         '/static/icons/egg/f7.png', '/static/icons/egg/f8.png', '/static/icons/egg/f9.png'
     ];
-    const categoryOrder = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+    const copyCategoryOrder = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+    const displayCategoryOrder = [
+        'General', 'Artist', 'Contributor', 'Copyright', 'Character', 'Species',
+        'Invalid', 'Meta',
+        'Accessories, Items, Clothing', 'Actions, Positions, State',
+        'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Interactions',
+        'Genders, Demographics', 'Locations, Backgrounds, Setting',
+        'Poses, Scenarios, Situations', 'Style, Perspective',
+        'Text, Symbols, UI, Vocalization', 'Other',
+        'Body Color', 'Lore'
+    ];
 
     let allTags = [];
     let currentFormat = 'e621';
@@ -127,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         customConfidentInput.value = confidentThreshold.toFixed(2);
     }
 
-    function refreshTagClasses() {
+function refreshTagClasses() {
         document.querySelectorAll('.tag').forEach(el => {
             const tagName = el.dataset.tag;
             const tagObj = allTags.find(t => t.tag === tagName);
@@ -139,17 +149,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.setAttribute('data-level', 'removed');
             } else if (tagObj.prob >= confidentThreshold) {
                 el.setAttribute('data-level', 'confident');
+                el.setAttribute('data-original-level', 'confident');
             } else if (tagObj.prob >= allThreshold) {
                 el.setAttribute('data-level', 'all');
+                el.setAttribute('data-original-level', 'all');
             }
         });
-        updateCategoryButtonsDisabled();
     }
 
     function applyThresholds() {
         if (allTags.length) {
             refreshTagClasses();
-            setupCategoryCopyButtons();
         }
         updateThresholdUI();
         saveSettings();
@@ -205,8 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
         fullscreenImageModal.style.display = 'flex';
         const img = document.getElementById('fullscreenImage');
         img.src = src;
-        fullscreenImageModal.classList.add('show');
         document.body.classList.add('modal-open');
+        requestAnimationFrame(() => fullscreenImageModal.classList.add('show'));
         isFullscreenActive = true;
     }
 
@@ -378,24 +388,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.querySelectorAll(`.tag[data-tag="${tag}"]`).forEach(el => updateTagElement(el, tagObj));
         refreshTagClasses();
-        updateCategoryButtonsDisabled();
     }
 
     function updateTagElement(el, tagObj) {
+        const origLevel = el.dataset.originalLevel;
         el.removeAttribute('data-level');
-        if (addedTags.has(tagObj.tag)) el.setAttribute('data-level', 'added');
-        else if (removedTags.has(tagObj.tag)) el.setAttribute('data-level', 'removed');
-    }
-
-    function updateCategoryButtonsDisabled() {
-        document.querySelectorAll('.cat-copy-btn').forEach(btn => {
-            const category = btn.dataset.category;
-            const type = btn.dataset.type;
-            const threshold = type === 'confident' ? confidentThreshold : allThreshold;
-            const categoryTags = allTags.filter(t => t.category === category && !ratingTags.has(t.tag));
-            const hasAny = categoryTags.some(t => isTagIncluded(t, threshold));
-            btn.disabled = !hasAny;
-        });
+        if (addedTags.has(tagObj.tag)) {
+            el.setAttribute('data-level', 'added');
+            if (origLevel) el.setAttribute('data-original-level', origLevel);
+        } else if (removedTags.has(tagObj.tag)) {
+            el.setAttribute('data-level', 'removed');
+            if (origLevel) el.setAttribute('data-original-level', origLevel);
+        }
     }
 
     function isTagIncluded(tagObj, threshold) {
@@ -410,21 +414,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return allTags.filter(t => !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
     }
 
-    function filterTagsByCategory(category, threshold) {
-        return allTags.filter(t => t.category === category && !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
-    }
-
     function formatTags(tags) {
         if (currentFormat === 'e621') {
             const grouped = {};
             tags.forEach(t => {
-                const cat = t.category || 'Other';
+                let cat = t.category || 'Other';
+                if (cat === 'Body Color') cat = 'General';
+                else if (cat === 'Accessories, Items, Clothing') cat = 'General';
+                else if (cat === 'Actions, Positions, State') cat = 'General';
+                else if (cat === 'Body Features') cat = 'General';
+                else if (cat === 'Effects, Fluids') cat = 'General';
+                else if (cat === 'Fetishes, Specifics, Interactions') cat = 'General';
+                else if (cat === 'Genders, Demographics') cat = 'General';
+                else if (cat === 'Locations, Backgrounds, Setting') cat = 'General';
+                else if (cat === 'Poses, Scenarios, Situations') cat = 'General';
+                else if (cat === 'Style, Perspective') cat = 'General';
+                else if (cat === 'Text, Symbols, UI, Vocalization') cat = 'General';
+                else if (cat === 'Other') cat = 'General';
                 if (!grouped[cat]) grouped[cat] = [];
                 grouped[cat].push(t.tag);
             });
             const sortedCats = Object.keys(grouped).sort((a, b) => {
-                const ia = categoryOrder.indexOf(a);
-                const ib = categoryOrder.indexOf(b);
+                const ia = copyCategoryOrder.indexOf(a);
+                const ib = copyCategoryOrder.indexOf(b);
                 if (ia !== -1 && ib !== -1) return ia - ib;
                 if (ia !== -1) return -1;
                 if (ib !== -1) return 1;
@@ -491,24 +503,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function setupCategoryCopyButtons() {
-        document.querySelectorAll('.cat-copy-btn').forEach(btn => {
-            if (btn._hammer) btn._hammer.destroy();
-            const hammer = new Hammer(btn);
-            const category = btn.dataset.category;
-            const type = btn.dataset.type;
-            const threshold = type === 'confident' ? confidentThreshold : allThreshold;
-            hammer.on('tap', async () => {
-                if (btn.disabled) return;
-                const filtered = filterTagsByCategory(category, threshold);
-                if (filtered.length === 0) { showNotification(`No ${type} tags in ${category}.`, 'error'); return; }
-                const text = formatTags(filtered);
-                await copyToClipboard(text, filtered.length, currentFormat, btn);
-            });
-            btn._hammer = hammer;
-        });
-    }
-
     function attachTagEvents(tagEl, tagObj) {
         if (tagEl._hammer) tagEl._hammer.destroy();
         let pressTimer = null;
@@ -561,8 +555,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         categoriesContainer.innerHTML = '';
         Object.keys(grouped).sort((a, b) => {
-            const ia = categoryOrder.indexOf(a);
-            const ib = categoryOrder.indexOf(b);
+            const ia = displayCategoryOrder.indexOf(a);
+            const ib = displayCategoryOrder.indexOf(b);
             if (ia !== -1 && ib !== -1) return ia - ib;
             if (ia !== -1) return -1;
             if (ib !== -1) return 1;
@@ -574,10 +568,6 @@ document.addEventListener('DOMContentLoaded', () => {
             catDiv.innerHTML = `
                 <div class="category-header">
                     <span class="category-name">${escapeHtml(cat)}</span>
-                    <div class="category-buttons">
-                        <button type="button" class="cat-copy-btn confident" data-category="${escapeHtml(cat)}" data-type="confident" title="Copy confident tags">C</button>
-                        <button type="button" class="cat-copy-btn all" data-category="${escapeHtml(cat)}" data-type="all" title="Copy all tags">A</button>
-                    </div>
                 </div>
                 <div class="category-tags"></div>
             `;
@@ -596,6 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tagEl.setAttribute('data-original-level', 'confident');
                 } else if (item.prob >= allThreshold) {
                     tagEl.setAttribute('data-level', 'all');
+                    tagEl.setAttribute('data-original-level', 'all');
                 }
                 
                 attachTagEvents(tagEl, item);
@@ -603,7 +594,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             categoriesContainer.appendChild(catDiv);
         });
-        setupCategoryCopyButtons();
     }
 
     function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
