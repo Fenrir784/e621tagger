@@ -97,7 +97,7 @@ def parse_user_agent(ua_str):
         os_info = parsed.os
         device = parsed.device
 
-        device_family = device.family.lower() if device.family else ''
+        device_family = device.family.lower() if device and device.family else ''
 
         if device_family in ('spider', 'bot', 'crawler'):
             device_type = 'bot'
