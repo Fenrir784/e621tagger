@@ -178,15 +178,31 @@ Content-Type: application/json
 
 ### Categories
 
-| ID | Name |
-|----|------|
-| 0 | General |
-| 1 | Artist |
-| 3 | Copyright |
-| 4 | Character |
-| 5 | Species |
-| 7 | Meta |
-| 8 | Lore |
+| ID | Name | Description |
+|----|------|-------------|
+| 0 | General | General tags (includes 100-111) |
+| 1 | Artist | Artist tags |
+| 2 | Contributor | Contributor tags |
+| 3 | Copyright | Copyright/series tags |
+| 4 | Character | Character tags |
+| 5 | Species | Species tags |
+| 6 | Invalid | Invalid tags |
+| 7 | Meta | Meta tags (rating, resolution) |
+| 8 | Lore | Lore-related tags |
+| 100 | Accessories, Items, Clothing | Clothing and accessories |
+| 101 | Actions, Positions, State | Actions and poses |
+| 102 | Body Color | Body color tags |
+| 103 | Body Features | Body feature tags |
+| 104 | Effects, Fluids | Effects and fluids |
+| 105 | Fetishes, Specifics, Risque Interactions | Fetish and adult tags |
+| 106 | Genders, Demographics | Gender and demographic tags |
+| 107 | Locations, Backgrounds, Setting | Location and background tags |
+| 108 | Poses, Scenarios, Situations | Pose and scenario tags |
+| 109 | Style, Perspective | Style and perspective tags |
+| 110 | Text, Symbols, UI, Vocalization | Text and UI tags |
+| 111 | Other | Tags from unrecognized categories |
+
+> **Note:** When copying tags to clipboard, categories 100-111 are merged into "General" to maintain e621 compatibility.
 
 ### Auto-Generated Meta Tags
 

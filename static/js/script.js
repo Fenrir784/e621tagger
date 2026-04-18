@@ -137,11 +137,12 @@ document.addEventListener('DOMContentLoaded', () => {
         customConfidentInput.value = confidentThreshold.toFixed(2);
     }
 
-    function refreshTagClasses() {
+function refreshTagClasses() {
         document.querySelectorAll('.tag').forEach(el => {
             const tagName = el.dataset.tag;
             const tagObj = allTags.find(t => t.tag === tagName);
             if (!tagObj) return;
+            const origLevel = el.dataset.originalLevel;
             el.removeAttribute('data-level');
             if (addedTags.has(tagName)) {
                 el.setAttribute('data-level', 'added');
@@ -149,10 +150,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.setAttribute('data-level', 'removed');
             } else if (tagObj.prob >= confidentThreshold) {
                 el.setAttribute('data-level', 'confident');
+                if (origLevel) el.setAttribute('data-original-level', origLevel);
             } else if (tagObj.prob >= allThreshold) {
                 el.setAttribute('data-level', 'all');
+                if (origLevel) el.setAttribute('data-original-level', origLevel);
             }
-});
+        });
     }
 
     function applyThresholds() {
@@ -389,9 +392,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateTagElement(el, tagObj) {
+        const origLevel = el.dataset.originalLevel;
         el.removeAttribute('data-level');
-        if (addedTags.has(tagObj.tag)) el.setAttribute('data-level', 'added');
-        else if (removedTags.has(tagObj.tag)) el.setAttribute('data-level', 'removed');
+        if (addedTags.has(tagObj.tag)) {
+            el.setAttribute('data-level', 'added');
+            if (origLevel) el.setAttribute('data-original-level', origLevel);
+        } else if (removedTags.has(tagObj.tag)) {
+            el.setAttribute('data-level', 'removed');
+            if (origLevel) el.setAttribute('data-original-level', origLevel);
+        }
     }
 
     function isTagIncluded(tagObj, threshold) {
@@ -578,6 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tagEl.setAttribute('data-original-level', 'confident');
                 } else if (item.prob >= allThreshold) {
                     tagEl.setAttribute('data-level', 'all');
+                    tagEl.setAttribute('data-original-level', 'all');
                 }
                 
                 attachTagEvents(tagEl, item);

@@ -79,7 +79,7 @@ ghcr.io/fenrir784/e621tagger:latest
 
 | ID | Category | Description |
 |----|----------|-------------|
-| 0 | General | General tags |
+| 0 | General | General tags (includes sub-categories 100-111) |
 | 1 | Artist | Artist tags |
 | 2 | Contributor | Contributor tags |
 | 3 | Copyright | Copyright/series tags |

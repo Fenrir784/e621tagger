@@ -67,7 +67,11 @@ tag,category,implications
 female,0,
 anthro,5,
 futanari,0,female male
+scarf,100,
+sitting,101,
 ```
+
+> **Note:** Category IDs 0-8 are standard e621 categories. IDs 100-111 are fine-grained General sub-categories that display separately on the web interface but merge into General when copying to clipboard.
 
 ### DEVICE
 

@@ -482,19 +482,25 @@ function handleTagClick(tagObj) {
 
 ### updateTagElement(el, tagObj)
 
-Updates a single tag element's data-level attribute.
+Updates a single tag element's data-level attribute while preserving data-original-level.
 
 ```javascript
 function updateTagElement(el, tagObj) {
+    const origLevel = el.dataset.originalLevel;
     el.removeAttribute('data-level');
-    if (addedTags.has(tagObj.tag)) el.setAttribute('data-level', 'added');
-    else if (removedTags.has(tagObj.tag)) el.setAttribute('data-level', 'removed');
+    if (addedTags.has(tagObj.tag)) {
+        el.setAttribute('data-level', 'added');
+        if (origLevel) el.setAttribute('data-original-level', origLevel);
+    } else if (removedTags.has(tagObj.tag)) {
+        el.setAttribute('data-level', 'removed');
+        if (origLevel) el.setAttribute('data-original-level', origLevel);
+    }
 }
 ```
 
 ### refreshTagClasses()
 
-Refreshes all tag elements' data-level attributes.
+Refreshes all tag elements' data-level attributes while preserving data-original-level for bold font preservation.
 
 ```javascript
 function refreshTagClasses() {
@@ -502,11 +508,19 @@ function refreshTagClasses() {
         const tagName = el.dataset.tag;
         const tagObj = allTags.find(t => t.tag === tagName);
         if (!tagObj) return;
+        const origLevel = el.dataset.originalLevel;
         el.removeAttribute('data-level');
-        if (addedTags.has(tagName)) el.setAttribute('data-level', 'added');
-        else if (removedTags.has(tagName)) el.setAttribute('data-level', 'removed');
-        else if (tagObj.prob >= confidentThreshold) el.setAttribute('data-level', 'confident');
-        else if (tagObj.prob >= allThreshold) el.setAttribute('data-level', 'all');
+        if (addedTags.has(tagName)) {
+            el.setAttribute('data-level', 'added');
+        } else if (removedTags.has(tagName)) {
+            el.setAttribute('data-level', 'removed');
+        } else if (tagObj.prob >= confidentThreshold) {
+            el.setAttribute('data-level', 'confident');
+            if (origLevel) el.setAttribute('data-original-level', origLevel);
+        } else if (tagObj.prob >= allThreshold) {
+            el.setAttribute('data-level', 'all');
+            if (origLevel) el.setAttribute('data-original-level', origLevel);
+        }
     });
 }
 ```
@@ -581,12 +595,18 @@ function displayTags(tags) {
 
 **IMPORTANT:** Tags use `data-level` attribute, NOT CSS classes.
 
+Tag bold font is preserved when manually adding/removing tags by storing original confidence level in `data-original-level` attribute. This allows CSS to keep bold font for tags that were originally confident even after threshold changes or manual state toggles.
+
 ```javascript
 // Setting data-level attribute
 el.setAttribute('data-level', 'confident');  // High confidence
 el.setAttribute('data-level', 'all');       // Above all threshold
 el.setAttribute('data-level', 'added');     // User added
 el.setAttribute('data-level', 'removed');   // User removed
+
+// Preserving original level for bold font
+el.setAttribute('data-original-level', 'confident');  // Preserve bold when manually toggling
+el.setAttribute('data-original-level', 'all');       // Preserve normal weight
 ```
 
 | data-level | Condition | CSS Variable |
@@ -596,6 +616,11 @@ el.setAttribute('data-level', 'removed');   // User removed
 | added | addedTags.has(tag) | --added-bg (green) |
 | removed | removedTags.has(tag) | --removed-bg (red) |
 | (none) | Below allThreshold | --low-bg (gray) |
+
+| data-original-level | CSS Effect |
+|--------------------|-----------|
+| confident | font-weight: 600 (bold) |
+| all | font-weight: 400 (normal) |
 
 ---
 

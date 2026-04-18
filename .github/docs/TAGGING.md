@@ -496,7 +496,7 @@ anthro,5,
 | Field | Description |
 |-------|-------------|
 | `tag` | Tag name |
-| `category` | Category ID (0-8) |
+| `category` | Category ID (0-8, 100-111) |
 | `implications` | Space-separated list of implied tags |
 
 ### Loading

@@ -970,6 +970,14 @@ Critical hover interactions defined in `@media (hover: hover)` block:
 | `added` | var(--added-bg) | var(--added-text) | border success |
 | `removed` | var(--removed-bg) | var(--removed-text) | strikethrough, 400 |
 
+**Original Level Preservation:**
+The `data-original-level` attribute preserves the original confidence level when tags are manually added/removed or thresholds change in-flight. This ensures bold font is preserved for tags that were originally confident even after state changes.
+
+| data-original-level | Font Weight |
+|--------------------|-------------|
+| confident | 600 (bold) |
+| all | 400 (normal) |
+
 **Key Implementation Detail:**
 ```css
 .tag[data-level="all"] { background-color: var(--all-bg); color: var(--all-text); font-weight: 400; }

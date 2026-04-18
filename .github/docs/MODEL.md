@@ -382,7 +382,7 @@ Extensions allow adding new classification tags to the model without retraining.
   - `modelspec.implementation`: `redrocket.extension.label.v1`
   - `modelspec.architecture`: Must match base model
   - `classifier.label`: Tag name
-  - `classifier.label.category`: Category (general, artist, etc.)
+  - `classifier.label.category`: Category ID (0-8, 100-111)
   - `classifier.label.implies`: Space-separated implied tags
 
 ### Extension Weights
