@@ -1319,6 +1319,11 @@ Tags default to low confidence state (opacity 0.6) before classification:
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.fullscreen-image-modal.show .fullscreen-image-container {
+    opacity: 1;
 }
 .fullscreen-image {
     max-width: 100%;

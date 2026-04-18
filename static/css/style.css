@@ -901,6 +901,11 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.fullscreen-image-modal.show .fullscreen-image-container {
+    opacity: 1;
 }
 .fullscreen-image {
     max-width: 100%;
