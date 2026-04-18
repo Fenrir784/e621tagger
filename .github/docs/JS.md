@@ -1033,10 +1033,11 @@ function showFullscreenImage(src) {
     if (!fullscreenImageModal) {
         fullscreenImageModal = createFullscreenModal();
     }
+    fullscreenImageModal.style.display = 'flex';
     const img = document.getElementById('fullscreenImage');
     img.src = src;
-    fullscreenImageModal.classList.add('show');
     document.body.classList.add('modal-open');
+    requestAnimationFrame(() => fullscreenImageModal.classList.add('show'));
     isFullscreenActive = true;
 }
 ```
