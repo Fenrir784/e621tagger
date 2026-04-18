@@ -445,6 +445,7 @@ def predict():
             prob = val.item()
             cat_id = metadata.get(tag, (-1, []))[0]
             category_name = TAG_CATEGORIES.get(cat_id, "Other")
+            logger.debug(f"DEBUG: tag={tag}, cat_id={cat_id}, category={category_name}")
             tags_with_probs.append({
                 'tag': tag,
                 'prob': prob,
