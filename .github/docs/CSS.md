@@ -1272,6 +1272,78 @@ Tags default to low confidence state (opacity 0.6) before classification:
 
 ---
 
+## Fullscreen Image Modal
+
+### Modal Structure
+
+```css
+.fullscreen-image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+.fullscreen-image-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+```
+
+### Modal Overlay (Animated blur "camera focus effect")
+
+```css
+.fullscreen-image-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--overlay-bg);
+    backdrop-filter: blur(0px);
+    opacity: 0;
+    transition: opacity 0.2s ease, backdrop-filter 0.2s ease;
+}
+.fullscreen-image-modal.show .fullscreen-image-modal-overlay {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+}
+```
+
+### Image Container
+
+```css
+.fullscreen-image-container {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.fullscreen-image {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+}
+```
+
+### Z-Index Reference
+
+| Modal | z-index |
+|-------|---------|
+| Help Modal | 1100 |
+| Fullscreen Image Modal | 1200 |
+
+---
+
 ## Typography
 
 ### Base Font
