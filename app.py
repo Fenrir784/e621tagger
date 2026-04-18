@@ -65,7 +65,7 @@ UPLOAD_DIR = os.getenv('UPLOAD_DIR', '/app/uploads')
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff'}
 ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/tiff'}
 
-def secure_log(s: str) -> str:
+def secure_log(s: str | None) -> str:
     if not s:
         return ""
     s = s.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ')
@@ -427,7 +427,7 @@ def predict():
         values, indices = probs.topk(top_k)
         tags_with_probs = []
         for idx, val in zip(indices, values):
-            tag = tag_list[idx.item()]
+            tag = tag_list[int(idx.item())]
             prob = val.item()
             cat_id = metadata.get(tag, (-1, []))[0]
             category_name = TAG_CATEGORIES.get(cat_id, "Other")
