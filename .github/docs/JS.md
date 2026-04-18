@@ -1043,14 +1043,20 @@ function showFullscreenImage(src) {
 
 ### hideFullscreenImage()
 
-Hides the fullscreen modal and resets state.
+Hides the fullscreen modal and resets state. Uses transition cleanup to properly hide the modal after fade animation completes.
 
 ```javascript
 function hideFullscreenImage() {
-    if (fullscreenImageModal) {
-        fullscreenImageModal.classList.remove('show');
-    }
-    document.body.classList.remove('modal-open');
+    if (!fullscreenImageModal) return;
+    fullscreenImageModal.classList.remove('show');
+    const cleanup = () => {
+        if (!fullscreenImageModal.classList.contains('show')) {
+            fullscreenImageModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+        fullscreenImageModal.removeEventListener('transitionend', cleanup);
+    };
+    fullscreenImageModal.addEventListener('transitionend', cleanup, { once: true });
     isFullscreenActive = false;
 }
 ```

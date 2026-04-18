@@ -202,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!fullscreenImageModal) {
             fullscreenImageModal = createFullscreenModal();
         }
+        fullscreenImageModal.style.display = 'flex';
         const img = document.getElementById('fullscreenImage');
         img.src = src;
         fullscreenImageModal.classList.add('show');
@@ -210,10 +211,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function hideFullscreenImage() {
-        if (fullscreenImageModal) {
-            fullscreenImageModal.classList.remove('show');
-        }
-        document.body.classList.remove('modal-open');
+        if (!fullscreenImageModal) return;
+        fullscreenImageModal.classList.remove('show');
+        const cleanup = () => {
+            if (!fullscreenImageModal.classList.contains('show')) {
+                fullscreenImageModal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+            fullscreenImageModal.removeEventListener('transitionend', cleanup);
+        };
+        fullscreenImageModal.addEventListener('transitionend', cleanup, { once: true });
         isFullscreenActive = false;
     }
 
