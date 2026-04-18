@@ -609,16 +609,25 @@ Formats tags for clipboard output.
 function formatTags(tags) {
     if (currentFormat === 'e621') {
         // Group by category, sort categories, join with space
+        // Categories 100-111 are merged into General for copy
         const grouped = {};
         tags.forEach(t => {
-            const cat = t.category || 'Other';
+            let cat = t.category || 'Other';
+            // Merge fine categories into General for copy
+            if (['Body Color', 'Accessories, Items, Clothing', 'Actions, Positions, State',
+                'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Risque Interactions',
+                'Genders, Demographics', 'Locations, Backgrounds, Setting',
+                'Poses, Scenarios, Situations', 'Style, Perspective',
+                'Text, Symbols, UI, Vocalization', 'Other'].includes(cat)) {
+                cat = 'General';
+            }
             if (!grouped[cat]) grouped[cat] = [];
             grouped[cat].push(t.tag);
         });
-        // Sort categories by categoryOrder
+        // Sort by copyCategoryOrder (e621 order)
         const sortedCats = Object.keys(grouped).sort((a, b) => {
-            const ia = categoryOrder.indexOf(a);
-            const ib = categoryOrder.indexOf(b);
+            const ia = copyCategoryOrder.indexOf(a);
+            const ib = copyCategoryOrder.indexOf(b);
             // ... sorting logic
             return /* result */;
         });
