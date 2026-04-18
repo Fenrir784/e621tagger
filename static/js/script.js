@@ -142,14 +142,12 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (tagObj.prob >= allThreshold) {
                 el.setAttribute('data-level', 'all');
             }
-        });
-        updateCategoryButtonsDisabled();
+});
     }
 
     function applyThresholds() {
         if (allTags.length) {
             refreshTagClasses();
-            setupCategoryCopyButtons();
         }
         updateThresholdUI();
         saveSettings();
@@ -378,24 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.querySelectorAll(`.tag[data-tag="${tag}"]`).forEach(el => updateTagElement(el, tagObj));
         refreshTagClasses();
-        updateCategoryButtonsDisabled();
     }
 
     function updateTagElement(el, tagObj) {
         el.removeAttribute('data-level');
         if (addedTags.has(tagObj.tag)) el.setAttribute('data-level', 'added');
         else if (removedTags.has(tagObj.tag)) el.setAttribute('data-level', 'removed');
-    }
-
-    function updateCategoryButtonsDisabled() {
-        document.querySelectorAll('.cat-copy-btn').forEach(btn => {
-            const category = btn.dataset.category;
-            const type = btn.dataset.type;
-            const threshold = type === 'confident' ? confidentThreshold : allThreshold;
-            const categoryTags = allTags.filter(t => t.category === category && !ratingTags.has(t.tag));
-            const hasAny = categoryTags.some(t => isTagIncluded(t, threshold));
-            btn.disabled = !hasAny;
-        });
     }
 
     function isTagIncluded(tagObj, threshold) {
@@ -408,10 +394,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function filterTags(threshold) {
         return allTags.filter(t => !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
-    }
-
-    function filterTagsByCategory(category, threshold) {
-        return allTags.filter(t => t.category === category && !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
     }
 
     function formatTags(tags) {
@@ -491,24 +473,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function setupCategoryCopyButtons() {
-        document.querySelectorAll('.cat-copy-btn').forEach(btn => {
-            if (btn._hammer) btn._hammer.destroy();
-            const hammer = new Hammer(btn);
-            const category = btn.dataset.category;
-            const type = btn.dataset.type;
-            const threshold = type === 'confident' ? confidentThreshold : allThreshold;
-            hammer.on('tap', async () => {
-                if (btn.disabled) return;
-                const filtered = filterTagsByCategory(category, threshold);
-                if (filtered.length === 0) { showNotification(`No ${type} tags in ${category}.`, 'error'); return; }
-                const text = formatTags(filtered);
-                await copyToClipboard(text, filtered.length, currentFormat, btn);
-            });
-            btn._hammer = hammer;
-        });
-    }
-
     function attachTagEvents(tagEl, tagObj) {
         if (tagEl._hammer) tagEl._hammer.destroy();
         let pressTimer = null;
@@ -574,10 +538,6 @@ document.addEventListener('DOMContentLoaded', () => {
             catDiv.innerHTML = `
                 <div class="category-header">
                     <span class="category-name">${escapeHtml(cat)}</span>
-                    <div class="category-buttons">
-                        <button type="button" class="cat-copy-btn confident" data-category="${escapeHtml(cat)}" data-type="confident" title="Copy confident tags">C</button>
-                        <button type="button" class="cat-copy-btn all" data-category="${escapeHtml(cat)}" data-type="all" title="Copy all tags">A</button>
-                    </div>
                 </div>
                 <div class="category-tags"></div>
             `;
@@ -603,7 +563,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             categoriesContainer.appendChild(catDiv);
         });
-        setupCategoryCopyButtons();
     }
 
     function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }

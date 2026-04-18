@@ -457,7 +457,6 @@ function handleTagClick(tagObj) {
     // Update all matching tag elements
     document.querySelectorAll(`.tag[data-tag="${tag}"]`).forEach(el => updateTagElement(el, tagObj));
     refreshTagClasses();
-    updateCategoryButtonsDisabled();
 }
 ```
 
@@ -498,7 +497,6 @@ function refreshTagClasses() {
         else if (tagObj.prob >= confidentThreshold) el.setAttribute('data-level', 'confident');
         else if (tagObj.prob >= allThreshold) el.setAttribute('data-level', 'all');
     });
-    updateCategoryButtonsDisabled();
 }
 ```
 
@@ -523,33 +521,6 @@ Filters tags by probability threshold.
 ```javascript
 function filterTags(threshold) {
     return allTags.filter(t => !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
-}
-```
-
-### filterTagsByCategory(category, threshold)
-
-Filters tags by category and threshold.
-
-```javascript
-function filterTagsByCategory(category, threshold) {
-    return allTags.filter(t => t.category === category && !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
-}
-```
-
-### updateCategoryButtonsDisabled()
-
-Updates disabled state of category copy buttons.
-
-```javascript
-function updateCategoryButtonsDisabled() {
-    document.querySelectorAll('.cat-copy-btn').forEach(btn => {
-        const category = btn.dataset.category;
-        const type = btn.dataset.type;
-        const threshold = type === 'confident' ? confidentThreshold : allThreshold;
-        const categoryTags = allTags.filter(t => t.category === category && !ratingTags.has(t.tag));
-        const hasAny = categoryTags.some(t => isTagIncluded(t, threshold));
-        btn.disabled = !hasAny;
-    });
 }
 ```
 
@@ -922,7 +893,6 @@ Applies threshold settings and re-renders.
 function applyThresholds() {
     if (allTags.length) {
         refreshTagClasses();
-        setupCategoryCopyButtons();
     }
     updateThresholdUI();
     saveSettings();

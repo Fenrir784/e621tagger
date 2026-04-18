@@ -633,9 +633,6 @@ Critical hover interactions defined in `@media (hover: hover)` block:
         filter: brightness(1.1);
     }
 
-    /* Category copy buttons */
-    .cat-copy-btn:hover:not(:disabled) { transform: scale(1.1); opacity: 0.9; }
-
     /* Close popup buttons */
     .close-popup:hover { filter: brightness(0.9); }
 
@@ -935,38 +932,6 @@ Critical hover interactions defined in `@media (hover: hover)` block:
     color: var(--confident-bg);
     text-transform: uppercase;
 }
-.category-buttons { display: flex; gap: 0.3rem; }
-```
-
-### Category Copy Button
-
-```css
-.cat-copy-btn {
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.2s, transform 0.15s, filter 0.2s;
-    box-shadow: 0 2px 6px var(--box-shadow-medium);
-    touch-action: manipulation;
-}
-.cat-copy-btn.confident { background-color: var(--confident-bg); color: var(--confident-text); }
-.cat-copy-btn.all { background-color: var(--all-bg); color: var(--all-text); }
-.cat-copy-btn:disabled {
-    background-color: var(--disabled-bg);
-    color: var(--disabled-text);
-    cursor: not-allowed;
-    opacity: 0.5;
-    box-shadow: none;
-    pointer-events: none;
-}
-.cat-copy-btn.copied { background-color: var(--success-color); transform: scale(0.95); }
 ```
 
 ---

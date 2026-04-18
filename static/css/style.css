@@ -596,33 +596,6 @@ h1 {
     color: var(--confident-bg);
     text-transform: uppercase;
 }
-.category-buttons { display: flex; gap: 0.3rem; }
-.cat-copy-btn {
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.2s, transform 0.15s, filter 0.2s;
-    box-shadow: 0 2px 6px var(--box-shadow-medium);
-    touch-action: manipulation;
-}
-.cat-copy-btn.confident, .tag-example.confident { background-color: var(--confident-bg); color: var(--confident-text); }
-.cat-copy-btn.all, .tag-example.all { background-color: var(--all-bg); color: var(--all-text); }
-.cat-copy-btn:disabled {
-    background-color: var(--disabled-bg);
-    color: var(--disabled-text);
-    cursor: not-allowed;
-    opacity: 0.5;
-    box-shadow: none;
-    pointer-events: none;
-}
-.cat-copy-btn.copied { background-color: var(--success-color); transform: scale(0.95); }
 
 .category-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .tag {
@@ -691,7 +664,6 @@ input[type="number"]::-webkit-outer-spin-button {
     .help-btn:hover { filter: brightness(0.95); }
     .preset-btn:hover { filter: brightness(1.15); }
     .global-copy-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--box-shadow-heavy); filter: brightness(1.1); }
-    .cat-copy-btn:hover:not(:disabled) { transform: scale(1.1); opacity: 0.9; }
     .close-popup:hover { filter: brightness(0.9); }
     .site-info a:hover { text-decoration: underline; }
     .tag-popup-text a:hover { text-decoration: underline; }
