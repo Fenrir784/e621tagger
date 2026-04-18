@@ -126,6 +126,9 @@ jobs:
           delete-partial-images: true
           delete-orphaned-images: true
 
+      - name: Cleanup complete
+        run: echo "✅ Old images cleaned up" >> $GITHUB_STEP_SUMMARY
+
       - name: Trigger Dockhand deployment (latest)
         if: github.event_name == 'push' && github.ref_name == 'latest'
         env:

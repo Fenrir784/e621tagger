@@ -229,6 +229,9 @@ env:
     delete-untagged: true
     delete-partial-images: true
     delete-orphaned-images: true
+
+- name: Cleanup complete
+  run: echo "✅ Old images cleaned up" >> $GITHUB_STEP_SUMMARY
 ```
 
 **Cleanup Rules**:
@@ -237,6 +240,7 @@ env:
 - Delete untagged: Yes
 - Delete partial: Yes
 - Delete orphaned: Yes
+**Note**: Summary generation suppressed with custom message
 
 ---
 
@@ -678,6 +682,9 @@ jobs:
           keep-n-tagged: 4
           exclude-tags: latest,test
           delete-untagged: true
+
+      - name: Cleanup complete
+        run: echo "✅ Old images cleaned up" >> $GITHUB_STEP_SUMMARY
 
       - name: Trigger Dockhand deployment
         if: github.event_name == 'push'
