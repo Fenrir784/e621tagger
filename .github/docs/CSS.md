@@ -1073,7 +1073,6 @@ Tags default to low confidence state (opacity 0.6) before classification:
     width: 280px;
     max-width: 80vw;
     z-index: 1000;
-    backdrop-filter: blur(4px);
     animation: fadeInScale 0.2s;
 }
 ```
@@ -1170,7 +1169,6 @@ Tags default to low confidence state (opacity 0.6) before classification:
     width: 100%;
     height: 100%;
     background-color: var(--overlay-bg);
-    backdrop-filter: blur(4px);
     opacity: 0;
     transition: opacity 0.2s ease;
 }
@@ -1297,7 +1295,7 @@ Tags default to low confidence state (opacity 0.6) before classification:
 }
 ```
 
-### Modal Overlay (Animated blur "camera focus effect")
+### Modal Overlay
 
 ```css
 .fullscreen-image-modal-overlay {
@@ -1307,13 +1305,11 @@ Tags default to low confidence state (opacity 0.6) before classification:
     width: 100%;
     height: 100%;
     background-color: var(--overlay-bg);
-    backdrop-filter: blur(0px);
     opacity: 0;
-    transition: opacity 0.2s ease, backdrop-filter 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 .fullscreen-image-modal.show .fullscreen-image-modal-overlay {
     opacity: 1;
-    backdrop-filter: blur(4px);
 }
 ```
 

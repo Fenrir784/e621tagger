@@ -717,7 +717,6 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     width: 280px;
     max-width: 80vw;
     z-index: 1000;
-    backdrop-filter: blur(4px);
     animation: fadeInScale 0.2s;
 }
 .tag-popup-header {
@@ -789,11 +788,10 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     width: 100%;
     height: 100%;
     background-color: var(--overlay-bg);
-    backdrop-filter: blur(0px);
     opacity: 0;
-    transition: opacity 0.2s ease, backdrop-filter 0.2s ease;
+    transition: opacity 0.2s ease;
 }
-.help-modal.show .help-modal-overlay { opacity: 1; backdrop-filter: blur(4px); }
+.help-modal.show .help-modal-overlay { opacity: 1; }
 .help-modal-content {
     position: relative;
     background-color: var(--bg-color);
@@ -894,13 +892,11 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     width: 100%;
     height: 100%;
     background-color: var(--overlay-bg);
-    backdrop-filter: blur(0px);
     opacity: 0;
-    transition: opacity 0.2s ease, backdrop-filter 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 .fullscreen-image-modal.show .fullscreen-image-modal-overlay {
     opacity: 1;
-    backdrop-filter: blur(4px);
 }
 .fullscreen-image-container {
     position: relative;
