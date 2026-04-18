@@ -54,10 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let fullscreenImageModal = null;
     let isFullscreenActive = false;
-    let isZoomed = false;
-    let imagePosition = { x: 0, y: 0 };
-    let isDragging = false;
-    let dragStart = { x: 0, y: 0 };
 
     function preloadCreatures() {
         creaturePaths.forEach(path => { new Image().src = path; });
@@ -194,28 +190,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="fullscreen-image-container" id="fullscreenImageContainer">
                 <img class="fullscreen-image" id="fullscreenImage" alt="Fullscreen preview">
             </div>
-            <div class="fullscreen-hint">Press F or ESC to close • Click to zoom • Drag to pan</div>
         `;
         document.body.appendChild(modal);
 
-        const container = modal.querySelector('#fullscreenImageContainer');
         const overlay = modal.querySelector('.fullscreen-image-modal-overlay');
-
         overlay.addEventListener('click', hideFullscreenImage);
-
-        container.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleZoom();
-        });
-
-        container.addEventListener('mousedown', handleFullscreenMouseDown);
-        container.addEventListener('mousemove', handleFullscreenMouseMove);
-        container.addEventListener('mouseup', handleFullscreenMouseUp);
-        container.addEventListener('mouseleave', handleFullscreenMouseUp);
-
-        container.addEventListener('touchstart', handleFullscreenTouchStart, { passive: false });
-        container.addEventListener('touchmove', handleFullscreenTouchMove, { passive: false });
-        container.addEventListener('touchend', handleFullscreenTouchEnd);
 
         return modal;
     }
@@ -226,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const img = document.getElementById('fullscreenImage');
         img.src = src;
-        resetZoomState();
         fullscreenImageModal.classList.add('show');
         document.body.classList.add('modal-open');
         isFullscreenActive = true;
@@ -238,84 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.body.classList.remove('modal-open');
         isFullscreenActive = false;
-        resetZoomState();
-    }
-
-    function resetZoomState() {
-        isZoomed = false;
-        imagePosition = { x: 0, y: 0 };
-        const img = document.getElementById('fullscreenImage');
-        const container = document.getElementById('fullscreenImageContainer');
-        if (img) img.style.transform = 'scale(1) translate(0px, 0px)';
-        if (container) container.classList.remove('zoomed');
-    }
-
-    function toggleZoom() {
-        const img = document.getElementById('fullscreenImage');
-        const container = document.getElementById('fullscreenImageContainer');
-        if (!img || !container) return;
-
-        isZoomed = !isZoomed;
-
-        if (isZoomed) {
-            container.classList.add('zoomed');
-            img.style.transform = 'scale(2) translate(0px, 0px)';
-        } else {
-            container.classList.remove('zoomed');
-            img.style.transform = 'scale(1) translate(0px, 0px)';
-            imagePosition = { x: 0, y: 0 };
-        }
-    }
-
-    function handleFullscreenMouseDown(e) {
-        if (!isZoomed) return;
-        isDragging = true;
-        dragStart = { x: e.clientX - imagePosition.x, y: e.clientY - imagePosition.y };
-        e.preventDefault();
-    }
-
-    function handleFullscreenMouseMove(e) {
-        if (!isDragging || !isZoomed) return;
-        const img = document.getElementById('fullscreenImage');
-        if (!img) return;
-
-        imagePosition.x = e.clientX - dragStart.x;
-        imagePosition.y = e.clientY - dragStart.y;
-        img.style.transform = `scale(2) translate(${imagePosition.x / 2}px, ${imagePosition.y / 2}px)`;
-    }
-
-    function handleFullscreenMouseUp() {
-        isDragging = false;
-    }
-
-    let touchStartDistance = 0;
-    let touchStartPos = null;
-
-    function handleFullscreenTouchStart(e) {
-        if (!isZoomed) return;
-        if (e.touches.length === 1) {
-            touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            isDragging = true;
-            dragStart = { x: touchStartPos.x - imagePosition.x, y: touchStartPos.y - imagePosition.y };
-        }
-        e.preventDefault();
-    }
-
-    function handleFullscreenTouchMove(e) {
-        if (!isDragging || !isZoomed || !touchStartPos) return;
-        const touch = e.touches[0];
-        imagePosition.x = touch.clientX - dragStart.x;
-        imagePosition.y = touch.clientY - dragStart.y;
-        const img = document.getElementById('fullscreenImage');
-        if (img) {
-            img.style.transform = `scale(2) translate(${imagePosition.x / 2}px, ${imagePosition.y / 2}px)`;
-        }
-        e.preventDefault();
-    }
-
-    function handleFullscreenTouchEnd() {
-        isDragging = false;
-        touchStartPos = null;
     }
 
     function escapeHtml(unsafe) {
@@ -721,11 +621,6 @@ document.addEventListener('DOMContentLoaded', () => {
             img.width = img.naturalWidth;
             img.height = img.naturalHeight;
         };
-        img.style.cursor = 'zoom-in';
-        img.addEventListener('click', (e) => {
-            e.stopPropagation();
-            showFullscreenImage(img.src);
-        });
         dropZone.appendChild(img);
         dropZone.classList.add('has-image');
     }
