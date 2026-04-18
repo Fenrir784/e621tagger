@@ -789,11 +789,11 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     width: 100%;
     height: 100%;
     background-color: var(--overlay-bg);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(0px);
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.2s ease, backdrop-filter 0.2s ease;
 }
-.help-modal.show .help-modal-overlay { opacity: 1; }
+.help-modal.show .help-modal-overlay { opacity: 1; backdrop-filter: blur(4px); }
 .help-modal-content {
     position: relative;
     background-color: var(--bg-color);
@@ -894,6 +894,12 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     width: 100%;
     height: 100%;
     background-color: var(--overlay-bg);
+    backdrop-filter: blur(0px);
+    opacity: 0;
+    transition: opacity 0.2s ease, backdrop-filter 0.2s ease;
+}
+.fullscreen-image-modal.show .fullscreen-image-modal-overlay {
+    opacity: 1;
     backdrop-filter: blur(4px);
 }
 .fullscreen-image-container {
@@ -909,6 +915,8 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     max-height: 90vh;
     object-fit: contain;
 }
+
+@media (max-width: 600px) {
     .settings-menu { left: 0.5rem; width: calc(100% - 1rem); max-width: 300px; }
     .tag-popup { width: 260px; }
 }
