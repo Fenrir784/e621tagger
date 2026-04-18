@@ -1213,6 +1213,8 @@ Tags default to low confidence state (opacity 0.6) before classification:
     margin: 0 0.2rem;
 }
 .tag-example.low { background-color: var(--low-bg); color: var(--low-text); }
+.tag-example.confident { background-color: var(--confident-bg); color: var(--confident-text); }
+.tag-example.all { background-color: var(--all-bg); color: var(--all-text); }
 ```
 
 ### Help Footer

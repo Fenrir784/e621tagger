@@ -811,6 +811,8 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     margin: 0 0.2rem;
 }
 .tag-example.low { background-color: var(--low-bg); color: var(--low-text); }
+.tag-example.confident { background-color: var(--confident-bg); color: var(--confident-text); }
+.tag-example.all { background-color: var(--all-bg); color: var(--all-text); }
 .help-footer {
     margin-top: 1rem;
     font-size: 0.75rem;
