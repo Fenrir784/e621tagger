@@ -977,7 +977,7 @@ document.addEventListener('keydown', (e) => {
         toggleSettings(false);
         if (isFullscreenActive) hideFullscreenImage();
     }
-    if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
+    if (e.code === 'KeyF' && !e.ctrlKey && !e.metaKey) {
         if (isFullscreenActive) {
             hideFullscreenImage();
         } else {
@@ -1058,9 +1058,11 @@ function hideFullscreenImage() {
 
 ### Keyboard Shortcuts
 
+> **Note:** Uses `e.code` for layout-independent key detection (works on all keyboard layouts).
+
 | Key | Action |
 |-----|--------|
-| `F` | Toggle fullscreen (open/close) |
+| `F` (or `KeyF` position) | Toggle fullscreen (open/close) |
 | `ESC` | Close fullscreen |
 
 ### Overlay Click
