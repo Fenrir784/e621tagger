@@ -32,11 +32,25 @@ PATCH_SIZE = 16
 TAG_CATEGORIES = {
     "general": 0,
     "artist": 1,
+    "contributor": 2,
     "copyright": 3,
     "character": 4,
     "species": 5,
+    "invalid": 6,
     "meta": 7,
     "lore": 8,
+    "accessories_items_clothing": 100,
+    "actions_positions_state": 101,
+    "body_color": 102,
+    "body_features": 103,
+    "effects_fluids": 104,
+    "fetishes_specifics_risque_interactions": 105,
+    "genders_demographics": 106,
+    "locations_backgrounds_setting": 107,
+    "poses_scenarios_situations": 108,
+    "style_perspective": 109,
+    "text_symbols_ui_vocalization": 110,
+    "other": 111,
 }
 
 IMPLICATION_MODES = ("inherit", "constrain", "remove", "constrain-remove", "off")

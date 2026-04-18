@@ -47,7 +47,17 @@ const creaturePaths = [
     '/static/icons/egg/f4.png', '/static/icons/egg/f5.png', '/static/icons/egg/f6.png',
     '/static/icons/egg/f7.png', '/static/icons/egg/f8.png', '/static/icons/egg/f9.png'
 ];
-const categoryOrder = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+const copyCategoryOrder = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+const displayCategoryOrder = [
+    'General', 'Artist', 'Contributor', 'Copyright', 'Character', 'Species',
+    'Invalid', 'Meta',
+    'Accessories, Items, Clothing', 'Actions, Positions, State',
+    'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Risque Interactions',
+    'Genders, Demographics', 'Locations, Backgrounds, Setting',
+    'Poses, Scenarios, Situations', 'Style, Perspective',
+    'Text, Symbols, UI, Vocalization', 'Other',
+    'Body Color', 'Lore'
+];
 const tagDescriptionCache = new Map();  // Cache for e621 wiki tag descriptions
 ```
 
@@ -57,7 +67,8 @@ const tagDescriptionCache = new Map();  // Cache for e621 wiki tag descriptions
 | `ALLOWED_MAX_TAGS` | [50,75,100,150,200,300] | Valid top_k values |
 | `ratingTags` | {safe, questionable, explicit} | Rating tag names |
 | `creaturePaths` | 9 image paths | Easter egg creature images |
-| `categoryOrder` | 6 categories | e621 display order |
+| `copyCategoryOrder` | 6 categories | e621 category order for copy action (100-111 merged into General) |
+| `displayCategoryOrder` | 22 categories | Visual order for site display (Body Color and Lore at bottom) |
 | `tagDescriptionCache` | Map | Caches wiki descriptions to reduce API calls |
 
 ---

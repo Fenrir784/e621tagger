@@ -70,11 +70,25 @@ Tags are organized into e621 categories with numeric IDs:
 TAG_CATEGORIES = {
     0: "General",
     1: "Artist",
+    2: "Contributor",
     3: "Copyright",
     4: "Character",
     5: "Species",
+    6: "Invalid",
     7: "Meta",
     8: "Lore",
+    100: "Accessories, Items, Clothing",
+    101: "Actions, Positions, State",
+    102: "Body Color",
+    103: "Body Features",
+    104: "Effects, Fluids",
+    105: "Fetishes, Specifics, Risque Interactions",
+    106: "Genders, Demographics",
+    107: "Locations, Backgrounds, Setting",
+    108: "Poses, Scenarios, Situations",
+    109: "Style, Perspective",
+    110: "Text, Symbols, UI, Vocalization",
+    111: "Other",
 }
 ```
 

@@ -32,7 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
         '/static/icons/egg/f4.png', '/static/icons/egg/f5.png', '/static/icons/egg/f6.png',
         '/static/icons/egg/f7.png', '/static/icons/egg/f8.png', '/static/icons/egg/f9.png'
     ];
-    const categoryOrder = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+    const copyCategoryOrder = ['Copyright', 'Character', 'Species', 'Meta', 'General', 'Lore'];
+    const displayCategoryOrder = [
+        'General', 'Artist', 'Contributor', 'Copyright', 'Character', 'Species',
+        'Invalid', 'Meta',
+        'Accessories, Items, Clothing', 'Actions, Positions, State',
+        'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Risque Interactions',
+        'Genders, Demographics', 'Locations, Backgrounds, Setting',
+        'Poses, Scenarios, Situations', 'Style, Perspective',
+        'Text, Symbols, UI, Vocalization', 'Other',
+        'Body Color', 'Lore'
+    ];
 
     let allTags = [];
     let currentFormat = 'e621';
@@ -400,13 +410,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentFormat === 'e621') {
             const grouped = {};
             tags.forEach(t => {
-                const cat = t.category || 'Other';
+                let cat = t.category || 'Other';
+                if (cat === 'Body Color') cat = 'General';
+                else if (cat === 'Accessories, Items, Clothing') cat = 'General';
+                else if (cat === 'Actions, Positions, State') cat = 'General';
+                else if (cat === 'Body Features') cat = 'General';
+                else if (cat === 'Effects, Fluids') cat = 'General';
+                else if (cat === 'Fetishes, Specifics, Risque Interactions') cat = 'General';
+                else if (cat === 'Genders, Demographics') cat = 'General';
+                else if (cat === 'Locations, Backgrounds, Setting') cat = 'General';
+                else if (cat === 'Poses, Scenarios, Situations') cat = 'General';
+                else if (cat === 'Style, Perspective') cat = 'General';
+                else if (cat === 'Text, Symbols, UI, Vocalization') cat = 'General';
+                else if (cat === 'Other') cat = 'General';
                 if (!grouped[cat]) grouped[cat] = [];
                 grouped[cat].push(t.tag);
             });
             const sortedCats = Object.keys(grouped).sort((a, b) => {
-                const ia = categoryOrder.indexOf(a);
-                const ib = categoryOrder.indexOf(b);
+                const ia = copyCategoryOrder.indexOf(a);
+                const ib = copyCategoryOrder.indexOf(b);
                 if (ia !== -1 && ib !== -1) return ia - ib;
                 if (ia !== -1) return -1;
                 if (ib !== -1) return 1;
@@ -525,8 +547,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         categoriesContainer.innerHTML = '';
         Object.keys(grouped).sort((a, b) => {
-            const ia = categoryOrder.indexOf(a);
-            const ib = categoryOrder.indexOf(b);
+            const ia = displayCategoryOrder.indexOf(a);
+            const ib = displayCategoryOrder.indexOf(b);
             if (ia !== -1 && ib !== -1) return ia - ib;
             if (ia !== -1) return -1;
             if (ib !== -1) return 1;

@@ -12,11 +12,25 @@ from safetensors.torch import save_file
 TAG_CATEGORIES = [
     "general",
     "artist",
+    "contributor",
     "copyright",
     "character",
     "species",
+    "invalid",
     "meta",
     "lore",
+    "accessories_items_clothing",
+    "actions_positions_state",
+    "body_color",
+    "body_features",
+    "effects_fluids",
+    "fetishes_specifics_risque_interactions",
+    "genders_demographics",
+    "locations_backgrounds_setting",
+    "poses_scenarios_situations",
+    "style_perspective",
+    "text_symbols_ui_vocalization",
+    "other",
 ]
 
 def _apply_optimizer_state(
