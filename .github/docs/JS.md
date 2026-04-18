@@ -1018,14 +1018,13 @@ function createFullscreenModal() {
     `;
     document.body.appendChild(modal);
 
-    const overlay = modal.querySelector('.fullscreen-image-modal-overlay');
-    overlay.addEventListener('click', hideFullscreenImage);
+    modal.addEventListener('click', hideFullscreenImage);
 
     return modal;
 }
 ```
 
-### showFullscreenImage(src)
+### Modal Click
 
 Shows the fullscreen modal with the provided image source.
 
@@ -1065,9 +1064,9 @@ function hideFullscreenImage() {
 | `F` (or `KeyF` position) | Toggle fullscreen (open/close) |
 | `ESC` | Close fullscreen |
 
-### Overlay Click
+### Modal Click
 
-Clicking on the overlay background closes the fullscreen modal.
+Clicking anywhere within the fullscreen modal (overlay or image) closes it.
 
 ### LocalStorage
 

@@ -1150,12 +1150,10 @@ Tags default to low confidence state (opacity 0.6) before classification:
     justify-content: center;
     z-index: 1100;
     opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 .help-modal.show {
     opacity: 1;
-    visibility: visible;
 }
 ```
 
@@ -1286,12 +1284,10 @@ Tags default to low confidence state (opacity 0.6) before classification:
     justify-content: center;
     z-index: 1200;
     opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 .fullscreen-image-modal.show {
     opacity: 1;
-    visibility: visible;
 }
 ```
 

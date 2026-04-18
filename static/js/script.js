@@ -193,8 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         document.body.appendChild(modal);
 
-        const overlay = modal.querySelector('.fullscreen-image-modal-overlay');
-        overlay.addEventListener('click', hideFullscreenImage);
+        modal.addEventListener('click', hideFullscreenImage);
 
         return modal;
     }
