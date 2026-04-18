@@ -44,7 +44,7 @@ TAG_CATEGORIES = {
     "body_color": 102,
     "body_features": 103,
     "effects_fluids": 104,
-    "fetishes_specifics_risque_interactions": 105,
+    "fetishes_specifics_interactions": 105,
     "genders_demographics": 106,
     "locations_backgrounds_setting": 107,
     "poses_scenarios_situations": 108,

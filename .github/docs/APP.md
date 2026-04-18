@@ -77,7 +77,7 @@ TAG_CATEGORIES = {
     102: "Body Color",
     103: "Body Features",
     104: "Effects, Fluids",
-    105: "Fetishes, Specifics, Risque Interactions",
+    105: "Fetishes, Specifics, Interactions",
     106: "Genders, Demographics",
     107: "Locations, Backgrounds, Setting",
     108: "Poses, Scenarios, Situations",

@@ -52,7 +52,7 @@ const displayCategoryOrder = [
     'General', 'Artist', 'Contributor', 'Copyright', 'Character', 'Species',
     'Invalid', 'Meta',
     'Accessories, Items, Clothing', 'Actions, Positions, State',
-    'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Risque Interactions',
+    'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Interactions',
     'Genders, Demographics', 'Locations, Backgrounds, Setting',
     'Poses, Scenarios, Situations', 'Style, Perspective',
     'Text, Symbols, UI, Vocalization', 'Other',
@@ -639,7 +639,7 @@ function formatTags(tags) {
             let cat = t.category || 'Other';
             // Merge fine categories into General for copy
             if (['Body Color', 'Accessories, Items, Clothing', 'Actions, Positions, State',
-                'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Risque Interactions',
+                'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Interactions',
                 'Genders, Demographics', 'Locations, Backgrounds, Setting',
                 'Poses, Scenarios, Situations', 'Style, Perspective',
                 'Text, Symbols, UI, Vocalization', 'Other'].includes(cat)) {

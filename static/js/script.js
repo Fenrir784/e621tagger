@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'General', 'Artist', 'Contributor', 'Copyright', 'Character', 'Species',
         'Invalid', 'Meta',
         'Accessories, Items, Clothing', 'Actions, Positions, State',
-        'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Risque Interactions',
+        'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Interactions',
         'Genders, Demographics', 'Locations, Backgrounds, Setting',
         'Poses, Scenarios, Situations', 'Style, Perspective',
         'Text, Symbols, UI, Vocalization', 'Other',
@@ -424,7 +424,7 @@ function refreshTagClasses() {
                 else if (cat === 'Actions, Positions, State') cat = 'General';
                 else if (cat === 'Body Features') cat = 'General';
                 else if (cat === 'Effects, Fluids') cat = 'General';
-                else if (cat === 'Fetishes, Specifics, Risque Interactions') cat = 'General';
+                else if (cat === 'Fetishes, Specifics, Interactions') cat = 'General';
                 else if (cat === 'Genders, Demographics') cat = 'General';
                 else if (cat === 'Locations, Backgrounds, Setting') cat = 'General';
                 else if (cat === 'Poses, Scenarios, Situations') cat = 'General';

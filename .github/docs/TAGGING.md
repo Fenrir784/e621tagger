@@ -68,7 +68,7 @@ Tags are organized into e621 categories with numeric IDs:
 | 102 | Body Color | Color markings | `red_fur`, `blue_eyes`, `black_markings` |
 | 103 | Body Features | Body parts/features | `tail`, `wings`, `horns` |
 | 104 | Effects, Fluids | Visual effects | `cum`, `sparkles`, `glowing` |
-| 105 | Fetishes, Specifics, Risque Interactions | Adult content | `anal`, `footjob`, `bondage` |
+| 105 | Fetishes, Specifics, Interactions | Adult content | `anal`, `footjob`, `bondage` |
 | 106 | Genders, Demographics | Gender-related | `male`, `female`, `herm`, `femboy` |
 | 107 | Locations, Backgrounds, Setting | Environments | `forest`, `bedroom`, `beach` |
 | 108 | Poses, Scenarios, Situations | Scene setup | `profile_view`, `closeup`, `action_pose` |
@@ -97,7 +97,7 @@ TAG_CATEGORIES = {
     102: "Body Color",
     103: "Body Features",
     104: "Effects, Fluids",
-    105: "Fetishes, Specifics, Risque Interactions",
+    105: "Fetishes, Specifics, Interactions",
     106: "Genders, Demographics",
     107: "Locations, Backgrounds, Setting",
     108: "Poses, Scenarios, Situations",
@@ -414,7 +414,7 @@ The web interface displays all 21 categories separately for better visual organi
 10. Actions, Positions, State
 11. Body Features
 12. Effects, Fluids
-13. Fetishes, Specifics, Risque Interactions
+13. Fetishes, Specifics, Interactions
 14. Genders, Demographics
 15. Locations, Backgrounds, Setting
 16. Poses, Scenarios, Situations

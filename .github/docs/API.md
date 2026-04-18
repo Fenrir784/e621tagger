@@ -194,7 +194,7 @@ Content-Type: application/json
 | 102 | Body Color | Body color tags |
 | 103 | Body Features | Body feature tags |
 | 104 | Effects, Fluids | Effects and fluids |
-| 105 | Fetishes, Specifics, Risque Interactions | Fetish and adult tags |
+| 105 | Fetishes, Specifics, Interactions | Fetish and adult tags |
 | 106 | Genders, Demographics | Gender and demographic tags |
 | 107 | Locations, Backgrounds, Setting | Location and background tags |
 | 108 | Poses, Scenarios, Situations | Pose and scenario tags |
