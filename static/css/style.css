@@ -143,10 +143,10 @@ body {
 body.modal-open { overflow: hidden; }
 
 .container {
-    max-width: 800px;
-    width: 90%;
-    margin: 2rem auto 0;
-    padding: 2rem;
+    max-width: 900px;
+    width: 100%;
+    margin: 0.5rem auto 0;
+    padding: 1.5rem;
     position: relative;
 }
 header {
@@ -160,7 +160,7 @@ header {
 .header-left { justify-content: flex-start; }
 .header-right { justify-content: flex-end; }
 h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: 300;
     color: var(--confident-bg);
     line-height: 1.2;
@@ -466,7 +466,7 @@ h1 {
 
 #dropZone img {
     max-width: 100%;
-    max-height: 350px;
+    max-height: 300px;
     object-fit: contain;
     border-radius: 8px;
     display: block;
@@ -685,7 +685,7 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     border: 1px solid var(--border-color);
     border-radius: 12px;
     box-shadow: 0 8px 24px var(--box-shadow-heavy);
-    width: 280px;
+    width: 300px;
     max-width: 80vw;
     z-index: 1000;
     animation: fadeInScale 0.2s;
@@ -812,6 +812,7 @@ input[type="number"]:hover::-webkit-outer-spin-button {
 .tag-example.low { background-color: var(--low-bg); color: var(--low-text); }
 .tag-example.confident { background-color: var(--confident-bg); color: var(--confident-text); }
 .tag-example.all { background-color: var(--all-bg); color: var(--all-text); }
+
 .help-footer {
     margin-top: 1rem;
     font-size: 0.75rem;
@@ -825,11 +826,9 @@ input[type="number"]:hover::-webkit-outer-spin-button {
 }
 
 @media (max-width: 600px) {
-    .container { padding: 1rem; margin-top: 1rem; }
+    .container { padding: 0.5rem; margin-top: 1rem; }
     header { gap: 0.5rem; }
-    h1 { font-size: 2rem; }
-    .settings-toggle { width: 40px; height: 40px; font-size: 1.5rem; }
-    .egg-container { width: 60px; height: 60px; }
+    h1 { font-size: 2.3em; }
     .results-header { flex-direction: column; align-items: flex-start; }
     .format-toggle { margin-left: 0; margin-top: 0.5rem; }
     .format-toggle .format-toggle-group { width: 100%; }
@@ -869,8 +868,8 @@ input[type="number"]:hover::-webkit-outer-spin-button {
 }
 .fullscreen-image-container {
     position: relative;
-    max-width: 90vw;
-    max-height: 90vh;
+    max-width: 95vw;
+    max-height: 95vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -893,5 +892,5 @@ input[type="number"]:hover::-webkit-outer-spin-button {
 
 @media (max-width: 600px) {
     .settings-menu { left: 0.5rem; width: calc(100% - 1rem); max-width: 300px; }
-    .tag-popup { width: 260px; }
+    .tag-popup { width: 300px; }
 }
