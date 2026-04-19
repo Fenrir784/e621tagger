@@ -255,11 +255,18 @@ The application uses structured logging with emoji prefixes for easy parsing:
 ### Log Format
 
 ```
-2024-01-01 12:00:00 [INFO] 👤 GET / 🟪 192.168.1.1 📱 iOS/Safari 200 🟢 0.2ms
+2024-01-01 12:00:00 [INFO] 👤 🟪 192.168.1.1 GET / 📱 iOS/Safari 200 🟢 0.2ms
 2024-01-01 12:00:01 [INFO] 📥 🟪 192.168.1.1: uploading file 'image.png'
 2024-01-01 12:00:02 [INFO] ✅ 🟪 192.168.1.1: file 'image.png' processed, top=200 tags (auto=5)
-2024-01-01 12:00:02 [INFO] 📤 POST /predict 🟪 192.168.1.1 200 🟢 2500.0ms
+2024-01-01 12:00:02 [INFO] 📤 🟪 192.168.1.1 POST /predict 200 🟢 2500.0ms
 ```
+
+**Log Format Pattern:**
+
+| Position | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|----------|---|---|---|---|---|---|---|---|---|---|
+| Part | emoji | color+IP | method | path | flag | device | ua | status | duration |
+| Example | 👤 | 🟪 192.168.1.1 | GET | / | 📱 | iOS/Safari | 200 | 🟢 | 0.2ms |
 
 ### IP Color Squares
 
