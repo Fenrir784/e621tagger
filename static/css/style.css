@@ -483,7 +483,7 @@ h1 {
 .results {
     background-color: var(--secondary-color);
     border-radius: 12px;
-    padding: 1rem;
+    padding: 1.5rem;
     box-shadow: 0 4px 20px var(--box-shadow-heavyplus);
     min-height: 200px;
     position: relative;
@@ -579,15 +579,15 @@ h1 {
 .category-block {
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 0.35rem;
+    padding: 0.5rem;
     background-color: var(--bg-color);
 }
 .category-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.35rem;
-    padding-bottom: 0.2rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
     border-bottom: 1px solid var(--border-color);
 }
 .category-name {
