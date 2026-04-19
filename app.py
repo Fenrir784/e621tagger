@@ -104,6 +104,17 @@ def get_country_flag(accept_lang):
             return chr(ord(country_code[0]) - ord('A') + 0x1F1E6) + chr(ord(country_code[1]) - ord('A') + 0x1F1E6)
     return ""
 
+def get_ip_color_square(ip: str | None) -> str:
+    colors = ['⬛️', '🟫', '🟪', '🟦', '🟩', '⬜', '🟨', '🟧', '🟥']
+    if not ip:
+        return '⬜'
+    try:
+        octets = [int(b) for b in ip.split('.')]
+        h = sum(octets) + octets[-1]
+        return colors[h % len(colors)]
+    except Exception:
+        return '⬜'
+
 def parse_user_agent(ua_str):
     try:
         parsed = parse(ua_str)
@@ -167,9 +178,10 @@ def log_request_end(response):
         method = secure_log(request.method)
         path = secure_log(request.path)
         emoji_status = status_emoji(status)
+        ip = secure_log(request.remote_addr)
+        ip_color = get_ip_color_square(ip)
 
         if path == '/':
-            ip = secure_log(request.remote_addr)
             raw_ua = secure_log(request.headers.get('User-Agent', 'Unknown'))
             accept_lang = secure_log(request.headers.get('Accept-Language', ''))
             referer = secure_log(request.headers.get('Referer', ''))
@@ -186,21 +198,21 @@ def log_request_end(response):
                 'other': '❓'
             }.get(device_type, '❓')
             logger.info(
-                "👤 %s %s %s %s %s %s %d %s %.1fms",
-                method, path, ip, flag_part, device_emoji, ua_short,
+                "👤 %s %s %s%s %s %s %d %s %.1fms",
+                method, path, ip_color, flag_part, device_emoji, ua_short,
                 status, emoji_status, duration
             )
             return response
 
         if path == '/health' and status == 200:
             if LOG_LEVEL == logging.DEBUG:
-                logger.debug("🔄 %s %s %d %s %.1fms", method, path, status, emoji_status, duration)
+                logger.debug("🔄 %s %s %s %d %s %.1fms", method, path, ip_color, status, emoji_status, duration)
         elif path == '/predict':
-            logger.info("📤 %s %s %d %s %.1fms", method, path, status, emoji_status, duration)
+            logger.info("📤 %s %s %s %d %s %.1fms", method, path, ip_color, status, emoji_status, duration)
         elif LOG_LEVEL == logging.DEBUG:
-            logger.debug("📄 %s %s %d %s %.1fms", method, path, status, emoji_status, duration)
+            logger.debug("📄 %s %s %s %d %s %.1fms", method, path, ip_color, status, emoji_status, duration)
         elif status >= 400:
-            logger.warning("⚠️ %s %s %d %s %.1fms", method, path, status, emoji_status, duration)
+            logger.warning("⚠️ %s %s %s %d %s %.1fms", method, path, ip_color, status, emoji_status, duration)
     return response
 
 if SAVE_UPLOADS:
@@ -353,10 +365,10 @@ def service_worker():
 def health():
     try:
         if model is None or tag_list is None or len(tag_list) == 0:
-            logger.warning("⚠️ Health check: model not loaded (version=%s)", APP_VERSION)
+            logger.warning("⚠️ Health check: model not loaded (version %s)", APP_VERSION)
             return jsonify({'status': 'unhealthy', 'reason': 'model not loaded'}), 503
         if LOG_LEVEL == logging.DEBUG:
-            logger.debug("✅ Health check ok (tags=%d, version=%s)", len(tag_list), APP_VERSION)
+            logger.debug("✅ Health check ok (tags=%d, version %s)", len(tag_list), APP_VERSION)
         return jsonify({
             'status': 'healthy',
             'model': 'loaded',
@@ -364,21 +376,22 @@ def health():
             'version': APP_VERSION
         }), 200
     except Exception as e:
-        logger.exception("💥 Health check failed (version=%s)", APP_VERSION)
+        logger.exception("💥 Health check failed (version %s)", APP_VERSION)
         return jsonify({'status': 'unhealthy', 'reason': 'internal error'}), 503
 
 @app.route('/predict', methods=['POST'])
 @limiter.limit("20 per minute")
 def predict():
     ip = secure_log(request.remote_addr)
+    ip_color = get_ip_color_square(ip)
 
     if 'image' not in request.files:
-        logger.warning("⚠️ IP=%s: request without image file", ip)
+        logger.warning("⚠️ %s: request without image file", ip_color)
         return jsonify({'error': 'No image provided'}), 400
 
     file = request.files['image']
     if file.filename == '':
-        logger.warning("⚠️ IP=%s: empty filename", ip)
+        logger.warning("⚠️ %s: empty filename", ip_color)
         return jsonify({'error': 'Empty filename'}), 400
 
     filename = secure_log(file.filename)
@@ -386,14 +399,14 @@ def predict():
     content_type = secure_log(content_type)
 
     if not is_allowed_file(filename, content_type):
-        logger.warning("⚠️ IP=%s: rejected file '%s' (type: %s)", ip, filename, content_type)
+        logger.warning("⚠️ %s: rejected file '%s' (type: %s)", ip_color, filename, content_type)
         return jsonify({'error': 'File type not allowed'}), 400
 
     if not is_valid_image(file):
-        logger.warning("⚠️ IP=%s: rejected invalid image file '%s'", ip, filename)
+        logger.warning("⚠️ %s: rejected invalid image file '%s'", ip_color, filename)
         return jsonify({'error': 'Invalid or corrupted image file'}), 400
 
-    logger.info("📥 IP=%s: uploading file '%s'", ip, filename)
+    logger.info("📥 %s: uploading file '%s'", ip_color, filename)
 
     top_k_str = request.form.get('top_k', str(DEFAULT_TOP_K))
     try:
@@ -457,14 +470,14 @@ def predict():
                 auto_tags = detect_meta_tags_for_image_path(image_path_for_analysis)
         except Exception:
             auto_tags = set()
-        logger.info("✅ IP=%s: file '%s' processed, top=%d tags (auto=%d)", ip, filename, len(tags_with_probs), len(auto_tags))
+        logger.info("✅ %s: file '%s' processed, top %d tags (auto %d)", ip_color, filename, len(tags_with_probs), len(auto_tags))
         return jsonify({
             'success': True,
             'tags': tags_with_probs,
             'auto_meta': sorted(list(auto_tags))
         })
     except Exception as e:
-        logger.error("❌ IP=%s: error processing file '%s': %s", ip, filename, str(e))
+        logger.error("❌ %s: error processing file '%s': %s", ip_color, filename, str(e))
         return jsonify({'error': 'Internal server error'}), 500
     finally:
         if temp_path is not None:

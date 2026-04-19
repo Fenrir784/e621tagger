@@ -255,10 +255,29 @@ The application uses structured logging with emoji prefixes for easy parsing:
 ### Log Format
 
 ```
-2024-01-01 12:00:00 [INFO] 👤 POST / 192.168.1.1 📱 iOS/Safari 200 🟢 150.5ms
-2024-01-01 12:00:01 [INFO] 📥 IP=192.168.1.1: uploading file 'image.png'
-2024-01-01 12:00:02 [INFO] ✅ IP=192.168.1.1: file 'image.png' processed, top=200 tags (auto=5)
+2024-01-01 12:00:00 [INFO] 👤 GET / 🟪 192.168.1.1 📱 iOS/Safari 200 🟢 0.2ms
+2024-01-01 12:00:01 [INFO] 📥 🟪 192.168.1.1: uploading file 'image.png'
+2024-01-01 12:00:02 [INFO] ✅ 🟪 192.168.1.1: file 'image.png' processed, top=200 tags (auto=5)
+2024-01-01 12:00:02 [INFO] 📤 POST /predict 🟪 192.168.1.1 200 🟢 2500.0ms
 ```
+
+### IP Color Squares
+
+The application generates a consistent color square emoji for each IP address using a simple hash of the IP's octets. This allows you to visually track user sessions in logs:
+
+| Color | Emoji | Usage |
+|-------|------|-------|
+| Black | ⬛️ | Index 0 |
+| Brown | 🟫 | Index 1 |
+| Purple | 🟪 | Index 2 |
+| Blue | 🟦 | Index 3 |
+| Green | 🟩 | Index 4 |
+| White | ⬜ | Index 5 |
+| Yellow | 🟨 | Index 6 |
+| Orange | 🟧 | Index 7 |
+| Red | 🟥 | Index 8 |
+
+The same IP always maps to the same color, making it easy to trace user activity chains through logs.
 
 ## Deployment Architecture
 
