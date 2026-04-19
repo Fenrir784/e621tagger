@@ -211,13 +211,13 @@ def secure_log(s: str) -> str:
 | Output | `str` - Country flag emoji |
 | Purpose | Extract country code from Accept-Language header |
 
-### get_ip_color_square(ip: str | None) -> str
+### get_ip_identifier(ip: str | None) -> str
 
-| Location | app.py:107-116 |
+| Location | app.py:107-121 |
 |----------|----------------|
 | Input | `ip: str` - IP address string |
-| Output | `str` - Color square emoji (⬛️/🟫/🟪/🟦/🟩/⬜/🟨/🟧/🟥) |
-| Purpose | Generate consistent color square for IP address |
+| Output | `str` - Colored IP identifier (e.g., "🟪 192.168.1.1") |
+| Purpose | Generate consistent color + IP string for logging |
 
 The function uses a simple hash of the IP's octets to generate a consistent color. Same IP always maps to same color.
 

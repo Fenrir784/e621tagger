@@ -199,20 +199,20 @@ def log_request_end(response):
             }.get(device_type, '❓')
             logger.info(
                 "👤 %s %s %s %s %s %s %d %s %.1fms",
-                method, path, ip_id, flag_part, device_emoji, ua_short,
+                ip_id, method, path, flag_part, device_emoji, ua_short,
                 status, emoji_status, duration
             )
             return response
 
         if path == '/health' and status == 200:
             if LOG_LEVEL == logging.DEBUG:
-                logger.debug("🔄 %s %s %s %d %s %.1fms", method, path, ip_id, status, emoji_status, duration)
+                logger.debug("🔄 %s %s %s %d %s %.1fms", ip_id, method, path, status, emoji_status, duration)
         elif path == '/predict':
-            logger.info("📤 %s %s %s %d %s %.1fms", method, path, ip_id, status, emoji_status, duration)
+            logger.info("📤 %s %s %s %d %s %.1fms", ip_id, method, path, status, emoji_status, duration)
         elif LOG_LEVEL == logging.DEBUG:
-            logger.debug("📄 %s %s %s %d %s %.1fms", method, path, ip_id, status, emoji_status, duration)
+            logger.debug("📄 %s %s %s %d %s %.1fms", ip_id, method, path, status, emoji_status, duration)
         elif status >= 400:
-            logger.warning("⚠️ %s %s %s %d %s %.1fms", method, path, ip_id, status, emoji_status, duration)
+            logger.warning("⚠️ %s %s %s %d %s %.1fms", ip_id, method, path, status, emoji_status, duration)
     return response
 
 if SAVE_UPLOADS:
@@ -399,11 +399,11 @@ def predict():
     content_type = secure_log(content_type)
 
     if not is_allowed_file(filename, content_type):
-        logger.warning("⚠️ %s: rejected file '%s' (type: %s)", ip_id, filename, content_type)
+        logger.warning("⚠️ %s: rejected file (type: %s) '%s'", ip_id, content_type, filename)
         return jsonify({'error': 'File type not allowed'}), 400
 
     if not is_valid_image(file):
-        logger.warning("⚠️ %s: rejected invalid image file '%s'", ip_id, filename)
+        logger.warning("⚠️ %s: rejected invalid image '%s'", ip_id, filename)
         return jsonify({'error': 'Invalid or corrupted image file'}), 400
 
     logger.info("📥 %s: uploading file '%s'", ip_id, filename)
