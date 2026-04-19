@@ -483,7 +483,7 @@ h1 {
 .results {
     background-color: var(--secondary-color);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 1rem;
     box-shadow: 0 4px 20px var(--box-shadow-heavyplus);
     min-height: 200px;
     position: relative;
@@ -575,19 +575,19 @@ h1 {
 .rating-display.questionable { background-color: var(--questionable-bg); }
 .rating-display.explicit { background-color: var(--explicit-bg); }
 
-.categories-container { display: flex; flex-direction: column; gap: 1rem; }
+.categories-container { display: flex; flex-direction: column; gap: 0.6rem; }
 .category-block {
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 0.5rem;
+    padding: 0.35rem;
     background-color: var(--bg-color);
 }
 .category-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.3rem;
+    margin-bottom: 0.35rem;
+    padding-bottom: 0.2rem;
     border-bottom: 1px solid var(--border-color);
 }
 .category-name {
@@ -597,7 +597,7 @@ h1 {
     text-transform: uppercase;
 }
 
-.category-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.category-tags { display: flex; flex-wrap: wrap; gap: 0.25rem; }
 .tag {
     background-color: var(--low-bg);
     color: var(--low-text);
