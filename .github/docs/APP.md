@@ -174,7 +174,7 @@ ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'ima
 
 ### secure_log(s: str) -> str
 
-| Location | app.py:67-72 |
+| Location | app.py:82-87 |
 |----------|-------------|
 | Input | `s: str` - Raw string |
 | Output | `str` - Sanitized string |
@@ -191,7 +191,7 @@ def secure_log(s: str) -> str:
 
 ### status_emoji(status_code: int) -> str
 
-| Location | app.py:74-80 |
+| Location | app.py:89-95 |
 |----------|---------------|
 | Input | `status_code: int` - HTTP status code |
 | Output | `str` - Emoji (🟢/🟡/🔴) |
@@ -205,11 +205,33 @@ def secure_log(s: str) -> str:
 
 ### get_country_flag(accept_lang: str) -> str
 
-| Location | app.py:82-90 |
+| Location | app.py:97-105 |
 |----------|----------------|
 | Input | `accept_lang: str` - Accept-Language header |
 | Output | `str` - Country flag emoji |
 | Purpose | Extract country code from Accept-Language header |
+
+### get_ip_color_square(ip: str | None) -> str
+
+| Location | app.py:107-116 |
+|----------|----------------|
+| Input | `ip: str` - IP address string |
+| Output | `str` - Color square emoji (⬛️/🟫/🟪/🟦/🟩/⬜/🟨/🟧/🟥) |
+| Purpose | Generate consistent color square for IP address |
+
+The function uses a simple hash of the IP's octets to generate a consistent color. Same IP always maps to same color.
+
+| Hash Index | Emoji | Color |
+|------------|-------|-------|
+| 0 | ⬛️ | Black |
+| 1 | 🟫 | Brown |
+| 2 | 🟪 | Purple |
+| 3 | 🟦 | Blue |
+| 4 | 🟩 | Green |
+| 5 | ⬜ | White |
+| 6 | 🟨 | Yellow |
+| 7 | 🟧 | Orange |
+| 8 | 🟥 | Red |
 
 ### parse_user_agent(ua_str: str) -> tuple[str, str]
 

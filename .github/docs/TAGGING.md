@@ -8,39 +8,39 @@ e621tagger classifies images using 7,500+ tags organized into e621 categories. T
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                 Tag Classification System               │
-│                                                        │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │  Raw Model Output (7500+ logits)               │    │
-│  └──────────────────────┬────────────────────────┘    │
-│                           │                            │
-│                           ▼                            │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │  Sigmoid Activation (0.0 - 1.0)              │    │
-│  └──────────────────────┬────────────────────────┘    │
-│                           │                            │
-│                           ▼                            │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │  Implication Application                     │    │
-│  │  - Inherit, Constrain, Remove                │    │
-│  └──────────────────────┬────────────────────────┘    │
-│                           │                            │
-│                           ▼                            │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │  Threshold Filtering                         │    │
-│  │  - Category exclusion                      │    │
-│  │  - Per-tag thresholds                       │    │
-│  └──────────────────────┬────────────────────────┘    │
-│                           │                            │
-│                           ▼                            │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │  Top-K Selection                           │    │
-│  └──────────────────────┬────────────────────────┘    │
-│                           │                            │
-│                           ▼                            │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │  Category + Meta Tag Assignment             │    │
-│  └─────────────────────────────────────────────────┘    │
+│                 Tag Classification System                   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────┐        │
+│  │  Raw Model Output (7500+ logits)                │        │
+│  └────────────────────────┬────────────────────────┘        │
+│                           │                                 │
+│                           ▼                                 │
+│  ┌─────────────────────────────────────────────────┐        │
+│  │  Sigmoid Activation (0.0 - 1.0)                 │        │
+│  └────────────────────────┬────────────────────────┘        │
+│                           │                                 │
+│                           ▼                                 │
+│  ┌─────────────────────────────────────────────────┐        │
+│  │  Implication Application                        │        │
+│  │  - Inherit, Constrain, Remove                   │        │
+│  └────────────────────────┬────────────────────────┘        │
+│                           │                                 │
+│                           ▼                                 │
+│  ┌─────────────────────────────────────────────────┐        │
+│  │  Threshold Filtering                            │        │
+│  │  - Category exclusion                           │        │
+│  │  - Per-tag thresholds                           │        │
+│  └────────────────────────┬────────────────────────┘        │
+│                           │                                 │
+│                           ▼                                 │
+│  ┌─────────────────────────────────────────────────┐        │
+│  │  Top-K Selection                                │        │
+│  └────────────────────────┬────────────────────────┘        │
+│                           │                                 │
+│                           ▼                                 │
+│  ┌──────────────────────────────────────────────────┐       │
+│  │  Category + Meta Tag Assignment                  │       │
+│  └──────────────────────────────────────────────────┘       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -112,9 +112,9 @@ TAG_CATEGORIES = {
 ## Implication System
 
 Tags can imply other tags in hierarchical relationships. For example:
-- `intersex` implies `male` and `female`
-- `anthro` implies `humanoid` (in some contexts)
-- `masc` implies `male`
+- `sunglasses_on_head` implies `eyewear_on_head` and `sunglasses`
+- `vibrator` implies `sex_toy` (in some contexts)
+- `water_bottle` implies `bottle`
 
 ### Implication Modes
 
@@ -204,7 +204,7 @@ Standard aspect ratios are detected:
 16:9, 9:16, 21:9, 9:21
 ```
 
-Additionally, `widescreen` is detected for 16:9 (1920x1080, 3840x2160) or 16:10 (1920x1200) aspect ratios:
+Additionally, `widescreen` is detected for 16:9 or 16:10 aspect ratios:
 
 ### Implementation
 
