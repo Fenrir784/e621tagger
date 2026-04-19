@@ -466,7 +466,7 @@ h1 {
 
 #dropZone img {
     max-width: 100%;
-    max-height: 300px;
+    max-height: 350px;
     object-fit: contain;
     border-radius: 8px;
     display: block;
@@ -529,7 +529,7 @@ h1 {
 .global-buttons {
     display: flex;
     gap: 1.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     justify-content: center;
 }
 .global-copy-btn {
@@ -569,8 +569,8 @@ h1 {
     font-weight: 500;
     letter-spacing: 0.3px;
     display: inline-block;
-    color: #fff;
 }
+
 .rating-display.safe { background-color: var(--safe-bg); }
 .rating-display.questionable { background-color: var(--questionable-bg); }
 .rating-display.explicit { background-color: var(--explicit-bg); }
@@ -602,7 +602,7 @@ h1 {
     background-color: var(--low-bg);
     color: var(--low-text);
     padding: 0.2rem 0.6rem;
-    border-radius: 12px;
+    border-radius: 10px;
     font-size: 0.8rem;
     border: 1px solid transparent;
     opacity: 0.6;
