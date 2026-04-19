@@ -198,7 +198,7 @@ def log_request_end(response):
                 'other': '❓'
             }.get(device_type, '❓')
             logger.info(
-                "👤 %s %s %s %s %s %d %s %.1fms",
+                "👤 %s %s %s %s %s %s %d %s %.1fms",
                 ip_id, method, path, flag_part, device_emoji, ua_short,
                 status, emoji_status, duration
             )
