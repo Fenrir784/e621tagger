@@ -172,6 +172,13 @@ def log_request_end(response):
     response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
     response.headers['Content-Security-Policy'] = "default-src 'self'; img-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://e621.net; object-src 'none'; base-uri 'self';"
     
+    origin = request.headers.get('Origin', '')
+    if origin == 'https://tagger.vareniye.dev':
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        response.headers['Access-Control-Max-Age'] = '3600'
+
     if hasattr(g, 'start_time'):
         duration = (time.time() - g.start_time) * 1000
         status = response.status_code
@@ -379,9 +386,12 @@ def health():
         logger.exception("💥 Health check failed (version %s)", APP_VERSION)
         return jsonify({'status': 'unhealthy', 'reason': 'internal error'}), 503
 
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['POST', 'OPTIONS'])
 @limiter.limit("20 per minute")
 def predict():
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
+
     ip = secure_log(request.remote_addr)
     ip_id = get_ip_identifier(ip)
 
