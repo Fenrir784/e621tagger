@@ -56,12 +56,6 @@ services:
 
 ---
 
-## 🌐 CORS
-
-The `/predict` endpoint allows cross-origin requests only from `https://tagger.vareniye.dev`. To allow additional origins, modify the origin check in `app.py:176`.
-
----
-
 ## 🛠️ Technology Stack
 
 - **Backend:** Python, Flask, PyTorch, Gunicorn
