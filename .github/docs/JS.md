@@ -399,6 +399,12 @@ function showTagPopup(tagObj, targetElement) {
     popup.className = 'tag-popup';
     popup.innerHTML = `
         <div class="tag-popup-header">
+            <button class="tag-popup-copy-btn" title="Copy tag name">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ...>
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                </svg>
+            </button>
             <a href="https://e621.net/wiki_pages?title=${escapeHtml(tagName)}" target="_blank">...</a>
             <button class="close-popup">✕</button>
         </div>
@@ -409,6 +415,22 @@ function showTagPopup(tagObj, targetElement) {
     
     // Position popup
     // ... positioning code ...
+    
+    // Copy button handler
+    const copyBtn = popup.querySelector('.tag-popup-copy-btn');
+    copyBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (copyBtn._copyTimeout) clearTimeout(copyBtn._copyTimeout);
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(tagName);
+            } else {
+                // fallback using execCommand
+            }
+            copyBtn.classList.add('copied');
+            copyBtn._copyTimeout = setTimeout(() => copyBtn.classList.remove('copied'), 1000);
+        } catch {}
+    });
     
     // Fetch description
     fetchTagDescription(tagName).then(desc => {

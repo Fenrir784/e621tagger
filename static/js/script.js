@@ -331,6 +331,9 @@ function refreshTagClasses() {
         const wikiUrl = `https://e621.net/wiki_pages?title=${encodeURIComponent(tagName)}`;
         popup.innerHTML = `
             <div class="tag-popup-header">
+                <button class="tag-popup-copy-btn" title="Copy tag name">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                </button>
                 <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--confident-bg);">
                     <span>${escapeHtml(tagName)}</span>
                     <span style="color: var(--low-text); font-size: 0.7rem; text-decoration: underline;">read more</span>
@@ -356,6 +359,27 @@ function refreshTagClasses() {
         popup.style.left = `${left + window.scrollX}px`;
         const closeBtn = popup.querySelector('.close-popup');
         closeBtn.addEventListener('click', () => closePopup());
+        const copyBtn = popup.querySelector('.tag-popup-copy-btn');
+        copyBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (copyBtn._copyTimeout) clearTimeout(copyBtn._copyTimeout);
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(tagName);
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = tagName;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                }
+                copyBtn.classList.add('copied');
+                copyBtn._copyTimeout = setTimeout(() => copyBtn.classList.remove('copied'), 1000);
+            } catch {}
+        });
         fetchTagDescription(tagName).then(desc => {
             const content = popup.querySelector('.tag-popup-content');
             if (desc.exists) content.innerHTML = `<div class="tag-popup-text">${sanitizeHtml(parseDText(desc.body))}</div>`;

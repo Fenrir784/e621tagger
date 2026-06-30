@@ -1055,7 +1055,7 @@ Tags default to low confidence state (opacity 0.6) before classification:
 ```css
 .tag-popup-header {
     display: flex;
-    justify-content: space-between;
+    gap: 8px;
     align-items: center;
     padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--border-color);
@@ -1076,6 +1076,34 @@ Tags default to low confidence state (opacity 0.6) before classification:
     padding: 0 0.25rem;
     border-radius: 4px;
     touch-action: manipulation;
+    margin-left: auto;
+}
+.tag-popup-copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--low-text);
+    transition: color 0.2s, background-color 0.2s, transform 0.15s;
+    touch-action: manipulation;
+}
+.tag-popup-copy-btn:hover {
+    color: var(--text-color);
+    transform: scale(1.1);
+}
+.tag-popup-copy-btn:active {
+    transform: scale(0.9);
+}
+.tag-popup-copy-btn.copied {
+    color: #fff;
+    background-color: var(--success-color);
+    transform: scale(1);
 }
 ```
 
