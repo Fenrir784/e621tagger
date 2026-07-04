@@ -268,7 +268,7 @@ def patchify(
     if dtype is not None and dtype != img.dtype:
         img = img.to(dtype=dtype, memory_format=torch.contiguous_format)
 
-    return img.flatten(-3)
+    return img.flatten(1, 2).flatten(-3)
 
 def stack(
     images: list[Tensor],
