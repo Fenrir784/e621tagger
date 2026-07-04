@@ -130,8 +130,6 @@ The CLI supports five modes for handling implications:
 
 ### Implementation
 
-**File**: `inference.py`
-
 ```python
 def inherit_implications(labels, antecedent, metadata):
     """Tags inherit highest probability from implied tags."""
@@ -295,15 +293,7 @@ furry,0.45
 intersex,0.60
 ```
 
-### CLI Usage
 
-```bash
-# Global threshold
-python inference.py -t 0.2 image.png
-
-# Per-tag calibration
-python inference.py -t calibration.csv image.png
-```
 
 ---
 
@@ -350,36 +340,9 @@ Certain tags are rewritten for e621 compatibility (use `--original-tags` to disa
 |----------|----------|
 | `vulva` | `pussy` |
 
-> **Note:** This tag rewriting only applies to CLI inference (`inference.py`). The Flask API (`/predict` endpoint) returns raw model tags without rewriting.
+> **Note:** The Flask API (`/predict` endpoint) returns raw model tags without rewriting.
 
-```bash
-# Default: vulva → pussy
-python inference.py image.png
 
-# Keep original tags (for diffusion compatibility)
-python inference.py --original-tags image.png
-```
-
----
-
-## Category Exclusion
-
-Exclude specific categories from output:
-
-```bash
-# Exclude artist and lore tags
-python inference.py -x artist -x lore image.png
-```
-
-### CLI Arguments
-
-| Argument | Description |
-|----------|-------------|
-| `-t <float>` | Global threshold (-1.0 to 1.0 symmetric, or 0.0 to 1.0) |
-| `-t <csv>` | Per-tag calibration file |
-| `-i inherit` | Implication mode: inherit, constrain, remove, constrain-remove, off |
-| `-x artist` | Exclude Artist category |
-| `-x meta` | Exclude Meta category |
 | `-x lore` | Exclude Lore category |
 | `--original-tags` | Keep original tag names (disable vulva→pussy rewrite for diffusion) |
 
@@ -438,14 +401,7 @@ image1.png,0.95,0.89,0.87,...
 image2.png,0.91,0.78,0.65,...
 ```
 
-### With Per-Tag Probabilities
 
-```bash
-python inference.py -o - image.png
-
-filename,female,anthro,furry
-image.png,0.9500,0.8900,0.8700
-```
 
 ---
 
@@ -499,21 +455,7 @@ anthro,5,
 | `category` | Category ID (0-8, 100-111) |
 | `implications` | Space-separated list of implied tags |
 
-### Loading
 
-```python
-# inference.py
-def load_metadata(path, rewrite_tag=lambda x: x):
-    metadata = {}
-    with open(path) as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            metadata[rewrite_tag(row["tag"])] = (
-                int(row["category"]),
-                [rewrite_tag(t) for t in row["implications"].split()]
-            )
-    return metadata
-```
 
 ---
 
@@ -581,42 +523,3 @@ for idx, val in zip(indices, values):
 ### Frontend Rendering
 
 See [JS.md](JS.md) for frontend display logic.
-
----
-
-## CLI Examples
-
-### Basic Tagging
-
-```bash
-python inference.py image.png
-# Output: female anthro solo furry blue_eyes ...
-```
-
-### With Metadata
-
-```bash
-python inference.py -m data/jtp-3-hydra-tags.csv image.png
-# Applies implications and categories
-```
-
-### Conservative Mode
-
-```bash
-python inference.py -t 0.4 -i inherit -x artist -x lore image.png
-# Lower threshold, inherit implications, exclude artist/lore
-```
-
-### Batch Processing
-
-```bash
-python inference.py -r -o output.csv images/
-# Process directory recursively, output CSV
-```
-
-### GPU Inference
-
-```bash
-python inference.py -d cuda image.png
-# Use CUDA for faster processing
-```

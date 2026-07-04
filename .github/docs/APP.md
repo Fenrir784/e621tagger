@@ -128,16 +128,14 @@ limiter = Limiter(
 ### Model Configuration
 
 ```python
-MODEL_PATH = os.getenv('MODEL_PATH', 'models/jtp-3-hydra.safetensors')
-TAGS_PATH = os.getenv('TAGS_PATH', 'data/jtp-3-hydra-tags.csv')
+MODEL_PATH = os.getenv('MODEL_PATH', 'models/hydra-3.5.safetensors')
 DEVICE = os.getenv('DEVICE', 'cuda' if torch.cuda.is_available() else 'cpu')
 MAX_SEQ_LEN = int(os.getenv('MAX_SEQ_LEN', '1024'))
 PATCH_SIZE = 16
 ```
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MODEL_PATH` | `models/jtp-3-hydra.safetensors` | Model file location |
-| `TAGS_PATH` | `data/jtp-3-hydra-tags.csv` | Tag metadata CSV |
+| `MODEL_PATH` | `models/hydra-3.5.safetensors` | Model file location |
 | `DEVICE` | cuda/cpu | PyTorch device |
 | `MAX_SEQ_LEN` | 1024 | Max patches for input |
 | `PATCH_SIZE` | 16 | Patch size (pixels) |
@@ -491,8 +489,8 @@ These run at module load time (lines 191-215):
 if SAVE_UPLOADS:
     os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# 2. Load ML model
-model, tag_list, ext_info = load_model(MODEL_PATH, device=DEVICE)
+# 2. Load ML model — labels come from safetensors metadata
+model = hydra_load_model(MODEL_PATH)
 
 # 3. Convert dtype based on device
 if DEVICE == 'cpu':
@@ -503,19 +501,14 @@ else:
 # 4. Set model to inference mode
 model.requires_grad_(False)
 model.eval()
-
-# 5. Load tag metadata
-metadata = load_metadata(TAGS_PATH)
 ```
 
 ### Global Runtime Objects
 
 | Object | Type | Description |
 |--------|------|-------------|
-| `model` | NaFlexVit | Loaded ML model |
+| `model` | Hydra | Loaded ML model |
 | `tag_list` | list[str] | All tag names (~7500) |
-| `ext_info` | dict | Extension info |
-| `metadata` | dict | Tag categories and implications |
 
 ---
 

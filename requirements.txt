@@ -1,11 +1,9 @@
 flask==2.3.3
 flask-limiter==3.5.0
 gunicorn==20.1.0
-torch==2.5.1
-torchvision==0.20.1
-pillow==11.1.0
+torch>=2.6.0,<2.13.0
 numpy==1.26.4
 safetensors==0.4.5
 einops==0.8.1
-opencv-python==4.10.0.84
+pyvips[binary]
 ua-parser==1.0.2

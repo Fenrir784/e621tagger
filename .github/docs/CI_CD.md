@@ -109,14 +109,14 @@ env:
 - name: Check if model exists
   id: model-exists
   run: |
-    if [[ -f "models/jtp-3-hydra.safetensors" ]]; then
+    if [[ -f "models/hydra-3.5.safetensors" ]]; then
       echo "exists=true" >> $GITHUB_OUTPUT
     else
       echo "exists=false" >> $GITHUB_OUTPUT
     fi
 ```
 
-**Purpose**: Check if model file exists (from cache or previous run). The tag CSV file (`data/jtp-3-hydra-tags.csv`) is now stored in the repository and copied during Docker build.
+**Purpose**: Check if the model file exists (from cache or previous run).
 
 ---
 
@@ -127,15 +127,14 @@ env:
   if: steps.model-exists.outputs.exists != 'true'
   run: |
     mkdir -p models
-    curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
-      "https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors"
+    curl -L --retry 3 --fail -o models/hydra-3.5.safetensors \
+      "https://huggingface.co/RedRocket/Hydra/resolve/main/models/hydra-3.5.safetensors"
 ```
 
-**Purpose**: Download ML model file (~500MB) only if not already cached.
+**Purpose**: Download ML model file (~1GB) only if not already cached.
 - Uses `curl` with retry logic instead of deprecated `ADD` with remote URLs
 - Only runs when model file doesn't exist (~2-3 min vs ~5 sec)
 - Works correctly with `restore-keys` fallback
-- Tag CSV is now included via repository (copied in Docker build)
 
 ---
 
@@ -649,7 +648,7 @@ jobs:
       - name: Check if model exists
         id: model-exists
         run: |
-          if [[ -f "models/jtp-3-hydra.safetensors" ]]; then
+          if [[ -f "models/hydra-3.5.safetensors" ]]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -659,8 +658,8 @@ jobs:
         if: steps.model-exists.outputs.exists != 'true'
         run: |
           mkdir -p models
-          curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
-            "https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors"
+          curl -L --retry 3 --fail -o models/hydra-3.5.safetensors \
+            "https://huggingface.co/RedRocket/Hydra/resolve/main/models/hydra-3.5.safetensors"
 
       - uses: sigstore/cosign-installer@v4
 

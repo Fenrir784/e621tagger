@@ -41,8 +41,7 @@ GET  /static/<path>       - Static assets
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MODEL_PATH` | `models/jtp-3-hydra.safetensors` | Model file path |
-| `TAGS_PATH` | `data/jtp-3-hydra-tags.csv` | Tag metadata CSV |
+| `MODEL_PATH` | `models/hydra-3.5.safetensors` | Model file path |
 | `DEVICE` | `cuda` (fallback: `cpu`) | PyTorch device |
 | `MAX_SEQ_LEN` | `1024` | Maximum sequence length |
 | `APP_VERSION` | `test` | Application version |
@@ -63,12 +62,8 @@ ghcr.io/fenrir784/e621tagger:latest
 | File | Purpose |
 |------|---------|
 | `app.py` | Flask application, API endpoints, rate limiting |
-| `model.py` | Model loading, image processing, extension system |
-| `inference.py` | CLI for batch classification, tag metadata |
-| `hydra_pool.py` | Hydra attention pooling layer |
-| `siglip2.py` | NaFlex Vision Transformer backbone |
-| `image.py` | sRGB color management, patch extraction |
-| `loader.py` | Multi-process image loading |
+| `hydra/` | Model library (HydraPool, NaFlexVit, head, labels, image processing) |
+| `utils/` | Utilities (multi-process Loader, WorkQueue) |
 
 ### Supported Image Formats
 
@@ -123,14 +118,14 @@ curl -X POST -F "image=@image.png" https://tagger.fenrir784.ru/predict
 
 ## Model Information
 
-- **Architecture**: naflexvit_so400m_patch16_siglip + HydraPool
+- **Architecture**: naflexvit_so400m_patch16_siglip + rr_hydra2
 - **Base Model**: SigLIP-400m
-- **Tags**: ~7,500 (determined by model file)
+- **Tags**: ~8,900 (determined by model file)
 - **Input**: Image patches (16x16)
 - **Sequence Length**: Up to 1024 patches
-- **Model Source**: HuggingFace `RedRocket/JTP-3`
+- **Model Source**: HuggingFace `RedRocket/Hydra`
 
-> **Note:** The exact tag count depends on the model file loaded. The default model contains approximately 7,500 tags.
+> **Note:** The exact tag count depends on the model file loaded. The default model contains approximately 8,900 tags.
 
 ## Security Headers
 

@@ -320,13 +320,10 @@ print(f"Valid: {patch_valid.shape}")  # (1024,)
 
 ```python
 import torch
-from model import load_model, load_image
+from hydra.model import Hydra, load_model, open_image
 
 # 1. Load model
-model, tag_list, ext_info = load_model(
-    "models/jtp-3-hydra.safetensors",
-    device="cuda"
-)
+model: Hydra = load_model("models/hydra-3.5.safetensors")
 model.eval()
 
 # 2. Load and process image
@@ -396,17 +393,13 @@ Extensions allow adding new classification tags to the model without retraining.
 ### Loading Extensions
 
 ```python
-from model import load_model, discover_extensions
+from hydra.model import Hydra, load_model, Extension
 
 # Load model with extensions
-model, tags, ext_info = load_model(
-    "models/jtp-3-hydra.safetensors",
-    extensions=discover_extensions("extensions/"),
-    device="cuda"
-)
+model: Hydra = load_model("models/hydra-3.5.safetensors")
+model.load_extensions(Extension.discover("extensions/"))
 
-print(f"Total tags: {len(tags)}")
-for path, info in ext_info.items():
+print(f"Total tags: {len(model.labels)}")
     print(f"  {path}: {info['label']}")
 ```
 
@@ -420,33 +413,6 @@ extensions/
 ```
 
 ---
-
-## CLI Inference
-
-The `inference.py` script provides command-line batch processing.
-
-### Basic Usage
-
-```bash
-# Single image (interactive)
-python inference.py image.png
-
-# Batch from directory
-python inference.py -r -o output.csv images/
-
-# With options
-python inference.py -t 0.2 -i inherit -x artist image.png
-
-# CUDA
-python inference.py -d cuda image.png
-```
-
-### Arguments
-
-| Argument | Description |
-|----------|-------------|
-| `-t`, `--threshold` | Classification threshold (-1.0 to 1.0) or calibration CSV path |
-| `-i`, `--implications` | Implication mode (inherit, constrain, remove, constrain-remove, off) |
 | `-x`, `--exclude` | Exclude category (may specify multiple) |
 | `-b`, `--batch` | Batch size |
 | `-w`, `--workers` | Number of dataloader workers |
@@ -490,12 +456,6 @@ anthro,0.50
 furry,0.45
 ```
 
-### Usage
-
-```bash
-python inference.py -t calibration.csv image.png
-```
-
 ### Threshold Modes
 
 | Mode | Description |
@@ -503,43 +463,7 @@ python inference.py -t calibration.csv image.png
 | `-1.0 to 1.0` | Symmetric threshold (0 = 50% probability) |
 | `calibration.csv` | Per-tag thresholds |
 
-### Threshold Conversion
 
-The symmetric threshold uses logits internally. Values are converted between probability space and logit space:
-
-```python
-# inference.py - conversion functions
-def from_symmetric(t: float) -> float:
-    """Convert symmetric threshold (-1.0 to 1.0) to probability (0.0 to 1.0)."""
-    return torch.sigmoid(torch.tensor(t)).item()
-
-def to_symmetric(p: float) -> float:
-    """Convert probability (0.0 to 1.0) to symmetric threshold (-1.0 to 1.0)."""
-    return torch.logit(torch.tensor(p)).item()
-```
-
-Example:
-| Symmetric | Probability |
-|----------|-------------|
-| -1.0 | ~26.9% |
-| 0.0 | 50.0% |
-| 1.0 | ~73.1% |
-
-### Tag Rewriting
-
-By default, certain tags are rewritten for e621 compatibility:
-
-```python
-# inference.py - rewrite_tag function
-def rewrite_tag(tag: str) -> str:
-    if not args.original_tags:
-        tag = tag.replace("vulva", "pussy")
-    return tag
-```
-
-| Original | Rewritten | Flag to Keep Original |
-|----------|-----------|---------------------|
-| `vulva` | `pussy` | `--original-tags` |
 
 ---
 
@@ -618,13 +542,13 @@ model = model.to(dtype=torch.bfloat16)
 The Flask app in `app.py` wraps the model:
 
 ```python
-from model import load_model, load_image
+from hydra.model import load_model
 
 # Load on startup
-MODEL_PATH = os.getenv('MODEL_PATH', 'models/jtp-3-hydra.safetensors')
+MODEL_PATH = os.getenv('MODEL_PATH', 'models/hydra-3.5.safetensors')
 DEVICE = os.getenv('DEVICE', 'cuda' if torch.cuda.is_available() else 'cpu')
 
-model, tag_list, ext_info = load_model(MODEL_PATH, device=DEVICE)
+model = load_model(MODEL_PATH)
 
 if DEVICE == 'cpu':
     model = model.float()

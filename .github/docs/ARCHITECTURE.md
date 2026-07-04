@@ -49,12 +49,9 @@ e621tagger is a Flask-based web application that provides automatic image taggin
 | Component | File | Responsibility |
 |-----------|------|----------------|
 | Flask App | `app.py` | HTTP routing, request handling, security |
-| Model Loader | `model.py` | Model loading, image patch extraction |
-| Inference | `inference.py` | CLI batch inference, metadata handling |
-| HydraPool | `hydra_pool.py` | Attention-based classification head |
-| NaFlexVit | `siglip2.py` | Vision Transformer backbone |
-| Image Processor | `image.py` | sRGB conversion, patch creation |
-| Loader | `loader.py` | Multi-process image loading for batching |
+| Model Library | `hydra/` | Model loading, inference, labels, pooling, head |
+| Image Processor | `hydra/image.py` | sRGB conversion, patch creation |
+| Loader | `utils/loader.py` | Multi-process image loading for batching |
 
 ### Component Interaction Diagram
 
@@ -173,8 +170,7 @@ User Upload
 ```
 Environment Variables (app.py)
     │
-    ├── MODEL_PATH → load_model() → NaFlexVit + HydraPool
-    ├── TAGS_PATH → load_metadata() → tag categories, implications
+    ├── MODEL_PATH → hydra_load_model() → Hydra
     ├── DEVICE → CUDA/CPU selection
     ├── MAX_SEQ_LEN → image resize constraint
     ├── SAVE_UPLOADS → file persistence
@@ -332,12 +328,8 @@ When using multiple Gunicorn workers, each worker loads its own model copy:
 ```
 e621tagger/
 ├── app.py                    # Flask application
-├── model.py                  # Model loading, image processing
-├── inference.py              # CLI batch processing
-├── siglip2.py               # NaFlex ViT backbone
-├── hydra_pool.py            # Hydra attention pooling
-├── image.py                # Image processing
-├── loader.py               # Multi-process loader
+├── hydra/                    # Model library (model, pool, head, image, labels)
+├── utils/                    # Utilities (loader, workqueue)
 ├── templates/
 │   ├── index.html          # Main UI template
 │   └── service-worker.js   # PWA service worker (Jinja2 template rendered at runtime)

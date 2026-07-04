@@ -2,8 +2,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    libgl1 \
-    libglib2.0-0 \
+    libvips \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -11,13 +10,15 @@ COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip pip install --no-cache-dir -r requirements.txt
 
 # Uncomment and delete copy models and data if building locally
-#ADD https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors models/jtp-3-hydra.safetensors
-#ADD https://huggingface.co/RedRocket/JTP-3/resolve/main/data/jtp-3-hydra-tags.csv data/jtp-3-hydra-tags.csv
+#ADD https://huggingface.co/RedRocket/Hydra/resolve/main/models/hydra-3.5.safetensors models/hydra-3.5.safetensors
+
 
 COPY models/ ./models/
 COPY data/ ./data/
 
 COPY *.py ./
+COPY hydra/ ./hydra/
+COPY utils/ ./utils/
 COPY templates/ ./templates/
 COPY static/ ./static/
 
