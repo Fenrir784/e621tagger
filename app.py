@@ -122,6 +122,7 @@ def get_ip_identifier(ip: str | None) -> str:
     colors = ['⬛️', '🟫', '🟪', '🟦', '🟩', '⬜', '🟨', '🟧', '🟥']
     if not ip:
         return ""
+    ip = secure_log(ip)
     try:
         octets = [int(b) for b in ip.split('.')]
         h = sum(octets) + octets[-1]
@@ -234,7 +235,7 @@ def _ban_ip(ip, duration, reason):
     _save_bans()
     ip_id = get_ip_identifier(ip)
     until = datetime.fromtimestamp(now + duration, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    logger.warning("🚫 %s: banned — %s (until %s)", ip_id, reason, until)
+    logger.warning("🚫 %s: banned — %s (until %s)", ip_id, secure_log(reason), until)
 
 def _prune_strikes(ip):
     cutoff = time.time() - STRIKE_WINDOW
