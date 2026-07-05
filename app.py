@@ -181,7 +181,7 @@ def _load_bans():
     global _bans
     try:
         p = BAN_FILE
-        if not os.path.exists(p):
+        if not os.path.isfile(p):
             _bans = {}
             return
         with open(p, 'r') as f:
