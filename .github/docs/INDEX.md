@@ -17,6 +17,7 @@ e621tagger is a web-based tool that automatically generates relevant tags for fu
 | [MODEL.md](MODEL.md) | JTP-3 Hydra architecture, NaFlexVit details | ML/inference agents | Model architecture, inference |
 | [TAGGING.md](TAGGING.md) | Tag classification, implications, categories | Content handling agents | Categories, thresholds, output |
 | [CONFIG.md](CONFIG.md) | Environment variables, configuration options | Deployment agents | Env vars, Docker, Gunicorn |
+| [SECURITY.md](SECURITY.md) | Fuzzer detection, automatic IP ban | DevOps agents | 404 tracking, strikes, banning |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Docker setup, self-hosting guide | DevOps agents | Docker, compose, production |
 | [CI_CD.md](CI_CD.md) | GitHub Actions workflow, CI/CD pipeline | CI/CD agents | Build, deploy, versioning |
 | [COMPOSE.md](COMPOSE.md) | Docker Compose configurations | DevOps agents | Compose files, networking |

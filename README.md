@@ -35,10 +35,12 @@ services:
       - TZ=Europe/Moscow           # optional, adjust to your timezone
       - SAVE_UPLOADS=true          # optional, default is false
       - USE_PROXY=true             # optional, default is false, set to true for correct client IPs while using reverse proxy
+      - RATE_LIMIT_ENABLED=true    # optional, default is false, enables rate limiting and automatic 404 IP bans
       - GUNICORN_WORKERS=2         # optional, default is 1, amount of workers up, useful for redundancy  
       - GUNICORN_TIMEOUT=120       # optional, default is 120(seconds), timeout before worker tries to restart
     volumes:
       - ./uploads:/app/uploads     # where uploaded images are saved (if enabled)
+      - ./banned_ips.json:/app/banned_ips.json   # optional, persistent IP ban list across restarts
     restart: unless-stopped
 ```
 1. Save the file as `docker-compose.yml`.

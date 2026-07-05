@@ -29,6 +29,7 @@ This document provides comprehensive reference for all environment variables and
 | `USE_PROXY` | `false` | No | Trust reverse proxy headers |
 | `GUNICORN_WORKERS` | `1` | No | Number of Gunicorn workers |
 | `GUNICORN_TIMEOUT` | `120` | No | Worker timeout in seconds |
+| `RATE_LIMIT_ENABLED` | `false` | No | Enable rate limiting and automatic 404 IP bans |
 
 ---
 
@@ -141,6 +142,28 @@ UPLOAD_DIR=/app/uploads
 # Custom directory
 UPLOAD_DIR=/data/uploads
 ```
+
+### RATE_LIMIT_ENABLED
+
+Enables Flask rate limiting and automatic 404 IP bans.
+
+```bash
+# Default (disabled)
+RATE_LIMIT_ENABLED=false
+
+# Enable
+RATE_LIMIT_ENABLED=true
+```
+
+**When disabled** (default):
+- Flask-Limiter is inactive (no per-IP rate caps)
+- 404 strike tracking and IP bans are skipped
+
+**When enabled**:
+- Flask-Limiter applies a global 500/hour limit and 20/minute on `/predict`
+- IPs with 3+ 404 responses in a 30-day window receive a 1-hour ban
+- IPs with 5+ 404 responses receive a 30-day ban
+- See [SECURITY.md](SECURITY.md) for full details
 
 ### USE_PROXY
 
