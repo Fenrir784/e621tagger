@@ -17,7 +17,6 @@ COPY models/ ./models/
 
 COPY *.py ./
 COPY hydra/ ./hydra/
-COPY utils/ ./utils/
 COPY templates/ ./templates/
 COPY static/ ./static/
 
