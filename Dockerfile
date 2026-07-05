@@ -25,6 +25,7 @@ COPY static/ ./static/
 ARG APP_VERSION=test
 ENV APP_VERSION=${APP_VERSION}
 ENV GUNICORN_WORKERS=1
+ENV VIPS_INFO=0
 ENV GUNICORN_TIMEOUT=120
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
