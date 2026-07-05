@@ -15,6 +15,7 @@ Local:      http://localhost:5000
 |--------|------|-------------|------------|
 | GET | `/` | Main UI page | - |
 | POST | `/predict` | Submit image for tagging | 20/min, 500/hr |
+| OPTIONS | `/predict` | CORS preflight | - |
 | GET | `/health` | Health check | - |
 | GET | `/service-worker.js` | PWA service worker | - |
 | GET | `/static/<path>` | Static assets | - |
@@ -178,9 +179,11 @@ Content-Type: application/json
 
 ### Categories
 
+General tags are further split into 12 subcategories using the `_SUBCATEGORY_MAP` in `hydra/_subcat.py`. The API returns the subcategory display name in the `category` field:
+
 | ID | Name | Description |
 |----|------|-------------|
-| 0 | General | General tags (includes 100-111) |
+| 0 | General | General tags (split into 12 subcategories below) |
 | 1 | Artist | Artist tags |
 | 2 | Contributor | Contributor tags |
 | 3 | Copyright | Copyright/series tags |
@@ -202,7 +205,7 @@ Content-Type: application/json
 | 110 | Text, Symbols, UI, Vocalization | Text and UI tags |
 | 111 | Other | Tags from unrecognized categories |
 
-> **Note:** When copying tags to clipboard, categories 100-111 are merged into "General" to maintain e621 compatibility.
+> **Note:** When copying tags to clipboard, categories 100-111 are merged into "General" to maintain e621 compatibility. The subcategory mapping uses a multi-tier strategy (old CSV, renames, heuristic keywords, color prefix) and has been validated to 100% coverage (6,263/6,263 general tags). See [TAGGING.md](TAGGING.md) for details.
 
 ### Auto-Generated Meta Tags
 
@@ -250,7 +253,7 @@ Content-Type: application/json
 | 400 | `Empty filename` | Empty filename parameter |
 | 400 | `File type not allowed` | Unsupported file extension |
 | 400 | `Invalid or corrupted image file` | Image verification failed |
-| 413 | `File too large` | Exceeds 20MB limit |
+| 413 | `File too large. Maximum size is 20MB.` | Exceeds 20MB limit |
 | 429 | Rate limit exceeded | Too many requests |
 | 500 | `Internal server error` | Processing failed |
 
@@ -275,8 +278,8 @@ Content-Type: application/json
 
 {
   "status": "healthy",
-  "model": "loaded",
-  "tags_count": 7500,
+  "model": "hydra-3.5",
+  "tags_count": 8888,
   "version": "v123"
 }
 ```
@@ -298,8 +301,8 @@ Content-Type: application/json
 | Field | Type | Description |
 |-------|------|-------------|
 | `status` | string | `healthy` or `unhealthy` |
-| `model` | string | `loaded` if healthy |
-| `tags_count` | integer | Number of tags in model |
+| `model` | string | Model name (e.g. `hydra-3.5`) |
+| `tags_count` | integer | Number of tags in model (8,888 for Hydra 3.5) |
 | `version` | string | Application version |
 | `reason` | string | Error reason if unhealthy |
 

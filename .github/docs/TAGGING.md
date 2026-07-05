@@ -1,17 +1,17 @@
 # Tag Classification and Implications
 
-This document provides comprehensive documentation of the tag classification system used by e621tagger. It covers tag categories, implication logic, threshold handling, and output presentation.
+This document provides comprehensive documentation of the tag classification system used by e621tagger. It covers tag categories, subcategory classification, implication logic, threshold handling, and output presentation.
 
 ## Tag System Overview
 
-e621tagger classifies images using 7,500+ tags organized into e621 categories. Tags are assigned confidence scores and can have implications (hierarchical relationships) that affect final output.
+e621tagger classifies images using **8,888 tags** (Hydra 3.5 model) organized into e621 categories. Tags are assigned confidence scores and can have implications (hierarchical relationships) that affect final output. Each `general`-category tag is further classified into one of **12 fine-grained subcategories** for better UI organization.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                 Tag Classification System                   │
 │                                                             │
 │  ┌─────────────────────────────────────────────────┐        │
-│  │  Raw Model Output (7500+ logits)                │        │
+│  │  Raw Model Output (8,888 logits)                │        │
 │  └────────────────────────┬────────────────────────┘        │
 │                           │                                 │
 │                           ▼                                 │
@@ -36,6 +36,13 @@ e621tagger classifies images using 7,500+ tags organized into e621 categories. T
 │  ┌─────────────────────────────────────────────────┐        │
 │  │  Top-K Selection                                │        │
 │  └────────────────────────┬────────────────────────┘        │
+│                           │                                 │
+│                           ▼                                 │
+│  ┌──────────────────────────────────────────────────┐       │
+│  │  Subcategory Classification                     │       │
+│  │  - _SUBCATEGORY_MAP lookup                      │       │
+│  │  - Color prefix heuristic fallback              │       │
+│  └────────────────────────┬────────────────────────┘       │
 │                           │                                 │
 │                           ▼                                 │
 │  ┌──────────────────────────────────────────────────┐       │
@@ -109,6 +116,110 @@ TAG_CATEGORIES = {
 
 ---
 
+## Subcategory Classification
+
+General tags (category 0) are further split into **12 fine-grained subcategories** for better UI organization. The subcategory is determined by `Label.subcategory` in `hydra/label.py`.
+
+### Subcategory Mapping
+
+| Subcategory | Code | Description | Examples |
+|-------------|------|-------------|----------|
+| Accessories, Items, Clothing | `accessory` | Clothing, accessories, items | `scarf`, `hat`, `belt`, `sword` |
+| Actions, Positions, State | `action` | Actions and dynamic states | `kissing`, `running`, `sitting_on_lap` |
+| Body Color | `color` | Color markings | `red_fur`, `blue_eyes`, `black_markings` |
+| Body Features | `body_feature` | Body parts/features | `tail`, `wings`, `horns`, `claws` |
+| Effects, Fluids | `effect` | Visual effects, fluids | `sparkles`, `glowing`, `cum` |
+| Fetishes, Specifics, Interactions | `fetish` | Adult content categories | `anal`, `footjob`, `bondage` |
+| Genders, Demographics | `demographic` | Gender-related | `male`, `female`, `herm`, `femboy` |
+| Locations, Backgrounds, Setting | `setting` | Environments | `forest`, `bedroom`, `beach` |
+| Poses, Scenarios, Situations | `pose` | Scene setup | `profile_view`, `closeup`, `splits` |
+| Style, Perspective | `style` | Art style | `chibi`, `realistic`, `comic`, `perspective` |
+| Text, Symbols, UI, Vocalization | `text` | Text elements | `speech_bubble`, `onomatopoeia` |
+| Other | `other` | Miscellaneous | Unrecognized / uncategorized tags |
+
+### Implementation
+
+**File**: `hydra/_subcat.py`
+
+The subcategory is resolved via `Label.subcategory` in `hydra/label.py:102-121`:
+
+```python
+@property
+@cache
+def subcategory(self) -> str | None:
+    if self.category == "general":
+        if self.label in _SUBCATEGORY_MAP:
+            return _SUBCATEGORY_MAP[self.label]
+        if (
+            self.label.startswith(COLOR_PREFIXES)
+            and not self.label.endswith(COLOR_EXCEPTIONS)
+        ):
+            return "color"
+        return None
+
+    if (
+        self.category == "meta"
+        and self.label in ("safe", "questionable", "explicit")
+    ):
+        return "rating"
+
+    return None
+```
+
+### Mapping Strategy
+
+The `_SUBCATEGORY_MAP` in `hydra/_subcat.py` is a pre-built dictionary of **6,263 tag→subcategory** mappings. At inference time, the subcategory is resolved by [`Label.subcategory`](#implementation) via:
+
+1. **Direct lookup** in `_SUBCATEGORY_MAP` (covers the majority of general tags)
+2. **Color prefix heuristic** in `label.py` — tags starting with color prefixes (e.g. `red_`, `blue_`, `black_`) that aren't in the map but aren't color exceptions are classified as `"color"`
+3. **Fallback** — `None` for tags that don't match either
+
+| Lookup | Description | Tags Covered |
+|--------|-------------|--------------|
+| 1. `_SUBCATEGORY_MAP` | Pre-built dictionary mapping each known general tag to its subcategory | 6,263 |
+| 2. Color prefix | `COLOR_PREFIXES` in `label.py` (18+ prefixes like `red_`, `blue_`, `dark_`) | Remaining color tags |
+| 3. Fallback | Returns `None` | Unclassified tags |
+
+### Coverage Validation
+
+The subcategory mapping was validated by 12 independent sub-agents, each reviewing every general tag in their domain (6,263 total). The validation process identified **1,951 corrections** across all 12 subcategories:
+
+| Subcategory | Corrections Applied |
+|-------------|--------------------|
+| action | 527 |
+| accessory | 283 |
+| pose | 227 |
+| body_feature | 219 |
+| other | 202 |
+| effect | 123 |
+| demographic | 92 |
+| style | 88 |
+| color | 73 |
+| text | 58 |
+| setting | 33 |
+| fetish | 26 |
+| **Total** | **1,951** |
+
+### Subcategory in the API
+
+The `/predict` endpoint returns subcategory via the `category` field:
+
+```json
+{
+  "tag": "female",
+  "prob": 0.95,
+  "category": "Genders, Demographics"
+}
+```
+
+The `SUBCATEGORY_DISPLAY_NAMES` map in `app.py:32-45` converts internal subcategory codes to display names.
+
+### Web UI Display
+
+The frontend in `script.js` uses `displayCategoryOrder` (line 36) to render all 12 subcategories as separate visual categories, each with its own color-coded header. When copying to clipboard, subcategories are merged back into "General" for e621 compatibility.
+
+---
+
 ## Implication System
 
 Tags can imply other tags in hierarchical relationships. For example:
@@ -118,43 +229,62 @@ Tags can imply other tags in hierarchical relationships. For example:
 
 ### Implication Modes
 
-The CLI supports five modes for handling implications:
+The pipeline supports several modes for handling implications, configured via the `implications` parameter in `classification.py`:
 
 | Mode | Description | Behavior |
 |------|-------------|----------|
+| `off` | No implications | Simple threshold filtering only |
+| `preserve` | Qualify implications | Require implied tags to meet threshold |
 | `inherit` | Tags inherit highest probability | If A implies B, B's prob = max(B's prob, A's prob) |
 | `constrain` | Tags constrained to lowest | If A implies B, A's prob = min(A's prob, B's prob) |
-| `remove` | Exclude implied tags | Remove all tags that are implied by other tags |
+| `remove` | Exclude implied tags | Remove all tags implied by other tags |
 | `constrain-remove` | Combination | Constrain then remove |
-| `off` | No implications | Ignore implication relationships |
+| `enforce` | Enforce implications | Remove tags whose implied tags don't meet threshold |
+| `enforce-inherit` | Enforce + inherit | Enforce then inherit |
+| `enforce-constrain` | Enforce + constrain | Enforce then constrain |
+| `enforce-remove` | Enforce + remove | Enforce then remove |
 
 ### Implementation
 
-**File**: `inference.py`
-
 ```python
-def inherit_implications(labels, antecedent, metadata):
-    """Tags inherit highest probability from implied tags."""
-    p = labels[antecedent]
-    for consequent in metadata.get(antecedent, ()):
-        q = labels.get(consequent)
-        if q is not None and q < p:
-            labels[consequent] = p
-        inherit_implications(labels, consequent, metadata)
+def _inherit_implications(
+    outputs: dict[str, float],
+    antecedent: str, prob: float,
+    labels: dict[str, tuple[Label, float]]
+) -> None:
+    if (label := labels.get(antecedent)) is None:
+        return
 
-def constrain_implications(labels, antecedent, metadata):
-    """Tags constrained to lowest implied probability."""
-    for consequent in metadata.get(antecedent, ()):
-        p = labels.get(consequent)
-        if p is not None and labels[antecedent] > p:
-            labels[antecedent] = p
-        constrain_implications(labels, consequent, metadata)
+    for consequent in label[0].implies:
+        if outputs.get(consequent, float("+inf")) < prob:
+            outputs[consequent] = prob
 
-def remove_implications(labels, antecedent, metadata):
-    """Remove implied tags."""
-    for consequent in metadata.get(antecedent, ()):
-        labels.pop(consequent, None)
-        remove_implications(labels, consequent, metadata)
+        _inherit_implications(outputs, consequent, prob, labels)
+
+def _constrain_implications(
+    outputs: dict[str, float],
+    consequent: str, prob: float,
+    labels: dict[str, tuple[Label, float]]
+) -> None:
+    if (label := labels.get(consequent)) is None:
+        return
+
+    for antecedent in label[0].implied_by:
+        if outputs.get(antecedent, float("-inf")) > prob:
+            outputs[antecedent] = prob
+
+        _constrain_implications(outputs, antecedent, prob, labels)
+
+def _remove_consequents(
+    outputs: dict[str, float], antecedent: str,
+    labels: dict[str, tuple[Label, float]]
+) -> None:
+    if (label := labels.get(antecedent)) is None:
+        return
+
+    for consequent in label[0].implies:
+        outputs.pop(consequent, None)
+        _remove_consequents(outputs, consequent, labels)
 ```
 
 ### Example
@@ -257,9 +387,9 @@ The frontend exposes three threshold presets:
 
 | Preset | "All" Threshold | "Confident" Threshold |
 |-------|----------------|---------------------|
-| Conservative | 0.65 | 0.85 |
-| Standard | 0.55 | 0.75 |
-| Liberal | 0.45 | 0.65 |
+| Conservative | 0.70 | 0.80 |
+| Standard | 0.60 | 0.70 |
+| Liberal | 0.50 | 0.60 |
 | Custom | User-defined | User-defined |
 
 ### Threshold Semantics
@@ -272,9 +402,9 @@ The frontend exposes three threshold presets:
 ```python
 # Frontend (script.js) threshold logic
 const presets = {
-    conservative: { all: 0.65, confident: 0.85 },
-    standard: { all: 0.55, confident: 0.75 },
-    liberal: { all: 0.45, confident: 0.65 }
+    conservative: { all: 0.70, confident: 0.80 },
+    standard: { all: 0.60, confident: 0.70 },
+    liberal: { all: 0.50, confident: 0.60 }
 };
 
 // Applied in frontend for display:
@@ -295,15 +425,7 @@ furry,0.45
 intersex,0.60
 ```
 
-### CLI Usage
 
-```bash
-# Global threshold
-python inference.py -t 0.2 image.png
-
-# Per-tag calibration
-python inference.py -t calibration.csv image.png
-```
 
 ---
 
@@ -350,36 +472,9 @@ Certain tags are rewritten for e621 compatibility (use `--original-tags` to disa
 |----------|----------|
 | `vulva` | `pussy` |
 
-> **Note:** This tag rewriting only applies to CLI inference (`inference.py`). The Flask API (`/predict` endpoint) returns raw model tags without rewriting.
+> **Note:** The Flask API (`/predict` endpoint) returns raw model tags without rewriting.
 
-```bash
-# Default: vulva → pussy
-python inference.py image.png
 
-# Keep original tags (for diffusion compatibility)
-python inference.py --original-tags image.png
-```
-
----
-
-## Category Exclusion
-
-Exclude specific categories from output:
-
-```bash
-# Exclude artist and lore tags
-python inference.py -x artist -x lore image.png
-```
-
-### CLI Arguments
-
-| Argument | Description |
-|----------|-------------|
-| `-t <float>` | Global threshold (-1.0 to 1.0 symmetric, or 0.0 to 1.0) |
-| `-t <csv>` | Per-tag calibration file |
-| `-i inherit` | Implication mode: inherit, constrain, remove, constrain-remove, off |
-| `-x artist` | Exclude Artist category |
-| `-x meta` | Exclude Meta category |
 | `-x lore` | Exclude Lore category |
 | `--original-tags` | Keep original tag names (disable vulva→pussy rewrite for diffusion) |
 
@@ -438,14 +533,7 @@ image1.png,0.95,0.89,0.87,...
 image2.png,0.91,0.78,0.65,...
 ```
 
-### With Per-Tag Probabilities
 
-```bash
-python inference.py -o - image.png
-
-filename,female,anthro,furry
-image.png,0.9500,0.8900,0.8700
-```
 
 ---
 
@@ -499,21 +587,7 @@ anthro,5,
 | `category` | Category ID (0-8, 100-111) |
 | `implications` | Space-separated list of implied tags |
 
-### Loading
 
-```python
-# inference.py
-def load_metadata(path, rewrite_tag=lambda x: x):
-    metadata = {}
-    with open(path) as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            metadata[rewrite_tag(row["tag"])] = (
-                int(row["category"]),
-                [rewrite_tag(t) for t in row["implications"].split()]
-            )
-    return metadata
-```
 
 ---
 
@@ -565,14 +639,16 @@ These are detected from the model predictions, not auto-generated.
 ### API Response Building
 
 ```python
-# app.py
+# app.py:462-474
 for idx, val in zip(indices, values):
-    tag = tag_list[idx.item()]
+    label = model.labels[int(idx.item())]
     prob = val.item()
-    cat_id = metadata.get(tag, (-1, []))[0]
-    category_name = TAG_CATEGORIES.get(cat_id, "Other")
+    if label.subcategory and label.subcategory in SUBCATEGORY_DISPLAY_NAMES:
+        category_name = SUBCATEGORY_DISPLAY_NAMES[label.subcategory]
+    else:
+        category_name = TAG_CATEGORIES.get(label.category, label.category.title())
     tags_with_probs.append({
-        "tag": tag,
+        "tag": label.label,
         "prob": prob,
         "category": category_name
     })
@@ -581,42 +657,3 @@ for idx, val in zip(indices, values):
 ### Frontend Rendering
 
 See [JS.md](JS.md) for frontend display logic.
-
----
-
-## CLI Examples
-
-### Basic Tagging
-
-```bash
-python inference.py image.png
-# Output: female anthro solo furry blue_eyes ...
-```
-
-### With Metadata
-
-```bash
-python inference.py -m data/jtp-3-hydra-tags.csv image.png
-# Applies implications and categories
-```
-
-### Conservative Mode
-
-```bash
-python inference.py -t 0.4 -i inherit -x artist -x lore image.png
-# Lower threshold, inherit implications, exclude artist/lore
-```
-
-### Batch Processing
-
-```bash
-python inference.py -r -o output.csv images/
-# Process directory recursively, output CSV
-```
-
-### GPU Inference
-
-```bash
-python inference.py -d cuda image.png
-# Use CUDA for faster processing
-```

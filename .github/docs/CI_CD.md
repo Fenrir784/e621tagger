@@ -37,6 +37,7 @@ concurrency:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 ```
 
 ---
@@ -61,15 +62,23 @@ env:
 ```yaml
 - name: Determine app version
   id: version
+  env:
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   run: |
     if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-      # PR build: test-{commit_sha}
+      COMMIT_SHA="${{ github.event.pull_request.head.sha }}"
+      SHORT_SHA=$(echo "$COMMIT_SHA" | cut -c1-7)
       APP_VERSION="test-${SHORT_SHA}"
     else
-      # Merged: v{pr_number}
-      PR_NUMBER=$(gh pr list --state merged --base latest --limit 1 --json number)
-      APP_VERSION="v$PR_NUMBER"
+      PR_NUMBER=$(gh pr list --state merged --base latest --limit 1 --json number --jq '.[0].number')
+      if [[ -n "$PR_NUMBER" && "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+        APP_VERSION="v$PR_NUMBER"
+      else
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        APP_VERSION="$SHORT_SHA"
+      fi
     fi
+    echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
 ```
 
 **Version Logic**:
@@ -109,14 +118,14 @@ env:
 - name: Check if model exists
   id: model-exists
   run: |
-    if [[ -f "models/jtp-3-hydra.safetensors" ]]; then
+    if [[ -f "models/hydra-3.5.safetensors" ]]; then
       echo "exists=true" >> $GITHUB_OUTPUT
     else
       echo "exists=false" >> $GITHUB_OUTPUT
     fi
 ```
 
-**Purpose**: Check if model file exists (from cache or previous run). The tag CSV file (`data/jtp-3-hydra-tags.csv`) is now stored in the repository and copied during Docker build.
+**Purpose**: Check if the model file exists (from cache or previous run).
 
 ---
 
@@ -127,15 +136,14 @@ env:
   if: steps.model-exists.outputs.exists != 'true'
   run: |
     mkdir -p models
-    curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
-      "https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors"
+    curl -L --retry 3 --fail -o models/hydra-3.5.safetensors \
+      "https://huggingface.co/RedRocket/Hydra/resolve/main/models/hydra-3.5.safetensors"
 ```
 
-**Purpose**: Download ML model file (~500MB) only if not already cached.
+**Purpose**: Download ML model file (~1GB) only if not already cached.
 - Uses `curl` with retry logic instead of deprecated `ADD` with remote URLs
 - Only runs when model file doesn't exist (~2-3 min vs ~5 sec)
 - Works correctly with `restore-keys` fallback
-- Tag CSV is now included via repository (copied in Docker build)
 
 ---
 
@@ -150,7 +158,7 @@ env:
 
 ---
 
-### Stage 6: Docker Buildx Setup
+### Stage 7: Docker Buildx Setup
 
 ```yaml
 - name: Set up Docker Buildx
@@ -161,7 +169,7 @@ env:
 
 ---
 
-### Stage 7: Registry Login
+### Stage 8: Registry Login
 
 ```yaml
 - name: Log into registry
@@ -176,7 +184,7 @@ env:
 
 ---
 
-### Stage 8: Metadata Extraction
+### Stage 9: Metadata Extraction
 
 ```yaml
 - name: Extract Docker metadata
@@ -187,7 +195,7 @@ env:
     tags: |
       type=ref,event=tag
       type=ref,event=branch
-      type=raw,value=${{ github.head_ref }}
+      type=raw,value=${{ github.head_ref }},enable=${{ github.event_name == 'pull_request' }}
 ```
 
 **Output Labels**:
@@ -196,7 +204,7 @@ env:
 
 ---
 
-### Stage 9: Build and Push
+### Stage 10: Build and Push
 
 ```yaml
 - name: Build and push Docker image
@@ -221,7 +229,7 @@ env:
 
 ---
 
-### Stage 10: Image Signing
+### Stage 11: Image Signing
 
 ```yaml
 - name: Sign the published Docker image
@@ -235,7 +243,7 @@ env:
 
 ---
 
-### Stage 11: Image Cleanup
+### Stage 12: Image Cleanup
 
 ```yaml
 - name: Clean up docker images
@@ -258,7 +266,7 @@ env:
 
 ---
 
-### Stage 12: Deployment Trigger (Production)
+### Stage 13: Deployment Trigger (Production)
 
 ```yaml
 - name: Trigger Dockhand deployment (latest)
@@ -283,7 +291,7 @@ env:
 
 ---
 
-### Stage 13: Deployment Trigger (Test)
+### Stage 14: Deployment Trigger (Test)
 
 ```yaml
 - name: Trigger Dockhand deployment (test)
@@ -308,7 +316,7 @@ env:
 
 ---
 
-### Stage 14: Summary Output
+### Stage 15: Summary Output
 
 ```yaml
 - name: Print published image info
@@ -649,7 +657,7 @@ jobs:
       - name: Check if model exists
         id: model-exists
         run: |
-          if [[ -f "models/jtp-3-hydra.safetensors" ]]; then
+          if [[ -f "models/hydra-3.5.safetensors" ]]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -659,8 +667,8 @@ jobs:
         if: steps.model-exists.outputs.exists != 'true'
         run: |
           mkdir -p models
-          curl -L --retry 3 --fail -o models/jtp-3-hydra.safetensors \
-            "https://huggingface.co/RedRocket/JTP-3/resolve/main/models/jtp-3-hydra.safetensors"
+          curl -L --retry 3 --fail -o models/hydra-3.5.safetensors \
+            "https://huggingface.co/RedRocket/Hydra/resolve/main/models/hydra-3.5.safetensors"
 
       - uses: sigstore/cosign-installer@v4
 
@@ -679,6 +687,7 @@ jobs:
           tags: |
             type=ref,event=tag
             type=ref,event=branch
+            type=raw,value=${{ github.head_ref }},enable=${{ github.event_name == 'pull_request' }}
 
       - uses: docker/build-push-action@v7
         id: build-and-push
@@ -703,9 +712,11 @@ jobs:
           keep-n-tagged: 4
           exclude-tags: latest,test
           delete-untagged: true
+          delete-partial-images: true
+          delete-orphaned-images: true
 
-      - name: Trigger Dockhand deployment
-        if: github.event_name == 'push'
+      - name: Trigger Dockhand deployment (latest)
+        if: github.event_name == 'push' && github.ref_name == 'latest'
         run: |
           # ... validation and webhook logic ...
           if ! curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
@@ -716,4 +727,24 @@ jobs:
             exit 0
           fi
           echo "✅ Deployment triggered" >> $GITHUB_STEP_SUMMARY
+
+      - name: Trigger Dockhand deployment (test)
+        if: github.event_name == 'pull_request' && github.head_ref == 'test'
+        run: |
+          # ... validation and webhook logic ...
+          if ! curl -sf --connect-timeout 30 --max-time 300 -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
+            -d "$PAYLOAD"; then
+            echo "❌ Test deployment trigger failed" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          echo "✅ Test deployment triggered" >> $GITHUB_STEP_SUMMARY
+
+      - name: Print published image info
+        run: |
+          echo "## 🐳 Docker Image Built" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${FIRST_TAG}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Digest:** \`${DIGEST}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`$APP_VERSION\`" >> $GITHUB_STEP_SUMMARY
 ```

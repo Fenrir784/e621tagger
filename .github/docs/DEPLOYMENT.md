@@ -284,7 +284,7 @@ docker inspect e621tagger --format='{{.State.Health.Status}}'
 curl http://localhost:5000/health
 
 # Response:
-# {"status": "healthy", "model": "loaded", "tags_count": 7500, "version": "v123"}
+# {"status": "healthy", "model": "<model_name>", "tags_count": 8888, "version": "v123"}
 ```
 
 ---
@@ -481,7 +481,7 @@ ufw allow 80/tcp
 | 1-10 | 2 |
 | 10+ | 4+ |
 
-**Important**: Each Gunicorn worker loads its own copy of the model into memory. With 7500+ tags, each worker uses ~2GB just for the model weights.
+**Important**: Each Gunicorn worker loads its own copy of the model into memory. With 8,888 tags (Hydra 3.5), each worker uses ~2GB just for the model weights.
 
 | Workers | Model Memory | Recommended GPU Memory |
 |---------|-------------|---------------------|

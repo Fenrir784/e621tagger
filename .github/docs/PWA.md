@@ -69,7 +69,7 @@ const urlsToCache = [
 ];
 ```
 
-**Total**: 32 cached resources
+**Total**: 31 cached resources
 
 ---
 
@@ -324,10 +324,23 @@ if ('serviceWorker' in navigator) {
     "label": "Desktop view 1"
   },
   {
+    "src": "/static/screenshots/desktop2.webp",
+    "sizes": "1920x1080",
+    "type": "image/webp",
+    "form_factor": "wide",
+    "label": "Desktop view 2"
+  },
+  {
     "src": "/static/screenshots/mobile1.webp",
     "sizes": "1080x1920",
     "type": "image/webp",
     "label": "Mobile view 1"
+  },
+  {
+    "src": "/static/screenshots/mobile2.webp",
+    "sizes": "1080x1920",
+    "type": "image/webp",
+    "label": "Mobile view 2"
   }
 ]
 ```
@@ -534,7 +547,7 @@ lighthouse https://tagger.fenrir784.ru \
 │  │  │       Service Worker                        │  │  │
 │  │  │                                          │  │  │
 │  │  │  ┌───────────────────────────────────────┐  │  │  │
-│  │  │  │  Install: Cache 32 resources        │  │  │  │
+│  │  │  │  Install: Cache 31 resources        │  │  │  │
 │  │  │  │  activate: Clean old caches         │  │  │  │
 │  │  │  │  fetch: Cache-first + network      │  │  │  │
 │  │  │  │  fetch: Network-first /predict   │  │  │  │
@@ -549,7 +562,7 @@ lighthouse https://tagger.fenrir784.ru \
 │  │    ├── / (cached)                            │  │
 │  │    ├── /static/css/style.css                 │  │
 │  │    ├── /static/js/script.js                 │  │
-│  │    └── ... (32 resources)                   │  │
+│  │    └── ... (31 resources)                   │  │
 │  └──────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -611,7 +624,7 @@ Enables Windows window controls on desktop.
 
 - [x] `/service-worker.js` endpoint in Flask
 - [x] Cache version based on `APP_VERSION`
-- [x] 32 resources cached
+- [x] 31 resources cached
 - [x] Network-first for navigation
 - [x] Cache-first for static assets
 - [x] Clean old caches on update

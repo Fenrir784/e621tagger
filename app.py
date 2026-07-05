@@ -12,35 +12,38 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import torch
 from PIL import Image
-import dataclasses
 from ua_parser import parse
 
-from model import load_model, load_image
-from inference import load_metadata
+from hydra.model import load_model as hydra_load_model
+from hydra import image as hydra_image
 
 TAG_CATEGORIES = {
-    0: "General",
-    1: "Artist",
-    2: "Contributor",
-    3: "Copyright",
-    4: "Character",
-    5: "Species",
-    6: "Invalid",
-    7: "Meta",
-    8: "Lore",
-    100: "Accessories, Items, Clothing",
-    101: "Actions, Positions, State",
-    102: "Body Color",
-    103: "Body Features",
-    104: "Effects, Fluids",
-    105: "Fetishes, Specifics, Interactions",
-    106: "Genders, Demographics",
-    107: "Locations, Backgrounds, Setting",
-    108: "Poses, Scenarios, Situations",
-    109: "Style, Perspective",
-    110: "Text, Symbols, UI, Vocalization",
-    111: "Other",
+    "general": "General",
+    "artist": "Artist",
+    "contributor": "Contributor",
+    "copyright": "Copyright",
+    "character": "Character",
+    "species": "Species",
+    "invalid": "Invalid",
+    "meta": "Meta",
+    "lore": "Lore",
 }
+
+SUBCATEGORY_DISPLAY_NAMES = {
+    "accessory": "Accessories, Items, Clothing",
+    "action": "Actions, Positions, State",
+    "color": "Body Color",
+    "body_feature": "Body Features",
+    "effect": "Effects, Fluids",
+    "fetish": "Fetishes, Specifics, Interactions",
+    "demographic": "Genders, Demographics",
+    "setting": "Locations, Backgrounds, Setting",
+    "pose": "Poses, Scenarios, Situations",
+    "style": "Style, Perspective",
+    "text": "Text, Symbols, UI, Vocalization",
+    "other": "Other",
+}
+
 
 APP_VERSION = os.getenv('APP_VERSION', 'test')
 LOG_LEVEL = logging.DEBUG if APP_VERSION.startswith('test-') else logging.INFO
@@ -52,6 +55,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 logging.getLogger("PIL").setLevel(logging.WARNING)
+logging.getLogger("pyvips").setLevel(logging.WARNING)
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
@@ -66,8 +70,7 @@ limiter = Limiter(
     storage_uri="memory://",
 )
 
-MODEL_PATH = os.getenv('MODEL_PATH', 'models/jtp-3-hydra.safetensors')
-TAGS_PATH = os.getenv('TAGS_PATH', 'data/jtp-3-hydra-tags.csv')
+MODEL_PATH = os.getenv('MODEL_PATH', 'models/hydra-3.5.safetensors')
 DEVICE = os.getenv('DEVICE', 'cuda' if torch.cuda.is_available() else 'cpu')
 MAX_SEQ_LEN = int(os.getenv('MAX_SEQ_LEN', '1024'))
 PATCH_SIZE = 16
@@ -228,22 +231,20 @@ if SAVE_UPLOADS:
 
 startup_time = time.time()
 logger.info("🚀 e621tagger version: %s", APP_VERSION)
-logger.info("⚙️ Loading e621tagger model on %s...", DEVICE)
-model, tag_list, ext_info = load_model(MODEL_PATH, device=DEVICE)
+logger.info("⚙️ Loading model on %s...", DEVICE)
+
+model = hydra_load_model(MODEL_PATH)
 
 if DEVICE == 'cpu':
     model = model.float()
     logger.info("🔧 Converted model to float32 for CPU inference")
 else:
-    model = model.to(dtype=torch.bfloat16)
+    model = model.to(dtype=torch.bfloat16, device=DEVICE)
 
 model.requires_grad_(False)
 model.eval()
+tag_list = [label.label for label in model.labels]
 logger.info("✅ Model loaded, %d tags", len(tag_list))
-
-logger.info("📚 Loading tag metadata...")
-metadata = load_metadata(TAGS_PATH)
-logger.info("✅ Metadata loaded, %d entries", len(metadata))
 
 elapsed = (time.time() - startup_time) * 1000
 logger.info("⏱️ Worker ready in %.0fms", elapsed)
@@ -378,7 +379,7 @@ def health():
             logger.debug("✅ Health check ok (%d tags, version %s)", len(tag_list), APP_VERSION)
         return jsonify({
             'status': 'healthy',
-            'model': 'loaded',
+            'model': model.name,
             'tags_count': len(tag_list),
             'version': APP_VERSION
         }), 200
@@ -441,45 +442,44 @@ def predict():
                 temp_path = tmp.name
             image_path = temp_path
 
-        patches, patch_coords, patch_valid = load_image(
-            image_path,
-            patch_size=PATCH_SIZE,
-            max_seq_len=MAX_SEQ_LEN,
-            share_memory=False
-        )
-        p_d = patches.unsqueeze(0).to(DEVICE)
-        pc_d = patch_coords.unsqueeze(0).to(DEVICE)
-        pv_d = patch_valid.unsqueeze(0).to(DEVICE)
+        img_tensor = model.load_image(image_path)
+        h = img_tensor.shape[0] // PATCH_SIZE
+        w = img_tensor.shape[1] // PATCH_SIZE
 
-        if DEVICE == 'cpu':
-            p_d = p_d.to(dtype=torch.float32).div_(127.5).sub_(1.0)
-        else:
-            p_d = p_d.to(dtype=torch.bfloat16).div_(127.5).sub_(1.0)
-        pc_d = pc_d.to(dtype=torch.int32)
+        patches = hydra_image.patchify(img_tensor, PATCH_SIZE)
+        sizes = torch.tensor([[h, w]], dtype=torch.int32)
+
+        patches = model.from_srgb(patches)
+        patches = patches.to(device=DEVICE)
+        sizes = sizes.to(device=DEVICE)
 
         with torch.no_grad():
-            logits = model(p_d, pc_d, pv_d)
+            logits = model.forward(patches, sizes)
 
         probs = torch.sigmoid(logits[0].float()).cpu()
         values, indices = probs.topk(top_k)
+
         tags_with_probs = []
         for idx, val in zip(indices, values):
-            tag = tag_list[int(idx.item())]
+            label = model.labels[int(idx.item())]
             prob = val.item()
-            cat_id = metadata.get(tag, (-1, []))[0]
-            category_name = TAG_CATEGORIES.get(cat_id, "Other")
+            if label.subcategory and label.subcategory in SUBCATEGORY_DISPLAY_NAMES:
+                category_name = SUBCATEGORY_DISPLAY_NAMES[label.subcategory]
+            else:
+                category_name = TAG_CATEGORIES.get(label.category, label.category.title())
             tags_with_probs.append({
-                'tag': tag,
+                'tag': label.label,
                 'prob': prob,
                 'category': category_name
             })
+
         auto_tags = set()
         try:
-            image_path_for_analysis = image_path if 'image_path' in locals() else None
-            if image_path_for_analysis:
-                auto_tags = detect_meta_tags_for_image_path(image_path_for_analysis)
+            if image_path:
+                auto_tags = detect_meta_tags_for_image_path(image_path)
         except Exception:
             auto_tags = set()
+
         logger.info("✅ %s: file '%s' processed, top %d tags (auto %d)", ip_id, filename, len(tags_with_probs), len(auto_tags))
         return jsonify({
             'success': True,

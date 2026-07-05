@@ -10,8 +10,7 @@ This document provides comprehensive reference for all environment variables and
 
 | Variable | Default | Required | Description |
 |----------|---------|----------|-------------|
-| `MODEL_PATH` | `models/jtp-3-hydra.safetensors` | No | Path to model file |
-| `TAGS_PATH` | `data/jtp-3-hydra-tags.csv` | No | Path to tag metadata CSV |
+| `MODEL_PATH` | `models/hydra-3.5.safetensors` | No | Path to model file |
 | `DEVICE` | `cuda` (if available, else `cpu`) | No | PyTorch device |
 | `MAX_SEQ_LEN` | `1024` | No | Maximum sequence length |
 | `APP_VERSION` | `test` | No | Application version string |
@@ -37,41 +36,17 @@ This document provides comprehensive reference for all environment variables and
 
 ### MODEL_PATH
 
-Path to the JTP-3 Hydra model file.
+Path to the Hydra 3.5 model file.
 
 ```bash
 # Default
-MODEL_PATH=models/jtp-3-hydra.safetensors
+MODEL_PATH=models/hydra-3.5.safetensors
 
 # Custom location
 MODEL_PATH=/models/custom-model.safetensors
 ```
 
 **Note**: Model files are loaded on startup. The model is stored in memory during runtime.
-
-### TAGS_PATH
-
-Path to the tag metadata CSV file with categories and implications.
-
-```bash
-# Default
-TAGS_PATH=data/jtp-3-hydra-tags.csv
-
-# Custom metadata
-TAGS_PATH=/data/custom-tags.csv
-```
-
-**Format**:
-```csv
-tag,category,implications
-female,0,
-anthro,5,
-futanari,0,female male
-scarf,100,
-sitting,101,
-```
-
-> **Note:** Category IDs 0-8 are standard e621 categories. IDs 100-111 are fine-grained General sub-categories that display separately on the web interface but merge into General when copying to clipboard.
 
 ### DEVICE
 
@@ -301,7 +276,7 @@ Precedence order (highest first):
 Example in `app.py`:
 
 ```python
-MODEL_PATH = os.getenv('MODEL_PATH', 'models/jtp-3-hydra.safetensors')
+MODEL_PATH = os.getenv('MODEL_PATH', 'models/hydra-3.5.safetensors')
 DEVICE = os.getenv('DEVICE', 'cuda' if torch.cuda.is_available() else 'cpu')
 MAX_SEQ_LEN = int(os.getenv('MAX_SEQ_LEN', '1024'))
 ```
@@ -340,7 +315,7 @@ For local development:
 
 ```bash
 # .env file
-MODEL_PATH=models/jtp-3-hydra.safetensors
+MODEL_PATH=models/hydra-3.5.safetensors
 DEVICE=cpu
 MAX_SEQ_LEN=1024
 SAVE_UPLOADS=false
@@ -357,11 +332,11 @@ APP_VERSION=dev
 ```
 /app/
 ├── models/
-│   └── jtp-3-hydra.safetensors
-├── data/
-│   └── jtp-3-hydra-tags.csv
-├── extensions/
-│   └── (optional extension files)
+│   └── hydra-3.5.safetensors
+├── hydra/
+├── utils/
+├── templates/
+├── static/
 └── uploads/                    # Created if SAVE_UPLOADS=true
     └── (saved images)
 ```
@@ -375,8 +350,8 @@ The `/health` endpoint returns configuration info:
 ```json
 {
   "status": "healthy",
-  "model": "loaded",
-  "tags_count": 7500,
+  "model": "<model_name>",
+  "tags_count": 8888,
   "version": "v123"
 }
 ```
@@ -400,9 +375,7 @@ LOG_LEVEL = logging.DEBUG if APP_VERSION.startswith('test-') else logging.INFO
 ```
 2024-01-01 12:00:00 [INFO] 🚀 e621tagger version: v123
 2024-01-01 12:00:00 [INFO] ⚙️ Loading e621tagger model on cuda...
-2024-01-01 12:00:01 [INFO] ✅ Model loaded, 7500 tags
-2024-01-01 12:00:01 [INFO] 📚 Loading tag metadata...
-2024-01-01 12:00:01 [INFO] ✅ Metadata loaded, 7500 entries
+2024-01-01 12:00:01 [INFO] ✅ Model loaded, 8888 tags
 2024-01-01 12:00:01 [INFO] ⏱️ Worker ready in 1500ms
 ```
 
@@ -488,12 +461,7 @@ def discover_extensions(paths):
                     yield entry.path
 ```
 
-### Default Extension Path
 
-```python
-# inference.py
-default_extension = _if_exists("extensions/jtp-3-hydra")
-```
 
 ---
 
