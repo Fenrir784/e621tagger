@@ -14,7 +14,6 @@ RUN --mount=type=cache,target=/root/.cache/pip pip install --no-cache-dir -r req
 
 
 COPY models/ ./models/
-COPY data/ ./data/
 
 COPY *.py ./
 COPY hydra/ ./hydra/
