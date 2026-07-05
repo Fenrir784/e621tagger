@@ -5,7 +5,9 @@ from collections.abc import Mapping
 from itertools import chain
 from functools import cache
 from sys import intern
-from typing import Callable, Iterable,  Self, TextIO, cast
+from typing import Callable, Iterable, Self, TextIO, cast
+
+from ._subcat import _SUBCATEGORY_MAP
 
 import torch
 from torch import Tensor
@@ -100,18 +102,21 @@ class Label:
     @property
     @cache
     def subcategory(self) -> str | None:
+        if self.category == "general":
+            if self.label in _SUBCATEGORY_MAP:
+                return _SUBCATEGORY_MAP[self.label]
+            if (
+                self.label.startswith(COLOR_PREFIXES)
+                and not self.label.endswith(COLOR_EXCEPTIONS)
+            ):
+                return "color"
+            return None
+
         if (
             self.category == "meta"
             and self.label in ("safe", "questionable", "explicit")
         ):
             return "rating"
-
-        if (
-            self.category == "general"
-            and self.label.startswith(COLOR_PREFIXES)
-            and not self.label.endswith(COLOR_EXCEPTIONS)
-        ):
-            return "color"
 
         return None
 

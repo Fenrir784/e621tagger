@@ -29,6 +29,22 @@ TAG_CATEGORIES = {
     "lore": "Lore",
 }
 
+SUBCATEGORY_DISPLAY_NAMES = {
+    "accessory": "Accessories, Items, Clothing",
+    "action": "Actions, Positions, State",
+    "color": "Body Color",
+    "body_feature": "Body Features",
+    "effect": "Effects, Fluids",
+    "fetish": "Fetishes, Specifics, Interactions",
+    "demographic": "Genders, Demographics",
+    "setting": "Locations, Backgrounds, Setting",
+    "pose": "Poses, Scenarios, Situations",
+    "style": "Style, Perspective",
+    "text": "Text, Symbols, UI, Vocalization",
+    "other": "Other",
+}
+
+
 APP_VERSION = os.getenv('APP_VERSION', 'test')
 LOG_LEVEL = logging.DEBUG if APP_VERSION.startswith('test-') else logging.INFO
 
@@ -447,7 +463,10 @@ def predict():
         for idx, val in zip(indices, values):
             label = model.labels[int(idx.item())]
             prob = val.item()
-            category_name = TAG_CATEGORIES.get(label.category, label.category.title())
+            if label.subcategory and label.subcategory in SUBCATEGORY_DISPLAY_NAMES:
+                category_name = SUBCATEGORY_DISPLAY_NAMES[label.subcategory]
+            else:
+                category_name = TAG_CATEGORIES.get(label.category, label.category.title())
             tags_with_probs.append({
                 'tag': label.label,
                 'prob': prob,
