@@ -390,7 +390,7 @@ Fetches tag description from e621 wiki API.
 async function fetchTagDescription(tagName) {
     if (tagDescriptionCache.has(tagName)) return tagDescriptionCache.get(tagName);
     const url = `https://e621.net/wiki_pages.json?search[title]=${encodeURIComponent(tagName)}&limit=1`;
-    const response = await fetch(url, { headers: { 'User-Agent': 'e621tagger/1.0 (https://tagger.fenrir784.ru)' } });
+    const response = await fetch(url, { headers: { 'User-Agent': 'e621tagger/1.0 (https://tagger.fenrir784.app)' } });
     const data = await response.json();
     const result = data.length 
         ? { exists: true, title: data[0].title, body: data[0].body }

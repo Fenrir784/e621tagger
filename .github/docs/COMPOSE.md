@@ -45,7 +45,7 @@ services:
       - /home/fenrir784/e621tagger-saved/uploads:/app/uploads
     labels:
       - traefik.enable=true
-      - traefik.http.routers.tagger.rule=Host(`www.tagger.fenrir784.ru`)
+      - traefik.http.routers.tagger.rule=Host(`www.tagger.fenrir784.app`)
       - traefik.http.routers.tagger.entrypoints=websecure
 
 networks:
@@ -331,7 +331,7 @@ Creates `./uploads` directory on host.
 ```yaml
 labels:
   - traefik.enable=true
-  - traefik.http.routers.tagger.rule=Host(`www.tagger.fenrir784.ru`)
+  - traefik.http.routers.tagger.rule=Host(`www.tagger.fenrir784.app`)
   - traefik.http.routers.tagger.entrypoints=websecure
 ```
 

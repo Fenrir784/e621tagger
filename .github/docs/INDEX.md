@@ -113,13 +113,13 @@ docker run -p 5000:5000 ghcr.io/fenrir784/e621tagger:latest
 ### Query health endpoint
 
 ```bash
-curl https://tagger.fenrir784.ru/health
+curl https://tagger.fenrir784.app/health
 ```
 
 ### Submit image for tagging
 
 ```bash
-curl -X POST -F "image=@image.png" https://tagger.fenrir784.ru/predict
+curl -X POST -F "image=@image.png" https://tagger.fenrir784.app/predict
 ```
 
 ## Model Information
@@ -157,4 +157,4 @@ The application sets the following security headers on all responses:
 
 - GitHub: https://github.com/Fenrir784/e621tagger
 - Telegram: https://t.me/fenrir784
-- Live Instance: https://tagger.fenrir784.ru
+- Live Instance: https://tagger.fenrir784.app

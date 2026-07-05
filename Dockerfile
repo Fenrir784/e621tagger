@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip pip install --no-cache-dir -r requirements.txt
 
-# Uncomment and delete copy models and data if building locally
+# Uncomment and delete copy models if building locally
 #ADD https://huggingface.co/RedRocket/Hydra/resolve/main/models/hydra-3.5.safetensors models/hydra-3.5.safetensors
 
 

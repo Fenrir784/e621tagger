@@ -5,7 +5,7 @@ This document provides comprehensive API documentation for agent integration. It
 ## Base URL
 
 ```
-Production: https://tagger.fenrir784.ru
+Production: https://tagger.fenrir784.app
 Local:      http://localhost:5000
 ```
 
@@ -33,7 +33,7 @@ Returns the main HTML interface for image tagging.
 
 ```
 GET / HTTP/1.1
-Host: tagger.fenrir784.ru
+Host: tagger.fenrir784.app
 ```
 
 ### Response
@@ -93,7 +93,7 @@ Exceeding limits returns HTTP 429.
 
 ```
 POST /predict HTTP/1.1
-Host: tagger.fenrir784.ru
+Host: tagger.fenrir784.app
 Content-Type: multipart/form-data
 ```
 
@@ -114,7 +114,7 @@ Content-Type: multipart/form-data
 
 ```bash
 # Using curl
-curl -X POST https://tagger.fenrir784.ru/predict \
+curl -X POST https://tagger.fenrir784.app/predict \
   -F "image=@artwork.png" \
   -F "top_k=200"
 
@@ -123,7 +123,7 @@ import requests
 
 with open("artwork.png", "rb") as f:
     response = requests.post(
-        "https://tagger.fenrir784.ru/predict",
+        "https://tagger.fenrir784.app/predict",
         files={"image": f},
         data={"top_k": "200"}
     )
@@ -267,7 +267,7 @@ Check if the service is operational.
 
 ```
 GET /health HTTP/1.1
-Host: tagger.fenrir784.ru
+Host: tagger.fenrir784.app
 ```
 
 ### Response (Healthy)
@@ -316,7 +316,7 @@ Serve static files (CSS, JS, icons).
 
 ```
 GET /static/css/style.css HTTP/1.1
-Host: tagger.fenrir784.ru
+Host: tagger.fenrir784.app
 ```
 
 ### Response
@@ -345,7 +345,7 @@ Serve the service worker script for PWA functionality.
 
 ```
 GET /service-worker.js HTTP/1.1
-Host: tagger.fenrir784.ru
+Host: tagger.fenrir784.app
 ```
 
 ### Response
@@ -382,7 +382,7 @@ Cache-Control: public, max-age=86400
 
 ```
 GET /robots.txt HTTP/1.1
-Host: tagger.fenrir784.ru
+Host: tagger.fenrir784.app
 ```
 
 ### Response
@@ -397,7 +397,7 @@ Disallow: /predict
 Disallow: /health
 Disallow: /service-worker.js
 
-Sitemap: https://www.tagger.fenrir784.ru/sitemap.xml
+Sitemap: https://www.tagger.fenrir784.app/sitemap.xml
 ```
 
 ---
@@ -408,7 +408,7 @@ Sitemap: https://www.tagger.fenrir784.ru/sitemap.xml
 
 ```
 GET /sitemap.xml HTTP/1.1
-Host: tagger.fenrir784.ru
+Host: tagger.fenrir784.app
 ```
 
 ### Response
@@ -420,7 +420,7 @@ Content-Type: application/xml
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.tagger.fenrir784.ru/</loc>
+    <loc>https://www.tagger.fenrir784.app/</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -438,7 +438,7 @@ from PIL import Image
 import io
 
 class E621Tagger:
-    def __init__(self, base_url="https://tagger.fenrir784.ru"):
+    def __init__(self, base_url="https://tagger.fenrir784.app"):
         self.base_url = base_url
         self.session = requests.Session()
     
@@ -521,7 +521,7 @@ for tag in result["tags"][:10]:
 
 ```javascript
 class E621Tagger {
-    constructor(baseUrl = 'https://tagger.fenrir784.ru') {
+    constructor(baseUrl = 'https://tagger.fenrir784.app') {
         this.baseUrl = baseUrl;
     }
     

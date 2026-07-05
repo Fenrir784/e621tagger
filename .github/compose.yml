@@ -25,7 +25,7 @@ services:
       - /home/fenrir784/e621tagger-saved/banned_ips.json:/app/banned_ips.json
     labels:
       - traefik.enable=true
-      - traefik.http.routers.tagger.rule=Host(`www.tagger.fenrir784.ru`)
+      - traefik.http.routers.tagger.rule=Host(`www.tagger.fenrir784.app`)
       - traefik.http.routers.tagger.entrypoints=websecure
 networks:
   lushway_web:

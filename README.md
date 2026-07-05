@@ -2,7 +2,7 @@
 
 e621tagger is a web-based tool that automatically generates relevant tags for furry artwork using the **Hydra 3.5** model by Project RedRocket.
 
-### **Can be accessed here: [tagger.fenrir784.ru](https://tagger.fenrir784.ru)**
+### **Can be accessed here: [tagger.fenrir784.app](https://tagger.fenrir784.app)**
 
 ### For usage tips click Need Help? in settings.
 
@@ -72,4 +72,4 @@ This project is licensed under the **Apache-2.0 license**. See the LICENSE file 
 
 ---
 
-*Created by [fenrir784.ru](https://fenrir784.ru) – if you like the tool, consider dropping a star ⭐ on GitHub!*
+*Created by [fenrir784.app](https://fenrir784.app) – if you like the tool, consider dropping a star ⭐ on GitHub!*
