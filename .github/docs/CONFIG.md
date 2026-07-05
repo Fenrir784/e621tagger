@@ -350,8 +350,8 @@ The `/health` endpoint returns configuration info:
 ```json
 {
   "status": "healthy",
-  "model": "loaded",
-  "tags_count": 7500,
+  "model": "<model_name>",
+  "tags_count": 8888,
   "version": "v123"
 }
 ```
@@ -375,9 +375,7 @@ LOG_LEVEL = logging.DEBUG if APP_VERSION.startswith('test-') else logging.INFO
 ```
 2024-01-01 12:00:00 [INFO] 🚀 e621tagger version: v123
 2024-01-01 12:00:00 [INFO] ⚙️ Loading e621tagger model on cuda...
-2024-01-01 12:00:01 [INFO] ✅ Model loaded, 7500 tags
-2024-01-01 12:00:01 [INFO] 📚 Loading tag metadata...
-2024-01-01 12:00:01 [INFO] ✅ Metadata loaded, 7500 entries
+2024-01-01 12:00:01 [INFO] ✅ Model loaded, 8888 tags
 2024-01-01 12:00:01 [INFO] ⏱️ Worker ready in 1500ms
 ```
 

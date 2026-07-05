@@ -8,7 +8,7 @@ This document provides comprehensive documentation of the e621tagger frontend st
 
 **Location**: `static/css/style.css`
 
-**Size**: ~872 lines
+**Size**: ~920 lines
 
 **Purpose**: All styling for the e621tagger web interface
 
@@ -20,18 +20,18 @@ This document provides comprehensive documentation of the e621tagger frontend st
 
 ```css
 :root {
-    --bg-color: #f5f7fa;
-    --text-color: #2d3748;
+    --bg-color: #ebebeb;
+    --text-color: #1c222d;
     --primary-color: #6b4aff;
     --secondary-color: #eef2f6;
-    --border-color: #e2e8f0;
+    --border-color: #4f4f4f40;
     --success-color: #2e9a5c;
-    --confident-bg: #8b4aff;
+    --confident-bg: #5f1ed3;
     --confident-text: #fff;
     --all-bg: #3c6b8f;
     --all-text: #fff;
-    --low-bg: #e0e5ec;
-    --low-text: #5a6b7c;
+    --low-bg: #cfcfcf;
+    --low-text: #1a1a1a;
     --error-bg: #fef2f2;
     --error-text: #b91c1c;
     --error-border: #fecaca;
@@ -40,7 +40,7 @@ This document provides comprehensive documentation of the e621tagger frontend st
     --explicit-bg: #c53030;
     --disabled-bg: #cbd5e1;
     --disabled-text: #f7fafc;
-    --menu-bg: var(--secondary-color);
+    --menu-bg: #eef2f6;
     --added-bg: #2e9a5c;
     --added-text: #fff;
     --removed-bg: #c53030;
@@ -63,19 +63,19 @@ This document provides comprehensive documentation of the e621tagger frontend st
 
 | Variable | Light Mode | Dark Mode | Usage |
 |----------|-----------|----------|-------|
-| `--bg-color` | #f5f7fa | #0a0c10 | Page background |
-| `--text-color` | #2d3748 | #e5e7eb | Text color |
+| `--bg-color` | #ebebeb | #0a0c10 | Page background |
+| `--text-color` | #1c222d | #e5e7eb | Text color |
 | `--primary-color` | #6b4aff | #8b5cf6 | Accent color |
 | `--secondary-color` | #eef2f6 | #1f2937 | Secondary bg |
-| `--border-color` | #e2e8f0 | #374151 | Borders |
+| `--border-color` | #4f4f4f40 | #374151 | Borders |
 
 ### Tag State Colors
 
 | Variable | Color | State |
 |----------|-------|-------|
-| `--confident-bg` | #8b4aff | High confidence |
+| `--confident-bg` | #5f1ed3 | High confidence |
 | `--all-bg` | #3c6b8f | Medium confidence |
-| `--low-bg` | #e0e5ec | Low confidence |
+| `--low-bg` | #cfcfcf | Low confidence |
 | `--added-bg` | #2e9a5c | User added |
 | `--removed-bg` | #c53030 | User removed |
 
@@ -137,19 +137,14 @@ This document provides comprehensive documentation of the e621tagger frontend st
     --primary-color: #6b4aff;
     --secondary-color: #eef2f6;
     --border-color: #4f4f4f40;
-    /* Different from root defaults: */
-    --confident-bg: #5f1ed3;  /* Slightly darker purple than root #8b4aff */
+    --confident-bg: #5f1ed3;
     --all-bg: #3c6b8f;
-    --low-bg: #cfcfcf;       /* Darker gray than root #e0e5ec */
+    --low-bg: #cfcfcf;
     ...
 }
 ```
 
-**Note:** `.theme-light` class overrides specific colors to ensure readability:
-| Variable | Root | .theme-light | Why |
-|----------|------|-------------|------|
-| `--confident-bg` | #8b4aff | #5f1ed3 | Better contrast on light bg |
-| `--low-bg` | #e0e5ec | #cfcfcf | Better contrast |
+**Note:** `.theme-light` class is identical to `:root` defaults. It exists as an explicit opt-in class for JavaScript theme toggling, ensuring consistent styling when the user manually selects the light theme.
 
 ### Theme Toggle Buttons
 
@@ -218,10 +213,10 @@ body.modal-open { overflow: hidden; }
 
 ```css
 .container {
-    max-width: 800px;
-    width: 90%;
-    margin: 2rem auto 0;
-    padding: 2rem;
+    max-width: 900px;
+    width: 100%;
+    margin: 0.5rem auto 0;
+    padding: 1.5rem;
     position: relative;
 }
 ```
@@ -245,7 +240,7 @@ header {
 
 ```css
 h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: 300;
     color: var(--confident-bg);
     line-height: 1.2;
@@ -732,7 +727,7 @@ Critical hover interactions defined in `@media (hover: hover)` block:
     text-align: center;
     cursor: pointer;
     transition: transform var(--animation-duration), filter var(--animation-duration), box-shadow 0.3s, border-color 0.3s, background-color 0.3s;
-    margin-bottom: 2rem;
+    margin-bottom: 1.7rem;
     min-height: 200px;
     display: flex;
     align-items: center;
@@ -803,7 +798,7 @@ Critical hover interactions defined in `@media (hover: hover)` block:
 .results {
     background-color: var(--secondary-color);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 1rem;
     box-shadow: 0 4px 20px var(--box-shadow-heavyplus);
     min-height: 200px;
     position: relative;
@@ -823,9 +818,8 @@ Critical hover interactions defined in `@media (hover: hover)` block:
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.9rem;
     flex-wrap: wrap;
-    gap: 1rem;
 }
 .results-header h2 { font-weight: 400; color: var(--confident-bg); flex-shrink: 0; }
 .format-toggle {
@@ -842,7 +836,7 @@ Critical hover interactions defined in `@media (hover: hover)` block:
 .global-buttons {
     display: flex;
     gap: 1.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     justify-content: center;
 }
 .global-copy-btn {
@@ -875,7 +869,7 @@ Critical hover interactions defined in `@media (hover: hover)` block:
 .rating-container {
     display: flex;
     justify-content: flex-start;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 .rating-display {
     font-size: 0.85rem;
@@ -884,7 +878,6 @@ Critical hover interactions defined in `@media (hover: hover)` block:
     font-weight: 500;
     letter-spacing: 0.3px;
     display: inline-block;
-    color: #fff;
 }
 .rating-display.safe { background-color: var(--safe-bg); }
 .rating-display.questionable { background-color: var(--questionable-bg); }
@@ -906,7 +899,7 @@ Critical hover interactions defined in `@media (hover: hover)` block:
 ### Categories Container
 
 ```css
-.categories-container { display: flex; flex-direction: column; gap: 1rem; }
+.categories-container { display: flex; flex-direction: column; gap: 0.6rem; }
 .category-block {
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -943,12 +936,12 @@ Critical hover interactions defined in `@media (hover: hover)` block:
 **IMPORTANT:** Tags use `data-level` attribute for styling, not CSS classes directly.
 
 ```css
-.category-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.category-tags { display: flex; flex-wrap: wrap; gap: 0.27rem; }
 .tag {
     background-color: var(--low-bg);
     color: var(--low-text);
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
     font-size: 0.8rem;
     border: 1px solid transparent;
     opacity: 0.6;
@@ -1043,7 +1036,7 @@ Tags default to low confidence state (opacity 0.6) before classification:
     border: 1px solid var(--border-color);
     border-radius: 12px;
     box-shadow: 0 8px 24px var(--box-shadow-heavy);
-    width: 280px;
+    width: 300px;
     max-width: 80vw;
     z-index: 1000;
     animation: fadeInScale 0.2s;
@@ -1317,8 +1310,8 @@ Tags default to low confidence state (opacity 0.6) before classification:
 ```css
 .fullscreen-image-container {
     position: relative;
-    max-width: 90vw;
-    max-height: 90vh;
+    max-width: 95vw;
+    max-height: 95vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1366,7 +1359,7 @@ body {
 
 ```css
 h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: 300;
     color: var(--confident-bg);
     line-height: 1.2;
@@ -1458,4 +1451,4 @@ document.querySelector(`[data-format="${format}"]`).classList.add('active');
 document.querySelector('.egg-container').classList.add('open');
 ```
 
-(End of file - ~1370 lines in source, 1369 lines in this doc)
+(End of file - ~920 lines in source)

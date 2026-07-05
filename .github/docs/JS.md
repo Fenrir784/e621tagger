@@ -1,6 +1,6 @@
 # JavaScript Reference Documentation
 
-This document provides a comprehensive reference for all methods, variables, and configurations in `static/js/script.js` (830 lines). It is designed for agent systems to understand and interact with the e621tagger frontend.
+This document provides a comprehensive reference for all methods, variables, and configurations in `static/js/script.js` (901 lines). It is designed for agent systems to understand and interact with the e621tagger frontend.
 
 ---
 
@@ -9,7 +9,7 @@ This document provides a comprehensive reference for all methods, variables, and
 | Attribute | Value |
 |-----------|-------|
 | Location | `static/js/script.js` |
-| Lines | ~1064 |
+| Lines | 901 |
 | Framework | Vanilla JavaScript |
 | Purpose | Frontend UI functionality |
 | Dependencies | Hammer.js (touch events), escapeHtml/sanitizeHtml/XSS protection |
@@ -17,21 +17,21 @@ This document provides a comprehensive reference for all methods, variables, and
 ### File Structure Flow
 
 ```
-script.js (830 lines)
-├── 1. Constants (27-35)           - Configuration values
-├── 2. State Variables (37-53)     - Runtime application state
+script.js (901 lines)
+├── 1. Constants (27-45)           - Configuration values
+├── 2. State Variables (47-66)     - Runtime application state
 ├── 3. DOM Cached (2-25)           - DOM element references
-├── 4. preloadCreatures (55-58)    - Preload easter egg images
-├── 5. loadSettings (60-96)        - Load from localStorage
-├── 6. saveSettings (98-104)      - Save to localStorage
-├── 7. UI Functions (105-220)       - Theme, notifications, popups
-├── 8. XSS Protection (181-235)     - escapeHtml, sanitizeHtml, parseDText
-├── 9. Tag Functions (237-376)     - Handle, display, filter tags
-├── 10. Copy Functions (377-465)  - Clipboard, format conversion
-├── 11. File Handling (466-572)     - Drag/drop, preview, validation
-├── 12. initHammer (573-776)       - Hammer.js touch setup
-├── 13. Event Listeners (777-830)   - Attach all listeners
-└── 14. Final Init (825-830)      - Final setup
+├── 4. preloadCreatures (68-71)    - Preload easter egg images
+├── 5. loadSettings (73-109)       - Load from localStorage
+├── 6. saveSettings (111-116)      - Save to localStorage
+├── 7. UI Functions (118-192)      - Theme, notifications, popups
+├── 8. XSS Protection (237-291)    - escapeHtml, sanitizeHtml, parseDText
+├── 9. Tag Functions (392-621)     - Handle, display, filter tags
+├── 10. Copy Functions (441-517)   - Clipboard, format conversion
+├── 11. File Handling (625-701)    - Drag/drop, preview, validation
+├── 12. initHammer (730-836)       - Hammer.js touch setup
+├── 13. Event Listeners (838-881)  - Attach all listeners
+└── 14. Final Init (883-901)       - Final setup
 ```
 
 ---
@@ -68,7 +68,7 @@ const tagDescriptionCache = new Map();  // Cache for e621 wiki tag descriptions
 | `ratingTags` | {safe, questionable, explicit} | Rating tag names |
 | `creaturePaths` | 9 image paths | Easter egg creature images |
 | `copyCategoryOrder` | 6 categories | e621 category order for copy action (100-111 merged into General) |
-| `displayCategoryOrder` | 22 categories | Visual order for site display (Body Color and Lore at bottom) |
+| `displayCategoryOrder` | 21 categories | Visual order for site display (Body Color and Lore at bottom) |
 | `tagDescriptionCache` | Map | Caches wiki descriptions to reduce API calls |
 
 ---
@@ -79,8 +79,8 @@ const tagDescriptionCache = new Map();  // Cache for e621 wiki tag descriptions
 let allTags = [];                    // Tag predictions from API
 let currentFormat = 'e621';         // 'e621' for danbooru format, any other for PostyBirb
 let savedFormat = 'e621';           // 'e621' for danbooru format, any other for PostyBirb
-let allThreshold = 0.55;           // Lower threshold (include)
-let confidentThreshold = 0.75;      // Upper threshold (confident)
+    let allThreshold = 0.60;           // Lower threshold (include)
+    let confidentThreshold = 0.70;      // Upper threshold (confident)
 let currentTheme = 'system';          // 'system', 'light', 'dark'
 let activePreset = 'standard';        // 'conservative'/'standard'/'liberal'/'custom'
 let addedTags = new Set();           // User-added tags
@@ -100,8 +100,8 @@ let isFullscreenActive = false;      // Fullscreen modal state
 | `allTags` | Array | [] | Tag predictions from API |
 | `currentFormat` | string | 'e621' | Runtime output format |
 | `savedFormat` | string | 'e621' | Persisted default format |
-| `allThreshold` | float | 0.55 | Include threshold |
-| `confidentThreshold` | float | 0.75 | High confidence threshold |
+| `allThreshold` | float | 0.60 | Include threshold |
+| `confidentThreshold` | float | 0.70 | High confidence threshold |
 | `currentTheme` | string | 'system' | UI theme |
 | `activePreset` | string | 'standard' | Threshold preset |
 | `addedTags` | Set | - | User-added tags |
@@ -114,49 +114,49 @@ let isFullscreenActive = false;      // Fullscreen modal state
 
 ```javascript
 const presets = {
-    conservative: { all: 0.65, confident: 0.85 },
-    standard: { all: 0.55, confident: 0.75 },
-    liberal: { all: 0.45, confident: 0.65 }
+    conservative: { all: 0.70, confident: 0.80 },
+    standard: { all: 0.60, confident: 0.70 },
+    liberal: { all: 0.50, confident: 0.60 }
 };
 ```
 
 | Preset | allThreshold | confidentThreshold |
 |--------|------------|-----------------|
-| conservative | 0.65 | 0.85 |
-| standard | 0.55 | 0.75 |
-| liberal | 0.45 | 0.65 |
+| conservative | 0.70 | 0.80 |
+| standard | 0.60 | 0.70 |
+| liberal | 0.50 | 0.60 |
 | custom | user-defined | user-defined |
 
 ---
 
 ## 3. DOM Cached Elements
 
-| Element ID | Usage |
-|------------|-------|
-| `dropZone` | File upload area |
-| `fileInput` | Hidden file input |
-| `uploadContent` | Upload prompt text |
-| `results` | Results container |
-| `resultsContent` | Tags display area |
-| `notification-container` | Toast notifications |
-| `categoriesContainer` | Category tag groups |
-| `ratingDisplay` | Rating badge |
-| `copyGlobalAll` | Copy all button |
-| `copyGlobalConfident` | Copy confident button |
-| `settingsToggle` | Settings toggle button |
-| `settingsMenu` | Settings panel |
-| `closeSettings` | Close settings button |
-| `presetBtns` | Threshold preset buttons |
-| `customPanel` | Custom thresholds panel |
-| `customAllInput` | Custom all threshold input |
-| `customConfidentInput` | Custom confident threshold input |
-| `applyCustom` | Apply custom button |
-| `resetSettings` | Reset button |
-| `eggContainer` | Easter egg container |
-| `eggCreature` | Easter egg image |
-| `helpBtn` | Help button |
-| `helpModal` | Help modal |
-| `closeHelpModalBtn` | Close help modal button |
+| Variable | Element ID / Selector | Usage |
+|----------|----------------------|-------|
+| `dropZone` | `dropZone` | File upload area |
+| `fileInput` | `fileInput` | Hidden file input |
+| `uploadContent` | `uploadContent` | Upload prompt text |
+| `results` | `results` | Results container |
+| `resultsContent` | `resultsContent` | Tags display area |
+| `notificationContainer` | `notification-container` | Toast notifications |
+| `categoriesContainer` | `categoriesContainer` | Category tag groups |
+| `ratingDisplay` | `ratingDisplay` | Rating badge |
+| `copyGlobalAll` | `copyGlobalAll` | Copy all button |
+| `copyGlobalConfident` | `copyGlobalConfident` | Copy confident button |
+| `settingsToggle` | `settingsToggle` | Settings toggle button |
+| `settingsMenu` | `settingsMenu` | Settings panel |
+| `closeSettings` | `closeSettings` | Close settings button |
+| `presetBtns` | `.preset-btn` | Threshold preset buttons |
+| `customPanel` | `customThresholdsPanel` | Custom thresholds panel |
+| `customAllInput` | `customAll` | Custom all threshold input |
+| `customConfidentInput` | `customConfident` | Custom confident threshold input |
+| `applyCustom` | `applyCustom` | Apply custom button |
+| `resetBtn` | `resetSettings` | Reset button |
+| `eggContainer` | `eggContainer` | Easter egg container |
+| `eggCreature` | `eggCreature` | Easter egg image |
+| `helpBtn` | `helpThresholdsBtn` | Help button |
+| `helpModal` | `helpModal` | Help modal |
+| `closeHelpModalBtn` | `.close-help-modal` | Close help modal button |
 
 ---
 
@@ -181,17 +181,35 @@ Loads persisted settings from localStorage.
 function loadSettings() {
     const saved = localStorage.getItem('e621tagger-settings');
     if (saved) {
-        const settings = JSON.parse(saved);
-        allThreshold = settings.allThreshold ?? 0.55;
-        confidentThreshold = settings.confidentThreshold ?? 0.75;
-        savedFormat = settings.defaultFormat ?? 'e621';
-        currentFormat = savedFormat;
-        currentTheme = settings.theme ?? 'system';
-        activePreset = settings.activePreset ?? 'standard';
-        maxTags = settings.maxTags ?? 200;
-        
-        // Update UI
-        updateTheme(currentTheme);
+        try {
+            const settings = JSON.parse(saved);
+            allThreshold = settings.allThreshold ?? 0.60;
+            confidentThreshold = settings.confidentThreshold ?? 0.70;
+            savedFormat = settings.defaultFormat ?? 'e621';
+            currentFormat = savedFormat;
+            currentTheme = settings.theme ?? 'system';
+            activePreset = settings.activePreset ?? 'standard';
+            maxTags = settings.maxTags ?? 200;
+            if (!ALLOWED_MAX_TAGS.includes(maxTags)) maxTags = 200;
+            
+            document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === currentTheme);
+            });
+            document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === savedFormat);
+            });
+            document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === String(maxTags));
+            });
+            
+            updateTheme(currentTheme);
+            updateThresholdUI();
+        } catch (e) {
+            console.warn('Failed to load settings', e);
+        }
+    } else {
+        activePreset = 'standard';
+        maxTags = 200;
         updateThresholdUI();
     }
 }
@@ -408,7 +426,7 @@ function showTagPopup(tagObj, targetElement) {
             <a href="https://e621.net/wiki_pages?title=${escapeHtml(tagName)}" target="_blank">...</a>
             <button class="close-popup">✕</button>
         </div>
-        <div class="tag-popup-content"><div class="tag-popup-loading">Loading...</div></div>
+        <div class="tag-popup-content"><div class="tag-popup-loading">Loading description...</div></div>
     `;
     document.body.appendChild(popup);
     currentPopup = popup;
@@ -578,21 +596,17 @@ Main tag rendering function - creates DOM elements.
 function displayTags(tags) {
     let rating = null;
     const nonRatingTags = [];
-    
-    // Separate rating and non-rating tags
     tags.forEach(t => {
         if (ratingTags.has(t.tag)) {
             if (!rating || t.prob > rating.prob) rating = t;
         } else nonRatingTags.push(t);
     });
-    
-    // Render rating badge
     if (rating) {
         ratingDisplay.textContent = `Rating: ${rating.tag}`;
         ratingDisplay.className = 'rating-display ' + rating.tag;
-    }
-    
-    // Group by category
+        ratingDisplay.style.display = 'inline-block';
+    } else ratingDisplay.style.display = 'none';
+
     const grouped = {};
     nonRatingTags.sort((a, b) => b.prob - a.prob);
     nonRatingTags.forEach(item => {
@@ -600,12 +614,46 @@ function displayTags(tags) {
         if (!grouped[cat]) grouped[cat] = [];
         grouped[cat].push(item);
     });
-    
-    // Render categories
+
     categoriesContainer.innerHTML = '';
-    Object.keys(grouped).sort(/* category order sort */).forEach(cat => {
-        // Create category block with tags
-        // Attach Hammer.js events
+    Object.keys(grouped).sort((a, b) => {
+        const ia = displayCategoryOrder.indexOf(a);
+        const ib = displayCategoryOrder.indexOf(b);
+        if (ia !== -1 && ib !== -1) return ia - ib;
+        if (ia !== -1) return -1;
+        if (ib !== -1) return 1;
+        return a.localeCompare(b);
+    }).forEach(cat => {
+        const catTags = grouped[cat];
+        const catDiv = document.createElement('div');
+        catDiv.className = 'category-block';
+        catDiv.innerHTML = `
+            <div class="category-header">
+                <span class="category-name">${escapeHtml(cat)}</span>
+            </div>
+            <div class="category-tags"></div>
+        `;
+        const tagsContainer = catDiv.querySelector('.category-tags');
+        catTags.forEach(item => {
+            const tagEl = document.createElement('span');
+            tagEl.className = 'tag';
+            tagEl.setAttribute('data-tag', item.tag);
+            tagEl.textContent = item.tag;
+            if (addedTags.has(item.tag)) {
+                tagEl.setAttribute('data-level', 'added');
+            } else if (removedTags.has(item.tag)) {
+                tagEl.setAttribute('data-level', 'removed');
+            } else if (item.prob >= confidentThreshold) {
+                tagEl.setAttribute('data-level', 'confident');
+                tagEl.setAttribute('data-original-level', 'confident');
+            } else if (item.prob >= allThreshold) {
+                tagEl.setAttribute('data-level', 'all');
+                tagEl.setAttribute('data-original-level', 'all');
+            }
+            attachTagEvents(tagEl, item);
+            tagsContainer.appendChild(tagEl);
+        });
+        categoriesContainer.appendChild(catDiv);
     });
 }
 ```
@@ -654,32 +702,34 @@ Formats tags for clipboard output.
 ```javascript
 function formatTags(tags) {
     if (currentFormat === 'e621') {
-        // Group by category, sort categories, join with space
-        // Categories 100-111 are merged into General for copy
         const grouped = {};
         tags.forEach(t => {
             let cat = t.category || 'Other';
-            // Merge fine categories into General for copy
-            if (['Body Color', 'Accessories, Items, Clothing', 'Actions, Positions, State',
-                'Body Features', 'Effects, Fluids', 'Fetishes, Specifics, Interactions',
-                'Genders, Demographics', 'Locations, Backgrounds, Setting',
-                'Poses, Scenarios, Situations', 'Style, Perspective',
-                'Text, Symbols, UI, Vocalization', 'Other'].includes(cat)) {
-                cat = 'General';
-            }
+            if (cat === 'Body Color') cat = 'General';
+            else if (cat === 'Accessories, Items, Clothing') cat = 'General';
+            else if (cat === 'Actions, Positions, State') cat = 'General';
+            else if (cat === 'Body Features') cat = 'General';
+            else if (cat === 'Effects, Fluids') cat = 'General';
+            else if (cat === 'Fetishes, Specifics, Interactions') cat = 'General';
+            else if (cat === 'Genders, Demographics') cat = 'General';
+            else if (cat === 'Locations, Backgrounds, Setting') cat = 'General';
+            else if (cat === 'Poses, Scenarios, Situations') cat = 'General';
+            else if (cat === 'Style, Perspective') cat = 'General';
+            else if (cat === 'Text, Symbols, UI, Vocalization') cat = 'General';
+            else if (cat === 'Other') cat = 'General';
             if (!grouped[cat]) grouped[cat] = [];
             grouped[cat].push(t.tag);
         });
-        // Sort by copyCategoryOrder (e621 order)
         const sortedCats = Object.keys(grouped).sort((a, b) => {
             const ia = copyCategoryOrder.indexOf(a);
             const ib = copyCategoryOrder.indexOf(b);
-            // ... sorting logic
-            return /* result */;
+            if (ia !== -1 && ib !== -1) return ia - ib;
+            if (ia !== -1) return -1;
+            if (ib !== -1) return 1;
+            return a.localeCompare(b);
         });
         return sortedCats.map(cat => grouped[cat].join(' ')).join('\n');
     } else {
-        // posty format - replace underscores with spaces
         return tags.map(t => t.tag.replace(/_/g, ' ')).join(', ');
     }
 }
@@ -748,7 +798,7 @@ function showCopySuccess(btn, count, format) {
     if (btn._copyTimeout) clearTimeout(btn._copyTimeout);
     btn.classList.add('copied');
     const displayName = format === 'e621' ? 'e621' : 'PostyBirb';
-    showNotification(`Copied ${count} tags • ${displayName}`, 'success');
+    showNotification(`📋 Copied ${count} ${count === 1 ? 'tag' : 'tags'} • ${displayName}`, 'success');
     btn._copyTimeout = setTimeout(() => btn.classList.remove('copied'), 1000);
 }
 ```
@@ -765,15 +815,9 @@ Processes uploaded files.
 function handleFiles(files) {
     if (files.length === 0) return;
     const file = files[0];
-    if (!file.type.startsWith('image/')) {
-        showNotification('Please select an image file.', 'error');
-        return;
-    }
-    if (file.size > MAX_FILE_SIZE) {
-        showNotification(`File too large. Maximum size is ${MAX_FILE_SIZE / (1024*1024)}MB.`, 'error');
-        return;
-    }
-    showPreview(file);
+    if (!file.type.startsWith('image/')) { showNotification('Please select an image file.', 'error'); return; }
+    if (file.size > MAX_FILE_SIZE) { showNotification(`File too large. Maximum size is ${MAX_FILE_SIZE / (1024*1024)}MB.`, 'error'); return; }
+    uploadImage(file);
 }
 ```
 
@@ -782,11 +826,9 @@ function handleFiles(files) {
 Shows image preview and fetches tags.
 
 ```javascript
-async function showPreview(file) {
-    // Remove existing image
+function showPreview(file) {
     const existingImg = dropZone.querySelector('img');
     if (existingImg) existingImg.remove();
-    
     uploadContent.style.display = 'none';
     const img = document.createElement('img');
     img.src = URL.createObjectURL(file);
@@ -797,9 +839,6 @@ async function showPreview(file) {
     };
     dropZone.appendChild(img);
     dropZone.classList.add('has-image');
-    
-    // Fetch tags
-    await uploadImage(file);
 }
 ```
 
@@ -809,32 +848,41 @@ Uploads image to API and processes response.
 
 ```javascript
 async function uploadImage(file) {
-    dropZone.classList.add('processing');
-    
+    showPreview(file);
+    dropZone.classList.add('uploading');
+    const wasVisible = results.classList.contains('visible');
+    if (wasVisible) await hideResults();
     const formData = new FormData();
     formData.append('image', file);
     formData.append('top_k', maxTags.toString());
-    
-    const response = await fetch('/predict', {
-        method: 'POST',
-        body: formData
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-        allTags = result.tags;
-        autoMetaTagSet = new Set(result.auto_meta || []);
-        addedTags.clear();
-        removedTags.clear();
-        await showResults();
-        displayTags(allTags);
-        showNotification(`Generated ${allTags.length} tags`, 'success');
-    } else {
-        showNotification(result.error || 'Failed to process image', 'error');
-    }
-    
-    dropZone.classList.remove('processing');
+    try {
+        const response = await fetch('/predict', { method: 'POST', body: formData });
+        if (!response.ok) {
+            let errorMsg = 'Server error. Please try again later.';
+            try { const data = await response.json(); errorMsg = data.error || errorMsg; } catch (e) {}
+            throw new Error(errorMsg);
+        }
+        const data = await response.json();
+        if (data.success) {
+            const baseTags = data.tags || [];
+            const autoMeta = data.auto_meta || [];
+            const merged = baseTags.slice();
+            autoMeta.forEach(t => {
+                if (!merged.find(x => x.tag === t)) {
+                    merged.push({ tag: t, prob: 1.0, category: 'Meta' });
+                }
+            });
+            allTags = merged;
+            autoMetaTagSet = new Set(autoMeta);
+            addedTags.clear();
+            removedTags.clear();
+            currentFormat = savedFormat;
+            updateLocalFormatUI();
+            displayTags(allTags);
+            await showResults();
+        } else showNotification(data.error || 'Failed to generate tags.', 'error');
+    } catch (err) { showNotification(err.message || 'Network error. Please try again.', 'error'); }
+    finally { dropZone.classList.remove('uploading'); }
 }
 ```
 
@@ -848,10 +896,8 @@ Attaches Hammer.js tap event handler.
 
 ```javascript
 function attachHammerTap(element, handler) {
-    if (element._hammer) element._hammer.destroy();
     const hammer = new Hammer(element);
     hammer.on('tap', handler);
-    element._hammer = hammer;
 }
 ```
 
@@ -861,23 +907,49 @@ Initializes Hammer.js for all interactive elements.
 
 ```javascript
 function initHammer() {
-    // Settings toggle
-    attachHammerTap(settingsToggle, () => toggleSettings(!settingsMenu.classList.contains('show')));
-    
-    // Close settings
+    attachHammerTap(dropZone, () => fileInput.click());
+    attachHammerTap(eggContainer, () => {
+        const isOpen = eggContainer.classList.contains('open');
+        if (!isOpen) {
+            const randomIndex = Math.floor(Math.random() * creaturePaths.length);
+            eggCreature.src = creaturePaths[randomIndex];
+        }
+        eggContainer.classList.toggle('open');
+    });
+    attachHammerTap(settingsToggle, (e) => {
+        settingsToggle.classList.add('pressed');
+        setTimeout(() => { settingsToggle.classList.remove('pressed'); }, 100);
+        toggleSettings(!settingsMenu.classList.contains('show'));
+    });
     attachHammerTap(closeSettings, () => toggleSettings(false));
-    
-    // Reset button
+    attachHammerTap(applyCustom, () => {
+        const all = parseFloat(customAllInput.value);
+        const conf = parseFloat(customConfidentInput.value);
+        if (isNaN(all) || isNaN(conf) || all < 0 || all > 1 || conf < 0 || conf > 1) {
+            showNotification('Please enter valid numbers between 0 and 1.', 'error');
+            return;
+        }
+        allThreshold = all; confidentThreshold = conf;
+        activePreset = 'custom';
+        applyThresholds();
+    });
     attachHammerTap(resetBtn, () => {
-        allThreshold = 0.55; confidentThreshold = 0.75;
-        savedFormat = 'e621'; currentFormat = savedFormat;
-        currentTheme = 'system'; activePreset = 'standard'; maxTags = 200;
+        allThreshold = 0.60; confidentThreshold = 0.70; savedFormat = 'e621';
+        currentFormat = savedFormat; currentTheme = 'system'; activePreset = 'standard'; maxTags = 200;
+        document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === 'system');
+        });
+        document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === 'e621');
+        });
+        document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === '200');
+        });
         updateTheme('system');
         applyThresholds();
         saveSettings();
     });
-    
-    // Preset buttons
+
     presetBtns.forEach(btn => {
         attachHammerTap(btn, () => {
             const preset = btn.dataset.preset;
@@ -889,17 +961,16 @@ function initHammer() {
             }
             activePreset = preset;
             switch (preset) {
-                case 'conservative': allThreshold = 0.65; confidentThreshold = 0.85; break;
-                case 'standard': allThreshold = 0.55; confidentThreshold = 0.75; break;
-                case 'liberal': allThreshold = 0.45; confidentThreshold = 0.65; break;
+                case 'conservative': allThreshold = 0.70; confidentThreshold = 0.80; break;
+                case 'standard': allThreshold = 0.60; confidentThreshold = 0.70; break;
+                case 'liberal': allThreshold = 0.50; confidentThreshold = 0.60; break;
             }
             customAllInput.value = allThreshold.toFixed(2);
             customConfidentInput.value = confidentThreshold.toFixed(2);
             applyThresholds();
         });
     });
-    
-    // Theme toggle
+
     document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
         attachHammerTap(btn, () => {
             document.querySelectorAll('#themeToggle .theme-option').forEach(b => b.classList.remove('active'));
@@ -909,8 +980,33 @@ function initHammer() {
             saveSettings();
         });
     });
-    
-    // More toggle setup...
+
+    document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
+        attachHammerTap(btn, () => {
+            document.querySelectorAll('#defaultFormatToggle .format-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            savedFormat = btn.dataset.value;
+            currentFormat = savedFormat;
+            saveSettings();
+        });
+    });
+
+    document.querySelectorAll('#resultsFormatToggle .format-option').forEach(btn => {
+        attachHammerTap(btn, () => {
+            document.querySelectorAll('#resultsFormatToggle .format-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFormat = btn.dataset.value;
+        });
+    });
+
+    document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
+        attachHammerTap(btn, () => {
+            document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            maxTags = parseInt(btn.dataset.value);
+            saveSettings();
+        });
+    });
 }
 ```
 
@@ -983,7 +1079,7 @@ function applyThresholds() {
     dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false));
 
 // Drop handler
-dropZone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
+dropZone.addEventListener('drop', (e) => { const dt = e.dataTransfer; const files = dt.files; if (files.length) handleFiles(files); });
 
 // File input
 fileInput.addEventListener('change', () => handleFiles(fileInput.files));
@@ -991,26 +1087,31 @@ fileInput.addEventListener('change', () => handleFiles(fileInput.files));
 // Paste
 document.addEventListener('paste', (e) => {
     const items = e.clipboardData?.items;
+    if (!items) return;
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
         if (item.type.startsWith('image/')) {
             const file = item.getAsFile();
-            if (file) { handleFiles([file]); break; }
+            if (file) { handleFiles([file]); e.preventDefault(); break; }
         }
     }
 });
 
 // Click outside to close
 document.addEventListener('click', (e) => {
-    if (currentPopup && !currentPopup.contains(e.target)) closePopup();
+    if (currentPopup && !currentPopup.contains(e.target) && (!activePopupTagElement || !activePopupTagElement.contains(e.target))) closePopup();
     if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) toggleSettings(false);
+    if (helpModal && helpModal.style.display === 'flex') {
+        const modalContent = helpModal.querySelector('.help-modal-content');
+        if (e.target === helpModal || (helpModal.contains(e.target) && modalContent && !modalContent.contains(e.target))) closeHelpModal();
+    }
 });
 
 // Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        closePopup();
-        toggleSettings(false);
+        if (helpModal && helpModal.style.display === 'flex') closeHelpModal();
+        if (settingsMenu.classList.contains('show')) toggleSettings(false);
         if (isFullscreenActive) hideFullscreenImage();
     }
     if (e.code === 'KeyF' && !e.ctrlKey && !e.metaKey) {
@@ -1160,7 +1261,7 @@ top_k: <number> (optional, default 200)
 
 ---
 
-## 16. Quick Reference for Agents
+## 17. Quick Reference for Agents
 
 ### LocalStorage
 
@@ -1201,4 +1302,4 @@ top_k: <number> (optional, default 200)
 | helpModal | Help overlay |
 | notification-container | Toast container |
 
-(End of file - total ~780 lines)
+(End of file - total ~1300 lines)

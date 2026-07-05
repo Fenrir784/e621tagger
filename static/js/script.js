@@ -47,8 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let allTags = [];
     let currentFormat = 'e621';
     let savedFormat = 'e621';
-    let allThreshold = 0.55;
-    let confidentThreshold = 0.75;
+    let allThreshold = 0.60;
+    let confidentThreshold = 0.70;
     let currentTheme = 'system';
     let activePreset = 'standard';
     let addedTags = new Set();
@@ -75,8 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (saved) {
             try {
                 const settings = JSON.parse(saved);
-                allThreshold = settings.allThreshold ?? 0.55;
-                confidentThreshold = settings.confidentThreshold ?? 0.75;
+                allThreshold = settings.allThreshold ?? 0.60;
+                confidentThreshold = settings.confidentThreshold ?? 0.70;
                 savedFormat = settings.defaultFormat ?? 'e621';
                 currentFormat = savedFormat;
                 currentTheme = settings.theme ?? 'system';
@@ -758,7 +758,7 @@ function refreshTagClasses() {
             applyThresholds();
         });
         attachHammerTap(resetBtn, () => {
-            allThreshold = 0.55; confidentThreshold = 0.75; savedFormat = 'e621';
+            allThreshold = 0.60; confidentThreshold = 0.70; savedFormat = 'e621';
             currentFormat = savedFormat; currentTheme = 'system'; activePreset = 'standard'; maxTags = 200;
             
             document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
@@ -787,9 +787,9 @@ function refreshTagClasses() {
                 }
                 activePreset = preset;
                 switch (preset) {
-                    case 'conservative': allThreshold = 0.65; confidentThreshold = 0.85; break;
-                    case 'standard': allThreshold = 0.55; confidentThreshold = 0.75; break;
-                    case 'liberal': allThreshold = 0.45; confidentThreshold = 0.65; break;
+                    case 'conservative': allThreshold = 0.70; confidentThreshold = 0.80; break;
+                    case 'standard': allThreshold = 0.60; confidentThreshold = 0.70; break;
+                    case 'liberal': allThreshold = 0.50; confidentThreshold = 0.60; break;
                 }
                 customAllInput.value = allThreshold.toFixed(2);
                 customConfidentInput.value = confidentThreshold.toFixed(2);

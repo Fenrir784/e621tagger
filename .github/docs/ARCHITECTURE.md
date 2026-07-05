@@ -35,11 +35,11 @@ e621tagger is a Flask-based web application that provides automatic image taggin
 │  ┌─────────────────────────────────────────────────┐  │
 │  │           JTP-3 Hydra Model                      │  │
 │  │  ┌─────────────┐  ┌─────────────────────────┐  │  │
-│  │  │ NaFlex ViT  │  │   HydraPool Head         │  │  │
-│  │  │ Backbone   │  │   (7,500+ tags)          │  │  │
+│  │  │ NaFlexVit   │  │   HydraPool Head         │  │  │
+│  │  │ Backbone   │  │   (7,504 tags)           │  │  │
 │  │  └─────────────┘  └─────────────────────────┘  │  │
 │  └─────────────────────────────────────────────────┘  │
-└──────────────────────────��──────────────────────────────┘
+└──────────────────────────────────────────────────────────┘
 ```
 
 ## Component Relationships
@@ -48,9 +48,11 @@ e621tagger is a Flask-based web application that provides automatic image taggin
 
 | Component | File | Responsibility |
 |-----------|------|----------------|
-| Flask App | `app.py` | HTTP routing, request handling, security |
+| Flask App | `app.py` | HTTP routing, request handling, security, subcategory display names |
 | Model Library | `hydra/` | Model loading, inference, labels, pooling, head |
 | Image Processor | `hydra/image.py` | sRGB conversion, patch creation |
+| Subcategory Map | `hydra/_subcat.py` | 6,263 general tags mapped to 12 subcategories |
+| Label Classifier | `hydra/label.py` | `Label.subcategory` property |
 | Loader | `utils/loader.py` | Multi-process image loading for batching |
 
 ### Component Interaction Diagram
@@ -72,8 +74,8 @@ User Upload
 ┌────────────────┐
 │  model.py       │
 │                │
-│  1. process_   │
-│     image()     │
+│  1. load_     │
+│     image()    │
 │  2. patchify_  │
 │     image()    │
 └────────┬───────┘
@@ -86,7 +88,7 @@ User Upload
 │  NaFlexVit      │
 │  (siglip2.py)  │
 │                │
-│  1. embeds()   │
+│  1. forward() │
 │  2. blocks[]   │
 │  3. norm()     │
 │  4. forward_   │
@@ -98,14 +100,14 @@ User Upload
          ▼
 ┌────────────────┐
 │  HydraPool     │
-│  (hydra_pool) │
+│  (pool.py)    │
 │               │
 │  1. attn()    │
 │  2. ff()      │
 │  3. out_proj()│
 └────────┬───────┘
          │
-    logits (7500+)
+    logits (7504)
          │
          ▼
 ┌────────────────┐
@@ -125,11 +127,11 @@ User Upload
    User → POST /predict → Flask validates file (type, size)
    │
 2. Preprocessing Phase
-   PIL Image.open() → process_srgb() → resize to sequence limit
-   → patchify_image() → patches, patch_coords, patch_valid tensors
+   PIL Image.open() → open_srgb() → resize to sequence limit
+   → patchify() → patches, patch_coords, patch_valid tensors
    │
 3. Model Inference Phase
-   NaFlexVit.forward_intermediates() → image_features
+   NaFlexVit.forward() → image_features
    → HydraPool.forward() → logits (per-tag confidence)
    │
 4. Postprocessing Phase
@@ -208,11 +210,11 @@ Environment Variables (app.py)
 | X-Content-Type-Options | nosniff |
 | Referrer-Policy | strict-origin-when-cross-origin |
 | Permissions-Policy | geolocation=(), microphone=(), camera=() |
-| Content-Security-Policy | (see app.py line 147 for full CSP string) |
+| Content-Security-Policy | (see app.py line 176 for full CSP string) |
 
 ## Extension System
 
-The model supports extension files for adding new classification tags. Extensions are loaded via the `discover_extensions()` function in `model.py`.
+The model supports extension files for adding new classification tags. Extensions are loaded via the `Extension.discover()` function in `model.py`.
 
 ### Extension Format
 
@@ -229,7 +231,7 @@ The model supports extension files for adding new classification tags. Extension
 ```
 extensions directory
     │
-    ├── extension1.safetensors  → load_extension()
+    ├── extension1.safetensors  → Extension.load()
     └── extension2.safetensors  → HydraPool.load_extensions()
 ```
 
@@ -287,7 +289,7 @@ The same IP always maps to the same color, making it easy to trace user activity
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Production                          │
-│  ┌─────────────────────────────────────────���─���─┐   │
+│  ┌─────────────────────────────────────────────────┐   │
 │  │  Traefik (Reverse Proxy)                   │   │
 │  │  - TLS termination                     │   │
 │  │  - Route to container                │   │
@@ -327,8 +329,9 @@ When using multiple Gunicorn workers, each worker loads its own model copy:
 
 ```
 e621tagger/
-├── app.py                    # Flask application
-├── hydra/                    # Model library (model, pool, head, image, labels)
+├── app.py                    # Flask application, subcategory display names
+├── hydra/                    # Model library (model, pool, head, image, labels, subcat)
+│   └── _subcat.py          # _SUBCATEGORY_MAP: 6,263 general tags → 12 subcategories
 ├── utils/                    # Utilities (loader, workqueue)
 ├── templates/
 │   ├── index.html          # Main UI template

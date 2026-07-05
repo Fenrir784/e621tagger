@@ -8,10 +8,10 @@ This document provides comprehensive documentation of the JTP-3 Hydra model arch
 |-----------|-------|
 | **Architecture** | `naflexvit_so400m_patch16_siglip+rr_hydra` (NaFlexViT + HydraPool) |
 | **Base Model** | SigLIP-400m (So400m) |
-| **Tags Supported** | 7,500+ |
+| **Tags Supported** | 8,888 (Hydra 3.5) |
 | **Patch Size** | 16x16 pixels |
 | **Sequence Length** | Up to 1024 patches |
-| **Model Source** | HuggingFace `RedRocket/JTP-3` |
+| **Model Source** | HuggingFace `RedRocket/Hydra` |
 
 ## Architecture Components
 
@@ -74,29 +74,25 @@ NaFlexVit
 
 | Method | Description |
 |--------|-------------|
-| `forward()` | Full forward pass |
-| `forward_intermediates()` | Return intermediate layer outputs |
-| `forward_features()` | Return features without classification |
-| `forward_head()` | Apply classification head |
+| `forward(x, sizes, valid)` | Full forward pass with stacked patches |
+| `forward_features(x, sizes, valid)` | Return features without classification head |
+| `forward_head(features, valid)` | Apply attention pool + classification head |
+| `forward_varlen(x, sizes, cu_seq, max_seq)` | Variable-length sequence forward |
 
 ### Variable Sequence Length Support
 
-The model supports variable sequence lengths (not fixed to images):
+The model supports variable sequence lengths via two modes:
 
 ```python
-# Standard forward - fixed sequence
-def forward(self, patches, patch_coord, patch_valid):
-    output = self.forward_intermediates(patches, patch_coord, patch_valid, [])
-    return self.forward_head(output["image_features"], output["patch_valid"])
+# Standard forward - stacked batch (fixed max sequence length)
+def forward(self, x, sizes=None, valid=None):
+    output = self.forward_features(x, sizes, valid)
+    return self.forward_head(output.pop("features"), output.pop("valid"))
 
-# Variable length forward
-def forward_varlen(self, patches, patch_coord, max_seq=None):
-    output = self.forward_intermediates_varlen(patches, patch_coord, max_seq, [])
-    return self.forward_head_varlen(
-        output["image_features"],
-        output["cu_seq"],
-        output["max_seq"]
-    )
+# Variable length forward - jagged tensor (efficient for varied sizes)
+def forward_varlen(self, x, sizes, cu_seq, max_seq=1024):
+    output = self.forward_features_varlen(x, sizes, cu_seq, max_seq)
+    return self.forward_head_varlen(output.pop("features"), output.pop("cu_seq"), output.pop("max_seq"))
 ```
 
 ### Key Dimensions
@@ -119,7 +115,7 @@ HydraPool is a novel attention-based classification head that learns per-tag que
 
 ### Implementation
 
-**File**: `hydra_pool.py`
+**File**: `pool.py`
 
 ### Architecture
 
@@ -128,20 +124,18 @@ HydraPool
 ├── q: Parameter(n_heads, n_classes, head_dim)
 │   # Learned query vectors per tag
 ├── kv: Linear(input_dim, attn_dim × 2)
-│   # Key-Value projection (tie_kv option)
+│   # Key-Value projection
 ├── qk_norm: RMSNorm(head_dim)
 │   # Query/key normalization
-├── ff_norm: LayerNorm(attn_dim)
-├── ff_in: Linear(attn_dim, hidden_dim × 2)
-│   # SwiGLU feedforward
-├── ff_act: SwiGLU()
-├── ff_drop: Dropout(ff_dropout)
-├── ff_out: Linear(hidden_dim, attn_dim)
+├── ff: _FeedForward
+│   ├── norm: LayerNorm(attn_dim)
+│   ├── proj_in: SwiGLU(attn_dim, ff_dim)
+│   └── proj_out: Linear(ff_dim, attn_dim)
 ├── mid_blocks: ModuleList[n × _MidBlock]
-│   # Optional mid-level processing blocks
-└── out_proj: BatchLinear(n_classes, attn_dim, output_dim × 2)
-    # Per-class output projection
+    # Optional mid-level processing blocks
 ```
+
+The per-class output projection is handled by a separate **Head** module (SwiGLUHead or LinearHead), not by HydraPool itself.
 
 ### Forward Process
 
@@ -152,17 +146,14 @@ def forward(self, x, attn_mask=None):
     # 1. Attention pooling
     x, k, v = self._forward_attn(x, attn_mask)
     
-    # 2. Feedforward
-    x = self._forward_ff(x)
+    # 2. Feedforward with residual
+    x = x + self.ff(x)
     
     # 3. Mid blocks (if any)
     for block in self.mid_blocks:
         x = block(x, k, v, attn_mask)
     
-    # 4. Output projection
-    x = self._forward_out(x)
-    
-    return x  # (batch, n_classes, output_dim)
+    return x  # (batch, n_classes, attn_dim)
 ```
 
 ### Attention Mechanism
@@ -180,7 +171,7 @@ def _forward_attn(self, x, attn_mask):
     k, v = rearrange(x, "... s (n h e) -> n ... h s e", n=2).unbind(0)
     # k, v: (batch, n_heads, seq_len, head_dim)
     
-    # 3. Normalize keys
+    # 3. Normalize keys (queries are pre-normalized at init)
     k = self.qk_norm(k)
     
     # 4. Scaled dot-product attention
@@ -190,17 +181,13 @@ def _forward_attn(self, x, attn_mask):
     return rearrange(x, "... h s e -> ... s (h e)"), k, v
 ```
 
-### Inference Optimization
+### Query Normalization
 
-The HydraPool normalizes queries during inference for faster execution:
+Queries are pre-normalized at initialization time via `qk_norm` to improve training stability:
 
 ```python
-def inference(self):
-    # Normalize q vectors at inference time
-    with torch.no_grad():
-        self.q.copy_(self._forward_q())
-    self._q_normed = True
-    return self
+with torch.no_grad():
+    self.q.copy_(self.qk_norm(self.q))
 ```
 
 ---
@@ -210,106 +197,111 @@ def inference(self):
 ### Overview
 
 ```
-Input Image → EXIF handling → sRGB conversion → Resize → Patchify → Model Input
+Input Image → Orientation detection → Crop → sRGB conversion → Alpha flatten → Resize → Autorot → Patchify → Model Input
 ```
 
 ### Implementation
 
-**File**: `image.py`
+**File**: `image.py`, via `_open_profile()` with `open_srgb()` entry point
 
 ### Steps
 
-#### 1. EXIF Orientation
+#### 1. Orientation Detection & Crop
+
+EXIF orientation is detected from image metadata. If a crop region is specified, it is applied before color transformation.
+
+#### 2. ICC Color Transform
 
 ```python
-exif_transpose(img, in_place=True)
+img = img.icc_transform(
+    profile, embedded=True,
+    intent=Intent.RELATIVE,
+    black_point_compensation=True,
+    depth=depth,
+)
 ```
 
-Corrects image rotation based on EXIF data.
+Converts the image to the sRGB profile, respecting embedded ICC profiles.
 
-#### 2. Color Profile Conversion
+#### 3. Alpha Flattening
 
 ```python
-# Convert to sRGB for consistent color handling
-profileToProfile(img, input_profile, sRGB_profile,
-                renderingIntent=RELATIVE_COLORIMETRIC,
-                inPlace=True)
+if img.hasalpha():
+    img = img.flatten(background=background)
 ```
 
-#### 3. Mode Conversion
+If the image has an alpha channel, it is flattened against the configured background color (0 = black, 127 = grey, or 255 = white per `classifier.background` metadata).
+
+#### 4. Resize (via Kernel)
+
+Resizing uses the configured kernel (`Kernel.LANCZOS3` or `Kernel.MKS2013` for linear) and may optionally apply pre/post LUTs for linear-light resizing.
+
+#### 5. Autorotate
 
 ```python
-# Ensure RGB mode
-if img.has_transparency_data:
-    img = img.convert("RGBa")  # RGBA if transparency
-else:
-    img = img.convert("RGB")    # RGB otherwise
+img = img.autorot()
 ```
 
-#### 4. Resize (Sequence Length Constraint)
+Applies EXIF rotation after resize.
+
+#### 6. Patch Extraction
+
+Patches are extracted by the `patchify()` function in `image.py` which spreads the image into patches and flattens into a sequence of patch vectors.
+
+#### Resize Sizing Algorithm
 
 **File**: `model.py`
 
 ```python
-def get_image_size_for_seq(image_hw, patch_size=16, max_seq_len=1024, ...):
+def get_image_size_for_seq(image_size, patch_size=16, max_seq_len=1024, ...):
     """Determine max image size within sequence constraint."""
     
-    h, w = image_hw
-    max_py = max((h * max_ratio) // patch_size, 1)
-    max_px = max((w * max_ratio) // patch_size, 1)
+    h, w = image_size
+    max_py = int(max((h * max_ratio) // patch_size, 1))
+    max_px = int(max((w * max_ratio) // patch_size, 1))
     
     if (max_py * max_px) <= max_seq_len:
         return max_py * patch_size, max_px * patch_size
     
     # Binary search for aspect-ratio-preserving size
     ...
+    return py * patch_size, px * patch_size
 ```
 
-#### 5. Patch Extraction
+#### Patch Extraction Implementation
+
+**File**: `image.py`, function `patchify()`
 
 ```python
-def patchify_image(img, patch_size=16, ...):
-    # Rearrange: (H, W, C) → (H/p × W/p, p×p×C)
-    patches = rearrange(
-        np.asarray(img)[:, :, :3],
-        "(h p1) (w p2) c -> h w (p1 p2 c)",
-        p1=patch_size, p2=patch_size
-    )
-    
-    # Create coordinates
-    coords = np.stack(np.meshgrid(
-        np.arange(patches.shape[0]),
-        np.arange(patches.shape[1]),
-        indexing='ij'
-    ), axis=-1)
-    
-    return patches, coords, valid_mask
+def patchify(img, patch_size=16):
+    img = spread(img, patch_size)
+    return img.flatten(1, 2).flatten(-3)
 ```
 
-### Output Tensors
+### Output
 
-| Tensor | Shape | Dtype | Description |
-|-------|-------|-------|-------------|
-| `patches` | (seq_len, 768) | uint8 | Pixel values (RGB × 16×16) |
-| `patch_coords` | (seq_len, 2) | int16 | (y, x) positions |
-| `patch_valid` | (seq_len,) | bool | Valid patch mask |
+The image pipeline produces a single tensor (not patches/coords/valid tuple):
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `img_tensor` | Tensor (H, W, 3) | Processed image in uint8 (0-255) sRGB |
+
+Patch extraction and stacking happen at inference time via `hydra_image.patchify()` and the model's `from_srgb()` normalization.
 
 ### Example
 
 ```python
-from model import load_image
+from hydra.model import load_model
 
-# Load and process image
-patches, patch_coords, patch_valid = load_image(
-    "artwork.png",
-    patch_size=16,
-    max_seq_len=1024,
-    share_memory=False
-)
+model = load_model("models/hydra-3.5.safetensors")
 
-print(f"Patches: {patches.shape}")      # (~1024, 768)
-print(f"Coords: {patch_coords.shape}")  # (1024, 2)
-print(f"Valid: {patch_valid.shape}")  # (1024,)
+# Load and process image (returns a tensor)
+img_tensor = model.load_image("artwork.png")
+
+# Patchify and normalize
+patches = hydra_image.patchify(img_tensor, 16)
+patches = model.from_srgb(patches)  # uint8 → bfloat16, normalize to [-1, 1]
+sizes = torch.tensor([[h, w]], dtype=torch.int32)
 ```
 
 ---
@@ -320,31 +312,32 @@ print(f"Valid: {patch_valid.shape}")  # (1024,)
 
 ```python
 import torch
-from hydra.model import Hydra, load_model, open_image
+from hydra import image as hydra_image
+from hydra.model import Hydra, load_model
 
 # 1. Load model
 model: Hydra = load_model("models/hydra-3.5.safetensors")
 model.eval()
+model.requires_grad_(False)
+tag_list = [label.label for label in model.labels]
 
 # 2. Load and process image
-patches, patch_coords, patch_valid = load_image(
-    "artwork.png",
-    patch_size=16,
-    max_seq_len=1024
-)
+img_tensor = model.load_image("artwork.png")  # returns (H, W, 3) uint8
 
-# 3. Prepare input
-p_d = patches.unsqueeze(0).to("cuda")
-pc_d = patch_coords.unsqueeze(0).to("cuda")
-pv_d = patch_valid.unsqueeze(0).to("cuda")
+# 3. Patchify and normalize
+h = img_tensor.shape[0] // 16
+w = img_tensor.shape[1] // 16
+patches = hydra_image.patchify(img_tensor, 16)  # (B, seq, 768)
+sizes = torch.tensor([[h, w]], dtype=torch.int32)
 
-# Normalize: [0, 255] → [-1, 1]
-p_d = p_d.to(dtype=torch.bfloat16).div_(127.5).sub_(1.0)
-pc_d = pc_d.to(dtype=torch.int32)
+# Normalize: [0, 255] → [-1, 1] (via from_srgb)
+patches = model.from_srgb(patches)
+patches = patches.to(device="cuda")
+sizes = sizes.to(device="cuda")
 
 # 4. Run inference
 with torch.no_grad():
-    logits = model(p_d, pc_d, pv_d)
+    logits = model.forward(patches, sizes)  # (1, num_tags)
 
 # 5. Process outputs
 probs = torch.sigmoid(logits[0].float()).cpu()
@@ -387,7 +380,7 @@ Extensions allow adding new classification tags to the model without retraining.
 | Key | Shape | Description |
 |-----|-------|-------------|
 | `q` | (1, 1, head_dim) | Query vector |
-| `out_proj.weight` | (1, attn_dim, output_dim×2) | Output projection |
+| `out_proj.weight` (saved) → loaded as `head.proj.weight` | (1, attn_dim, 2) | SwiGLU output projection |
 | `mid_blocks.{n}.q_cls` | (1, n_heads, head_dim) | Mid block queries |
 
 ### Loading Extensions
@@ -413,20 +406,8 @@ extensions/
 ```
 
 ---
-| `-x`, `--exclude` | Exclude category (may specify multiple) |
-| `-b`, `--batch` | Batch size |
-| `-w`, `--workers` | Number of dataloader workers |
-| `-S`, `--seqlen` | NaFlex sequence length (64-2048) |
-| `-d`, `--device` | PyTorch device (cuda, cpu) |
-| `-r`, `--recursive` | Process directories recursively |
-| `-o`, `--output` | Output CSV path or '-' for stdout |
-| `-p`, `--prefix` | Prefix for caption files |
-| `-M`, `--model` | Model file path |
-| `-m`, `--metadata` | Tag metadata CSV path |
-| `-e`, `--extension` | Extension path (may specify multiple) |
 
 ### Output Formats
-
 **Text Captions** (default):
 
 ```
@@ -543,23 +524,33 @@ The Flask app in `app.py` wraps the model:
 
 ```python
 from hydra.model import load_model
+from hydra import image as hydra_image
 
 # Load on startup
 MODEL_PATH = os.getenv('MODEL_PATH', 'models/hydra-3.5.safetensors')
 DEVICE = os.getenv('DEVICE', 'cuda' if torch.cuda.is_available() else 'cpu')
+PATCH_SIZE = 16
 
 model = load_model(MODEL_PATH)
 
 if DEVICE == 'cpu':
     model = model.float()
 else:
-    model = model.to(dtype=torch.bfloat16)
+    model = model.to(dtype=torch.bfloat16, device=DEVICE)
 
 model.requires_grad_(False)
 model.eval()
 
 # In predict route:
-patches, patch_coords, patch_valid = load_image(image_path, ...)
-p_d = patches.unsqueeze(0).to(DEVICE)
-# ... inference ...
+img_tensor = model.load_image(image_path)
+h = img_tensor.shape[0] // PATCH_SIZE
+w = img_tensor.shape[1] // PATCH_SIZE
+patches = hydra_image.patchify(img_tensor, PATCH_SIZE)
+sizes = torch.tensor([[h, w]], dtype=torch.int32)
+patches = model.from_srgb(patches)
+patches = patches.to(device=DEVICE)
+sizes = sizes.to(device=DEVICE)
+
+with torch.no_grad():
+    logits = model.forward(patches, sizes)
 ```

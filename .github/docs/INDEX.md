@@ -31,6 +31,9 @@ e621tagger is a web-based tool that automatically generates relevant tags for fu
 GET  /                    - Main UI page
 POST /predict              - Image classification (rate limited: 20/min)
 GET  /health              - Health check
+GET  /favicon.ico         - Favicon
+GET  /robots.txt          - Robots exclusion rules
+GET  /sitemap.xml         - XML sitemap
 GET  /service-worker.js   - PWA service worker
 GET  /static/<path>       - Static assets
 ```
@@ -61,8 +64,10 @@ ghcr.io/fenrir784/e621tagger:latest
 
 | File | Purpose |
 |------|---------|
-| `app.py` | Flask application, API endpoints, rate limiting |
+| `app.py` | Flask application, API endpoints, rate limiting, subcategory display names |
 | `hydra/` | Model library (HydraPool, NaFlexVit, head, labels, image processing) |
+| `hydra/_subcat.py` | `_SUBCATEGORY_MAP` — 6,263 general tags mapped to 12 subcategories |
+| `hydra/label.py` | `Label.subcategory` property using the subcategory map |
 | `utils/` | Utilities (multi-process Loader, WorkQueue) |
 
 ### Supported Image Formats
@@ -120,18 +125,19 @@ curl -X POST -F "image=@image.png" https://tagger.fenrir784.ru/predict
 
 - **Architecture**: naflexvit_so400m_patch16_siglip + rr_hydra2
 - **Base Model**: SigLIP-400m
-- **Tags**: ~8,900 (determined by model file)
+- **Tags**: 8,888 (Hydra 3.5 model)
+- **General tags with subcategories**: 6,263
 - **Input**: Image patches (16x16)
 - **Sequence Length**: Up to 1024 patches
 - **Model Source**: HuggingFace `RedRocket/Hydra`
 
-> **Note:** The exact tag count depends on the model file loaded. The default model contains approximately 8,900 tags.
+> **Note:** General tags are further classified into 12 fine-grained subcategories via the `_SUBCATEGORY_MAP` in `hydra/_subcat.py`. See [TAGGING.md](TAGGING.md) for details.
 
 ## Security Headers
 
 The application sets the following security headers on all responses:
 
-- `Strict-Transport-Security`: max-age=31536000
+- `Strict-Transport-Security`: max-age=31536000; includeSubDomains
 - `X-Frame-Options`: DENY
 - `X-Content-Type-Options`: nosniff
 - `Referrer-Policy`: strict-origin-when-cross-origin
