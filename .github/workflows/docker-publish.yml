@@ -60,7 +60,6 @@ jobs:
         with:
           path: |
             models/
-            data/
           key: ml-models-${{ hashFiles('.github/workflows/docker-publish.yml') }}
           restore-keys: |
             ml-models-
