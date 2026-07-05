@@ -508,7 +508,7 @@ Network → check /service-worker.js
 
 ```bash
 # Run PWA audit
-lighthouse https://tagger.fenrir784.ru \
+lighthouse https://tagger.fenrir784.app \
   --only-categories=pwa \
   --output=json \
   --output-path=pwa-report.json

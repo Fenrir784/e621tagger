@@ -294,7 +294,7 @@ function refreshTagClasses() {
         if (tagDescriptionCache.has(tagName)) return tagDescriptionCache.get(tagName);
         const url = `https://e621.net/wiki_pages.json?search[title]=${encodeURIComponent(tagName)}&limit=1`;
         try {
-            const response = await fetch(url, { headers: { 'User-Agent': 'e621tagger/1.0 (https://tagger.fenrir784.ru)' } });
+            const response = await fetch(url, { headers: { 'User-Agent': 'e621tagger/1.0 (https://tagger.fenrir784.app)' } });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
             if (data && data.length) {

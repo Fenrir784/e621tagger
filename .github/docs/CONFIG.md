@@ -451,7 +451,7 @@ app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB
 ### Via Health Endpoint
 
 ```bash
-curl https://tagger.fenrir784.ru/health
+curl https://tagger.fenrir784.app/health
 
 # Response includes tags_count (from loaded model)
 ```

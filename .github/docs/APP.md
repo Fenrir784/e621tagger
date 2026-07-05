@@ -470,7 +470,7 @@ Disallow: /predict
 Disallow: /health
 Disallow: /service-worker.js
 
-Sitemap: https://www.tagger.fenrir784.ru/sitemap.xml
+Sitemap: https://www.tagger.fenrir784.app/sitemap.xml
 ```
 
 ### sitemap() -> Response

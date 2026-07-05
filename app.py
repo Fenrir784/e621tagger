@@ -607,7 +607,7 @@ Disallow: /predict
 Disallow: /health
 Disallow: /service-worker.js
 
-Sitemap: https://www.tagger.fenrir784.ru/sitemap.xml
+Sitemap: https://www.tagger.fenrir784.app/sitemap.xml
 """
     return make_response(content, 200, {'Content-Type': 'text/plain'})
 
@@ -617,7 +617,7 @@ def sitemap():
     content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.tagger.fenrir784.ru/</loc>
+    <loc>https://www.tagger.fenrir784.app/</loc>
     <lastmod>{lastmod}</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
