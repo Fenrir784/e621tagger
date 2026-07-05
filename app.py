@@ -49,6 +49,7 @@ SUBCATEGORY_DISPLAY_NAMES = {
 
 APP_VERSION = os.getenv('APP_VERSION', 'test')
 LOG_LEVEL = logging.DEBUG if APP_VERSION.startswith('test-') else logging.INFO
+RATE_LIMIT_ENABLED = os.getenv('RATE_LIMIT_ENABLED', 'false').lower() == 'true'
 
 logging.basicConfig(
     level=LOG_LEVEL,
@@ -84,8 +85,6 @@ SAVE_UPLOADS = os.getenv('SAVE_UPLOADS', 'false').lower() == 'true'
 UPLOAD_DIR = os.getenv('UPLOAD_DIR', '/app/uploads')
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff'}
 ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/tiff'}
-
-RATE_LIMIT_ENABLED = os.getenv('RATE_LIMIT_ENABLED', 'false').lower() == 'true'
 
 BAN_FILE = os.getenv('BAN_FILE', 'banned_ips.json')
 STRIKE_WINDOW = 30 * 86400
