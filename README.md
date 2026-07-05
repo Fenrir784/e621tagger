@@ -1,6 +1,6 @@
 # e621tagger
 
-e621tagger is a web-based tool that automatically generates relevant tags for furry artwork using the **JTP-3 Hydra** model by Project RedRocket.
+e621tagger is a web-based tool that automatically generates relevant tags for furry artwork using the **Hydra 3.5** model by Project RedRocket.
 
 ### **Can be accessed here: [tagger.fenrir784.ru](https://tagger.fenrir784.ru)**
 
@@ -49,9 +49,9 @@ services:
 
 ## 🧠 How It Works
 
-- The backend uses **PyTorch** and the **JTP-3 Hydra** model, a fine‑tuned image classifier trained on e621 data.
+- The backend uses **PyTorch** and the **Hydra 3.5** model, a fine‑tuned image classifier trained on e621 data.
 - When you upload an image, it is resized, converted to patches, and fed through the model.
-- The model outputs confidence scores for over 7,500 possible tags; the adjustable amount of tags are returned.
+- The model outputs confidence scores for **8,888** possible tags; the adjustable amount of tags are returned.
 - All processing happens on the server; no data is sent to third parties.
 
 ---
@@ -60,7 +60,7 @@ services:
 
 - **Backend:** Python, Flask, PyTorch, Gunicorn
 - **Frontend:** Flask rendered HTML, CSS, JavaScript
-- **Model:** [RedRocket/JTP-3](https://huggingface.co/RedRocket/JTP-3) on Hugging Face
+- **Model:** [RedRocket/Hydra](https://huggingface.co/RedRocket/Hydra) on Hugging Face
 
 ---
 
