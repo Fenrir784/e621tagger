@@ -236,7 +236,7 @@ function refreshTagClasses() {
 
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
-        return unsafe.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+        return unsafe.replace(/[&<>"']/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;');
     }
 
     function sanitizeHtml(html) {
