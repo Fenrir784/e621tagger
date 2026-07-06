@@ -603,7 +603,6 @@ def predict():
 @app.route('/robots.txt')
 def robots():
     content = """User-agent: *
-Disallow: /static/
 Disallow: /predict
 Disallow: /health
 Disallow: /service-worker.js
