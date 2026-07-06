@@ -3,8 +3,6 @@ import tempfile
 import logging
 import time
 import re
-import json
-import threading
 from datetime import datetime, timezone
 from flask import Flask, request, jsonify, render_template, send_from_directory, make_response, g
 from werkzeug.utils import secure_filename
@@ -49,8 +47,6 @@ SUBCATEGORY_DISPLAY_NAMES = {
 
 APP_VERSION = os.getenv('APP_VERSION', 'test')
 LOG_LEVEL = logging.DEBUG if APP_VERSION.startswith('test-') else logging.INFO
-RATE_LIMIT_ENABLED = os.getenv('RATE_LIMIT_ENABLED', 'false').lower() == 'true'
-
 logging.basicConfig(
     level=LOG_LEVEL,
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -62,7 +58,6 @@ logging.getLogger("pyvips").setLevel(logging.WARNING)
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
-app.config['RATELIMIT_ENABLED'] = RATE_LIMIT_ENABLED
 
 if os.getenv('USE_PROXY', 'false').lower() == 'true':
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
@@ -86,18 +81,11 @@ UPLOAD_DIR = os.getenv('UPLOAD_DIR', '/app/uploads')
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff'}
 ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/tiff'}
 
-BAN_FILE = os.getenv('BAN_FILE', 'banned_ips.json')
-STRIKE_WINDOW = 30 * 86400
-BAN_3_STRIKES_DURATION = 3600
-BAN_5_STRIKES_DURATION = 30 * 86400
-BAN_3_STRIKES_THRESHOLD = 3
-BAN_5_STRIKES_THRESHOLD = 5
-
 def secure_log(s: str | None) -> str:
     if not s:
         return ""
     s = s.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ')
-    s = re.sub(r'[\x00-\x1f\x7f]', '', s)
+    s = re.sub(r'[\x00-\x1f\x7f\u0080-\u009f\u200b\u202e\u2066-\u2069]', '', s)
     return s.strip()
 
 def status_emoji(status_code):
@@ -174,91 +162,9 @@ def parse_user_agent(ua_str):
     except Exception:
         return 'desktop', ua_str[:80] + ('…' if len(ua_str) > 80 else '')
 
-_bans = {}
-_strikes = {}
-_strikes_lock = threading.Lock()
-
-def _load_bans():
-    global _bans
-    try:
-        p = BAN_FILE
-        if not os.path.isfile(p):
-            _bans = {}
-            return
-        with open(p, 'r') as f:
-            data = json.load(f)
-        _bans = {}
-        now = time.time()
-        for ip, ban in data.get("bans", {}).items():
-            unban = ban.get("unban_at")
-            if isinstance(unban, str):
-                unban = datetime.fromisoformat(unban).timestamp()
-            if unban and unban > now:
-                _bans[ip] = {
-                    "unban_at": unban,
-                    "banned_at": datetime.fromisoformat(ban["banned_at"]).timestamp() if isinstance(ban.get("banned_at"), str) else ban.get("banned_at", 0),
-                    "reason": ban.get("reason", "")
-                }
-        if len(_bans) < len(data.get("bans", {})):
-            _save_bans()
-    except (FileNotFoundError, json.JSONDecodeError, ValueError, KeyError):
-        _bans = {}
-
-def _save_bans():
-    tmp = None
-    try:
-        tmp = BAN_FILE + ".tmp"
-        data = {"version": 1, "bans": {}}
-        for ip, ban in _bans.items():
-            data["bans"][ip] = {
-                "unban_at": datetime.fromtimestamp(ban["unban_at"], tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "banned_at": datetime.fromtimestamp(ban["banned_at"], tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "reason": ban["reason"]
-            }
-        with open(tmp, 'w') as f:
-            json.dump(data, f, indent=2)
-        os.replace(tmp, BAN_FILE)
-    except Exception:
-        if tmp and os.path.exists(tmp):
-            try:
-                os.remove(tmp)
-            except Exception:
-                pass
-
-def _ban_ip(ip, duration, reason):
-    now = time.time()
-    _bans[ip] = {
-        "unban_at": now + duration,
-        "banned_at": now,
-        "reason": reason
-    }
-    _save_bans()
-    ip_id = get_ip_identifier(ip)
-    until = datetime.fromtimestamp(now + duration, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    logger.warning("🚫 %s: banned — %s (until %s)", ip_id, secure_log(reason), until)
-
-def _prune_strikes(ip):
-    cutoff = time.time() - STRIKE_WINDOW
-    if ip in _strikes:
-        _strikes[ip] = [s for s in _strikes[ip] if s["time"] > cutoff]
-        if not _strikes[ip]:
-            del _strikes[ip]
-
 @app.before_request
 def log_request_start():
     g.start_time = time.time()
-    if RATE_LIMIT_ENABLED:
-        _load_bans()
-        ip = request.remote_addr
-        if ip and ip in _bans:
-            ban = _bans[ip]
-            if time.time() < ban["unban_at"]:
-                until = datetime.fromtimestamp(ban["unban_at"], tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-                ip_id = get_ip_identifier(ip)
-                method = secure_log(request.method)
-                path = secure_log(request.path)
-                logger.warning("🚫 %s %s %s %d 🔴 banned until %s", ip_id, method, path, 429, until)
-                return jsonify({"error": f"Your IP has been banned. Try again after {until}."}), 429
 
 @app.after_request
 def log_request_end(response):
@@ -318,18 +224,6 @@ def log_request_end(response):
         elif status >= 400:
             logger.warning("⚠️ %s %s %s %d %s %.1fms", ip_id, method, path, status, emoji_status, duration)
 
-        if RATE_LIMIT_ENABLED and response.status_code == 404:
-            rip = request.remote_addr
-            if rip:
-                now = time.time()
-                with _strikes_lock:
-                    _prune_strikes(rip)
-                    _strikes.setdefault(rip, []).append({"path": path, "time": now})
-                    strike_count = len(_strikes[rip])
-                if strike_count >= BAN_5_STRIKES_THRESHOLD:
-                    _ban_ip(rip, BAN_5_STRIKES_DURATION, f"{strike_count}+ 404 offenses (5+ strike threshold)")
-                elif strike_count == BAN_3_STRIKES_THRESHOLD:
-                    _ban_ip(rip, BAN_3_STRIKES_DURATION, f"{strike_count} 404 offenses (3 strike threshold)")
     return response
 
 if SAVE_UPLOADS:
@@ -499,6 +393,23 @@ def health():
 def predict():
     if request.method == 'OPTIONS':
         return make_response('', 204)
+
+    origin = request.headers.get('Origin', '')
+    if origin:
+        host = request.headers.get('Host', '')
+        allowed_origins = {
+            'https://' + host, 'http://' + host,
+            'https://tagger.vareniye.dev',
+            'https://tagger.fenrir784.app',
+            'https://www.tagger.fenrir784.app',
+        } if host else {
+            'https://tagger.vareniye.dev',
+            'https://tagger.fenrir784.app',
+            'https://www.tagger.fenrir784.app',
+        }
+        if origin not in allowed_origins:
+            logger.warning("⚠️ CSRF: rejected origin %s", secure_log(origin))
+            return jsonify({'error': 'Forbidden'}), 403
 
     ip = secure_log(request.remote_addr)
     ip_id = get_ip_identifier(ip)

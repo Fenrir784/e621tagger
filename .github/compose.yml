@@ -17,12 +17,10 @@ services:
       - TZ=Europe/Moscow
       - SAVE_UPLOADS=true
       - USE_PROXY=true
-      - RATE_LIMIT_ENABLED=true
       - GUNICORN_WORKERS=2
       - GUNICORN_TIMEOUT=120
     volumes:
       - /home/fenrir784/e621tagger-saved/uploads:/app/uploads
-      - /home/fenrir784/e621tagger-saved/banned_ips.json:/app/banned_ips.json
     labels:
       - traefik.enable=true
       - traefik.http.routers.tagger.rule=Host(`www.tagger.fenrir784.app`)
