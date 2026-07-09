@@ -85,6 +85,8 @@ let currentTheme = 'system';          // 'system', 'light', 'dark'
 let activePreset = 'standard';        // 'conservative'/'standard'/'liberal'/'custom'
 let addedTags = new Set();           // User-added tags
 let removedTags = new Set();         // User-removed tags
+let hiddenCategories = new Set();    // Session-hidden categories (per upload)
+let alwaysHiddenCategories = new Set(); // Persisted hidden categories (localStorage)
 let maxTags = 200;                 // Max tags to request
 let autoMetaTagSet = new Set();      // Auto-detected meta tags
 let perTagAutoDisable = new Set();   // Per-tag auto disable
@@ -106,6 +108,8 @@ let isFullscreenActive = false;      // Fullscreen modal state
 | `activePreset` | string | 'standard' | Threshold preset |
 | `addedTags` | Set | - | User-added tags |
 | `removedTags` | Set | - | User-removed tags |
+| `hiddenCategories` | Set | - | Session-only hidden categories (per upload, non-persistent) |
+| `alwaysHiddenCategories` | Set | - | Persistently hidden categories from localStorage |
 | `maxTags` | int | 200 | API top_k parameter |
 | `autoMetaTagSet` | Set | - | Auto meta tags |
 | `perTagAutoDisable` | Set | - | Disabled auto tags |
@@ -580,11 +584,15 @@ function isTagIncluded(tagObj, threshold) {
 
 ### filterTags(threshold)
 
-Filters tags by probability threshold.
+Filters tags by probability threshold and excludes tags from hidden categories.
 
 ```javascript
 function filterTags(threshold) {
-    return allTags.filter(t => !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
+    return allTags.filter(t => {
+        if (ratingTags.has(t.tag)) return false;
+        if (hiddenCategories.has(t.category)) return false;
+        return isTagIncluded(t, threshold);
+    });
 }
 ```
 
@@ -617,6 +625,10 @@ function displayTags(tags) {
 
     categoriesContainer.innerHTML = '';
     Object.keys(grouped).sort((a, b) => {
+        const aAlways = alwaysHiddenCategories.has(a);
+        const bAlways = alwaysHiddenCategories.has(b);
+        if (aAlways && !bAlways) return 1;
+        if (!aAlways && bAlways) return -1;
         const ia = displayCategoryOrder.indexOf(a);
         const ib = displayCategoryOrder.indexOf(b);
         if (ia !== -1 && ib !== -1) return ia - ib;
@@ -656,6 +668,71 @@ function displayTags(tags) {
         categoriesContainer.appendChild(catDiv);
     });
 }
+```
+
+### Category Toggle Functions
+
+The toggle button (✕/✓) and "Always hide" text are rendered inside each `.category-header` by `displayTags()`.
+
+#### Toggle Button Handler
+
+The toggle and always-hide logic is handled inline within `displayTags()` via direct `addEventListener` calls on the rendered elements:
+
+**Toggle button (✕/✓)**:
+```javascript
+toggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (hiddenCategories.has(cat)) {
+        hiddenCategories.delete(cat);
+        catDiv.classList.remove('category-hidden');
+        toggleBtn.textContent = '✕';
+        alwaysHideEl.style.display = 'none';
+    } else {
+        hiddenCategories.add(cat);
+        catDiv.classList.add('category-hidden');
+        toggleBtn.textContent = '✓';
+        alwaysHideEl.style.display = 'inline';
+    }
+});
+```
+
+**Always hide text**:
+```javascript
+alwaysHideEl.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (alwaysHiddenCategories.has(cat)) {
+        alwaysHiddenCategories.delete(cat);
+        alwaysHideEl.classList.remove('active');
+    } else {
+        alwaysHiddenCategories.add(cat);
+        hiddenCategories.add(cat);
+        catDiv.classList.add('category-hidden');
+        toggleBtn.textContent = '✓';
+        alwaysHideEl.style.display = 'inline';
+        alwaysHideEl.classList.add('active');
+    }
+    saveSettings();
+});
+```
+
+#### displayTags Integration
+
+`displayTags()` renders each `.category-header` with a `.category-header-actions` flex container on the right side containing:
+- A `.category-toggle-btn` (✕ when visible, ✓ when hidden)
+- A `.category-always-hide` span (only present when category is hidden; gets `.active` class and purple underline when persisted)
+
+The function determines `isHidden` and `isAlways` state per category on each render call. The `.category-block` receives `.category-hidden` class when `isHidden` is true. Tags inside hidden blocks are made non-interactive via CSS `pointer-events: none`.
+
+#### State Flow
+
+```
+uploadImage() → hiddenCategories = new Set(alwaysHiddenCategories) → displayTags()
+   ↓
+Click ✕ → hiddenCategories.add(cat) → DOM: add class, ✓, show always-hide
+   ↓
+Click ✓ → hiddenCategories.delete(cat) → DOM: remove class, ✕, hide always-hide
+   ↓
+Always hide click → toggles alwaysHiddenCategories, saves → DOM: add/remove .active class
 ```
 
 ---
@@ -876,6 +953,7 @@ async function uploadImage(file) {
             autoMetaTagSet = new Set(autoMeta);
             addedTags.clear();
             removedTags.clear();
+            hiddenCategories = new Set(alwaysHiddenCategories); // Re-apply persistent hidden
             currentFormat = savedFormat;
             updateLocalFormatUI();
             displayTags(allTags);
@@ -936,6 +1014,7 @@ function initHammer() {
     attachHammerTap(resetBtn, () => {
         allThreshold = 0.60; confidentThreshold = 0.70; savedFormat = 'e621';
         currentFormat = savedFormat; currentTheme = 'system'; activePreset = 'standard'; maxTags = 200;
+        alwaysHiddenCategories.clear();
         document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.value === 'system');
         });

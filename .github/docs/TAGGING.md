@@ -657,3 +657,51 @@ for idx, val in zip(indices, values):
 ### Frontend Rendering
 
 See [JS.md](JS.md) for frontend display logic.
+
+---
+
+## Category Hiding/Exclusion
+
+Users can hide entire tag categories (e.g., Fetishes, Body Color) to reduce visual clutter and exclude them from copy output.
+
+### UI Interaction
+
+Each `.category-block` renders a faint ✕ toggle button in the top-right of its header area:
+
+| Action | Control | Effect |
+|--------|---------|--------|
+| **Hide** | Click ✕ | Gray out category (opacity 0.35), disable tag interaction, exclude from copy |
+| **Show** | Click ✓ (formerly ✕) | Restore full opacity, re-enable interaction, include in copy |
+| **Persist** | Click "Always hide" text (appears when hidden) | Save preference to localStorage, survives page reload |
+| **Unpersist** | Click "Always hide" again | Remove localStorage preference |
+
+### Behavior
+
+- **Hidden categories**: The `.category-block` gets `.category-hidden` class → opacity 0.35. All `.tag` children get `pointer-events: none`, making them non-interactive.
+- **Copy exclusion**: Hidden categories are filtered out in `filterTags()` before clipboard copy.
+- **Per-upload reset**: `hiddenCategories` (session-only) is cleared on each new upload. `alwaysHiddenCategories` (persistent) is re-applied from localStorage.
+- **Manual tag corrections** (`addedTags`/`removedTags`) are preserved across hide/unhide operations.
+- **Always-hidden reordering**: Categories in `alwaysHiddenCategories` are sorted to the end of the display, keeping them out of the way. Removing the "always hide" preference restores their original position.
+
+### State Management
+
+| Variable | Type | Scope | Persistence |
+|----------|------|-------|-------------|
+| `hiddenCategories` | `Set` | Session (per upload) | Not persisted |
+| `alwaysHiddenCategories` | `Set` | Global | localStorage via `e621tagger-settings` |
+
+### localStorage
+
+Stored as `alwaysHiddenCategories` array inside the `e621tagger-settings` JSON object:
+
+```json
+{
+  "alwaysHiddenCategories": ["Fetishes, Specifics, Interactions", "Body Color"],
+  "allThreshold": 0.60,
+  ...
+}
+```
+
+### Reset
+
+The **Reset** button in settings clears both `alwaysHiddenCategories` and removes it from `localStorage`.

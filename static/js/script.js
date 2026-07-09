@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let maxTags = 200;
     let autoMetaTagSet = new Set();
     let perTagAutoDisable = new Set();
+    let hiddenCategories = new Set();
+    let alwaysHiddenCategories = new Set();
 
     const tagDescriptionCache = new Map();
     let currentPopup = null;
@@ -83,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 activePreset = settings.activePreset ?? 'standard';
                 maxTags = settings.maxTags ?? 200;
                 if (!ALLOWED_MAX_TAGS.includes(maxTags)) maxTags = 200;
+                alwaysHiddenCategories = new Set(settings.alwaysHiddenCategories || []);
                 
                 document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.value === currentTheme);
@@ -111,7 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveSettings() {
         localStorage.setItem('e621tagger-settings', JSON.stringify({
             allThreshold, confidentThreshold, defaultFormat: savedFormat,
-            theme: currentTheme, activePreset, maxTags
+            theme: currentTheme, activePreset, maxTags,
+            alwaysHiddenCategories: [...alwaysHiddenCategories]
         }));
     }
 
@@ -435,7 +439,7 @@ function refreshTagClasses() {
     }
 
     function filterTags(threshold) {
-        return allTags.filter(t => !ratingTags.has(t.tag) && isTagIncluded(t, threshold));
+        return allTags.filter(t => !ratingTags.has(t.tag) && !hiddenCategories.has(t.category) && isTagIncluded(t, threshold));
     }
 
     function formatTags(tags) {
@@ -579,6 +583,10 @@ function refreshTagClasses() {
 
         categoriesContainer.innerHTML = '';
         Object.keys(grouped).sort((a, b) => {
+            const aAlways = alwaysHiddenCategories.has(a);
+            const bAlways = alwaysHiddenCategories.has(b);
+            if (aAlways && !bAlways) return 1;
+            if (!aAlways && bAlways) return -1;
             const ia = displayCategoryOrder.indexOf(a);
             const ib = displayCategoryOrder.indexOf(b);
             if (ia !== -1 && ib !== -1) return ia - ib;
@@ -587,11 +595,17 @@ function refreshTagClasses() {
             return a.localeCompare(b);
         }).forEach(cat => {
             const catTags = grouped[cat];
+            const isHidden = hiddenCategories.has(cat);
+            const isAlways = alwaysHiddenCategories.has(cat);
             const catDiv = document.createElement('div');
-            catDiv.className = 'category-block';
+            catDiv.className = 'category-block' + (isHidden ? ' category-hidden' : '');
             catDiv.innerHTML = `
                 <div class="category-header">
                     <span class="category-name">${escapeHtml(cat)}</span>
+                    <div class="category-header-actions">
+                        <span class="category-always-hide${isAlways ? ' active' : ''}" style="display: ${isHidden ? 'inline' : 'none'}">Always hide</span>
+                        <button class="category-toggle-btn">${isHidden ? '✓' : '✕'}</button>
+                    </div>
                 </div>
                 <div class="category-tags"></div>
             `;
@@ -615,6 +629,37 @@ function refreshTagClasses() {
                 
                 attachTagEvents(tagEl, item);
                 tagsContainer.appendChild(tagEl);
+            });
+            const toggleBtn = catDiv.querySelector('.category-toggle-btn');
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (hiddenCategories.has(cat)) {
+                    hiddenCategories.delete(cat);
+                    catDiv.classList.remove('category-hidden');
+                    toggleBtn.textContent = '✕';
+                    alwaysHideEl.style.display = 'none';
+                } else {
+                    hiddenCategories.add(cat);
+                    catDiv.classList.add('category-hidden');
+                    toggleBtn.textContent = '✓';
+                    alwaysHideEl.style.display = 'inline';
+                }
+            });
+            const alwaysHideEl = catDiv.querySelector('.category-always-hide');
+            alwaysHideEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (alwaysHiddenCategories.has(cat)) {
+                    alwaysHiddenCategories.delete(cat);
+                    alwaysHideEl.classList.remove('active');
+                } else {
+                    alwaysHiddenCategories.add(cat);
+                    hiddenCategories.add(cat);
+                    catDiv.classList.add('category-hidden');
+                    toggleBtn.textContent = '✓';
+                    alwaysHideEl.style.display = 'inline';
+                    alwaysHideEl.classList.add('active');
+                }
+                saveSettings();
             });
             categoriesContainer.appendChild(catDiv);
         });
@@ -691,6 +736,7 @@ function refreshTagClasses() {
                 autoMetaTagSet = new Set(autoMeta);
                 addedTags.clear();
                 removedTags.clear();
+                hiddenCategories = new Set(alwaysHiddenCategories);
                 currentFormat = savedFormat;
                 updateLocalFormatUI();
                 displayTags(allTags);
@@ -760,6 +806,8 @@ function refreshTagClasses() {
         attachHammerTap(resetBtn, () => {
             allThreshold = 0.60; confidentThreshold = 0.70; savedFormat = 'e621';
             currentFormat = savedFormat; currentTheme = 'system'; activePreset = 'standard'; maxTags = 200;
+            alwaysHiddenCategories.clear();
+            hiddenCategories.clear();
             
             document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.value === 'system');
@@ -774,6 +822,7 @@ function refreshTagClasses() {
             updateTheme('system');
             applyThresholds();
             saveSettings();
+            if (allTags.length) displayTags(allTags);
         });
 
         presetBtns.forEach(btn => {
