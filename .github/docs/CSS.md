@@ -925,7 +925,74 @@ Critical hover interactions defined in `@media (hover: hover)` block:
     color: var(--confident-bg);
     text-transform: uppercase;
 }
+
+### Category Header Actions
+
+```css
+.category-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+}
 ```
+
+Flex container for the right-side header elements (toggle button, always-hide text).
+
+### Category Toggle Button
+
+```css
+.category-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--low-text);
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    opacity: 0.4;
+    line-height: 1;
+    transition: opacity 0.2s;
+    touch-action: manipulation;
+}
+.category-toggle-btn:hover { opacity: 1; }
+```
+
+The ✕/✓ toggle button. Default opacity is 0.4 (faint), full opacity on hover for discoverability. Clicking toggles between hide (✕) and show (✓).
+
+### Category Always Hide Text
+
+```css
+.category-always-hide {
+    font-size: 0.65rem;
+    color: var(--text-color);
+    opacity: 0.6;
+    cursor: pointer;
+    text-decoration: underline dotted;
+    white-space: nowrap;
+    user-select: none;
+    touch-action: manipulation;
+}
+.category-always-hide.active {
+    color: var(--confident-bg);
+    opacity: 1;
+}
+```
+
+Dotted-underline "Always hide" text shown when a category is hidden. Clicking persists the preference to localStorage. The `.active` class is added when the preference is active (category is in `alwaysHiddenCategories`).
+
+### Hidden Category Block
+
+```css
+.category-block.category-hidden {
+    opacity: 0.35;
+}
+.category-block.category-hidden .tag {
+    pointer-events: none;
+}
+```
+
+When `.category-hidden` is applied, the entire block is grayed out at 35% opacity and all child tag elements become non-interactive (clicks, taps, and other pointer events are blocked).
 
 ---
 

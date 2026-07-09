@@ -627,6 +627,7 @@ h1 {
 .category-always-hide.active {
     color: var(--confident-bg);
     opacity: 1;
+    text-decoration: underline;
 }
 .category-block.category-hidden {
     opacity: 0.35;

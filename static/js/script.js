@@ -599,7 +599,7 @@ function refreshTagClasses() {
                 <div class="category-header">
                     <span class="category-name">${escapeHtml(cat)}</span>
                     <div class="category-header-actions">
-                        <span class="category-always-hide" style="display: ${isHidden ? 'inline' : 'none'}">${isAlways ? '✓ Always hide' : 'Always hide'}</span>
+                        <span class="category-always-hide${isAlways ? ' active' : ''}" style="display: ${isHidden ? 'inline' : 'none'}">Always hide</span>
                         <button class="category-toggle-btn">${isHidden ? '✓' : '✕'}</button>
                     </div>
                 </div>
@@ -631,22 +631,31 @@ function refreshTagClasses() {
                 e.stopPropagation();
                 if (hiddenCategories.has(cat)) {
                     hiddenCategories.delete(cat);
+                    catDiv.classList.remove('category-hidden');
+                    toggleBtn.textContent = '✕';
+                    alwaysHideEl.style.display = 'none';
                 } else {
                     hiddenCategories.add(cat);
+                    catDiv.classList.add('category-hidden');
+                    toggleBtn.textContent = '✓';
+                    alwaysHideEl.style.display = 'inline';
                 }
-                displayTags(allTags);
             });
             const alwaysHideEl = catDiv.querySelector('.category-always-hide');
             alwaysHideEl.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (alwaysHiddenCategories.has(cat)) {
                     alwaysHiddenCategories.delete(cat);
+                    alwaysHideEl.classList.remove('active');
                 } else {
                     alwaysHiddenCategories.add(cat);
                     hiddenCategories.add(cat);
+                    catDiv.classList.add('category-hidden');
+                    toggleBtn.textContent = '✓';
+                    alwaysHideEl.style.display = 'inline';
+                    alwaysHideEl.classList.add('active');
                 }
                 saveSettings();
-                displayTags(allTags);
             });
             categoriesContainer.appendChild(catDiv);
         });
