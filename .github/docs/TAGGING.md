@@ -681,6 +681,7 @@ Each `.category-block` renders a faint ✕ toggle button in the top-right of its
 - **Copy exclusion**: Hidden categories are filtered out in `filterTags()` before clipboard copy.
 - **Per-upload reset**: `hiddenCategories` (session-only) is cleared on each new upload. `alwaysHiddenCategories` (persistent) is re-applied from localStorage.
 - **Manual tag corrections** (`addedTags`/`removedTags`) are preserved across hide/unhide operations.
+- **Always-hidden reordering**: Categories in `alwaysHiddenCategories` are sorted to the end of the display, keeping them out of the way. Removing the "always hide" preference restores their original position.
 
 ### State Management
 

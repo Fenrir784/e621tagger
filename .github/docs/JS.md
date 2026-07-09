@@ -625,6 +625,10 @@ function displayTags(tags) {
 
     categoriesContainer.innerHTML = '';
     Object.keys(grouped).sort((a, b) => {
+        const aAlways = alwaysHiddenCategories.has(a);
+        const bAlways = alwaysHiddenCategories.has(b);
+        if (aAlways && !bAlways) return 1;
+        if (!aAlways && bAlways) return -1;
         const ia = displayCategoryOrder.indexOf(a);
         const ib = displayCategoryOrder.indexOf(b);
         if (ia !== -1 && ib !== -1) return ia - ib;
