@@ -595,6 +595,45 @@ h1 {
     color: var(--confident-bg);
     text-transform: uppercase;
 }
+.category-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-left: auto;
+}
+.category-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--low-text);
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+    touch-action: manipulation;
+    line-height: 1;
+}
+.category-toggle-btn:hover { opacity: 1; }
+.category-always-hide {
+    font-size: 0.7rem;
+    color: var(--low-text);
+    cursor: pointer;
+    opacity: 0.6;
+    white-space: nowrap;
+    transition: opacity 0.2s, color 0.2s;
+}
+.category-always-hide:hover { opacity: 1; }
+.category-always-hide.active {
+    color: var(--confident-bg);
+    opacity: 1;
+}
+.category-block.category-hidden {
+    opacity: 0.35;
+}
+.category-block.category-hidden .tag {
+    pointer-events: none;
+}
 
 .category-tags { display: flex; flex-wrap: wrap; gap: 0.27rem; }
 .tag {
