@@ -680,10 +680,15 @@ toggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (hiddenCategories.has(cat)) {
         hiddenCategories.delete(cat);
+        catDiv.classList.remove('category-hidden');
+        toggleBtn.textContent = '✕';
+        alwaysHideEl.style.display = 'none';
     } else {
         hiddenCategories.add(cat);
+        catDiv.classList.add('category-hidden');
+        toggleBtn.textContent = '✓';
+        alwaysHideEl.style.display = 'inline';
     }
-    displayTags(allTags);
 });
 ```
 
@@ -693,12 +698,16 @@ alwaysHideEl.addEventListener('click', (e) => {
     e.stopPropagation();
     if (alwaysHiddenCategories.has(cat)) {
         alwaysHiddenCategories.delete(cat);
+        alwaysHideEl.classList.remove('active');
     } else {
         alwaysHiddenCategories.add(cat);
         hiddenCategories.add(cat);
+        catDiv.classList.add('category-hidden');
+        toggleBtn.textContent = '✓';
+        alwaysHideEl.style.display = 'inline';
+        alwaysHideEl.classList.add('active');
     }
     saveSettings();
-    displayTags(allTags);
 });
 ```
 
@@ -706,7 +715,7 @@ alwaysHideEl.addEventListener('click', (e) => {
 
 `displayTags()` renders each `.category-header` with a `.category-header-actions` flex container on the right side containing:
 - A `.category-toggle-btn` (✕ when visible, ✓ when hidden)
-- A `.category-always-hide` span (only present when category is hidden; shows "✓ Always hide" when persisted)
+- A `.category-always-hide` span (only present when category is hidden; gets `.active` class and purple underline when persisted)
 
 The function determines `isHidden` and `isAlways` state per category on each render call. The `.category-block` receives `.category-hidden` class when `isHidden` is true. Tags inside hidden blocks are made non-interactive via CSS `pointer-events: none`.
 
@@ -715,11 +724,11 @@ The function determines `isHidden` and `isAlways` state per category on each ren
 ```
 uploadImage() → hiddenCategories = new Set(alwaysHiddenCategories) → displayTags()
    ↓
-Click ✕ → hiddenCategories.add(cat) → displayTags(allTags)
+Click ✕ → hiddenCategories.add(cat) → DOM: add class, ✓, show always-hide
    ↓
-Click ✓ → hiddenCategories.delete(cat) → displayTags(allTags)
+Click ✓ → hiddenCategories.delete(cat) → DOM: remove class, ✕, hide always-hide
    ↓
-Always hide click → toggles alwaysHiddenCategories, saves → displayTags(allTags)
+Always hide click → toggles alwaysHiddenCategories, saves → DOM: add/remove .active class
 ```
 
 ---

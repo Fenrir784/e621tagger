@@ -976,10 +976,11 @@ The ✕/✓ toggle button. Default opacity is 0.4 (faint), full opacity on hover
 .category-always-hide.active {
     color: var(--confident-bg);
     opacity: 1;
+    text-decoration: underline;
 }
 ```
 
-Dotted-underline "Always hide" text shown when a category is hidden. Clicking persists the preference to localStorage. The `.active` class is added when the preference is active (category is in `alwaysHiddenCategories`).
+Dotted-underline "Always hide" text shown when a category is hidden. Clicking persists the preference to localStorage. The `.active` class is added when the preference is active (category is in `alwaysHiddenCategories`), switching to a solid purple underline.
 
 ### Hidden Category Block
 
