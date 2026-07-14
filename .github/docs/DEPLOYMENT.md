@@ -621,4 +621,4 @@ docker logs e621tagger
 ## Support
 
 - GitHub Issues: https://github.com/Fenrir784/e621tagger/issues
-- Telegram: https://t.me/fenrir784
+- Telegram: https://telegram.me/fenrir784

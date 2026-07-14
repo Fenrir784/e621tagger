@@ -155,5 +155,5 @@ The application sets the following security headers on all responses:
 ## Support
 
 - GitHub: https://github.com/Fenrir784/e621tagger
-- Telegram: https://t.me/fenrir784
+- Telegram: https://telegram.me/fenrir784
 - Live Instance: https://tagger.fenrir784.app
