@@ -1311,8 +1311,13 @@ function initHammer() {
     if (yearTagToggle) {
         yearTagToggle.addEventListener('change', () => {
             addCurrentYearTag = yearTagToggle.checked;
+            const currentYearTag = String(new Date().getFullYear());
+            if (addCurrentYearTag) {
+                perTagAutoDisable.delete(currentYearTag);
+            } else {
+                perTagAutoDisable.add(currentYearTag);
+            }
             saveSettings();
-            if (allTags.length) displayTags(allTags);
         });
     }
 }

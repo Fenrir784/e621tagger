@@ -98,7 +98,11 @@ alwaysHiddenCategories = new Set(settings.alwaysHiddenCategories || []);
                 });
 
                 const yearTagToggle = document.getElementById('yearTagToggle');
-                if (yearTagToggle) yearTagToggle.checked = addCurrentYearTag;
+                if (yearTagToggle) {
+                    yearTagToggle.querySelectorAll('.format-option').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.value === (addCurrentYearTag ? 'on' : 'off'));
+                    });
+                }
                 
                 updateTheme(currentTheme);
                 updateThresholdUI();
@@ -878,10 +882,19 @@ function refreshTagClasses() {
 
         const yearTagToggle = document.getElementById('yearTagToggle');
         if (yearTagToggle) {
-            yearTagToggle.addEventListener('change', () => {
-                addCurrentYearTag = yearTagToggle.checked;
-                saveSettings();
-                if (allTags.length) displayTags(allTags);
+            yearTagToggle.querySelectorAll('.format-option').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    yearTagToggle.querySelectorAll('.format-option').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    addCurrentYearTag = btn.dataset.value === 'on';
+                    const currentYearTag = String(new Date().getFullYear());
+                    if (addCurrentYearTag) {
+                        perTagAutoDisable.delete(currentYearTag);
+                    } else {
+                        perTagAutoDisable.add(currentYearTag);
+                    }
+                    saveSettings();
+                });
             });
         }
     }
