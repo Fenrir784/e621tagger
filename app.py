@@ -498,6 +498,9 @@ def predict():
         except Exception:
             auto_tags = set()
 
+        current_year = str(datetime.now().year)
+        auto_tags.add(current_year)
+
         logger.info("✅ %s: file '%s' processed, top %d tags (auto %d)", ip_id, filename, len(tags_with_probs), len(auto_tags))
         return jsonify({
             'success': True,

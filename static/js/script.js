@@ -58,8 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let perTagAutoDisable = new Set();
     let hiddenCategories = new Set();
     let alwaysHiddenCategories = new Set();
-    let includeCurrentYear = false;
-    let currentYear = new Date().getFullYear();
+    let addCurrentYearTag = true;
 
     const tagDescriptionCache = new Map();
     let currentPopup = null;
@@ -87,8 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 activePreset = settings.activePreset ?? 'standard';
                 maxTags = settings.maxTags ?? 200;
                 if (!ALLOWED_MAX_TAGS.includes(maxTags)) maxTags = 200;
-                alwaysHiddenCategories = new Set(settings.alwaysHiddenCategories || []);
-                
+alwaysHiddenCategories = new Set(settings.alwaysHiddenCategories || []);
+                addCurrentYearTag = settings.addCurrentYearTag ?? true;
+
                 document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.value === currentTheme);
                 });
@@ -96,6 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.value === String(maxTags));
                 });
+
+                const yearTagToggle = document.getElementById('yearTagToggle');
+                if (yearTagToggle) yearTagToggle.checked = addCurrentYearTag;
                 
                 updateTheme(currentTheme);
                 updateThresholdUI();
@@ -113,7 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('e621tagger-settings', JSON.stringify({
             allThreshold, confidentThreshold, defaultFormat: savedFormat,
             theme: currentTheme, activePreset, maxTags,
-            alwaysHiddenCategories: [...alwaysHiddenCategories]
+            alwaysHiddenCategories: [...alwaysHiddenCategories],
+            addCurrentYearTag
         }));
     }
 
@@ -475,32 +479,25 @@ function refreshTagClasses() {
     }
 
     async function copyToClipboard(text, count, format, btn) {
-        let finalText = text;
-        if (autoMetaTagSet && autoMetaTagSet.size > 0) {
-            const extras = [];
-            autoMetaTagSet.forEach(t => {
-                if (perTagAutoDisable.has(t)) return;
-                if (text.includes(t) || text.includes(t.replace(/_/g, ' '))) return;
-                extras.push(t);
-            });
-            if (extras.length > 0) {
-                const joiner = (format === 'e621') ? ' ' : ', ';
-                finalText = finalText ? finalText + (joiner) + extras.join(joiner) : extras.join(joiner);
-            }
-        }
-        if (includeCurrentYear) {
-            const yearTag = String(currentYear);
-            if (!finalText.includes(yearTag)) {
-                const joiner = (format === 'e621') ? ' ' : ', ';
-                finalText = finalText ? finalText + joiner + yearTag : yearTag;
-            }
-        }
         if (navigator.clipboard && navigator.clipboard.writeText) {
             try {
+                let finalText = text;
+                if (autoMetaTagSet && autoMetaTagSet.size > 0) {
+                    const extras = [];
+                    autoMetaTagSet.forEach(t => {
+                        if (perTagAutoDisable.has(t)) return;
+                        if (text.includes(t) || text.includes(t.replace(/_/g, ' '))) return;
+                        extras.push(t);
+                    });
+                    if (extras.length > 0) {
+                        const joiner = (format === 'e621') ? ' ' : ', ';
+                        finalText = finalText ? finalText + (joiner) + extras.join(joiner) : extras.join(joiner);
+                    }
+                }
                 await navigator.clipboard.writeText(finalText);
                 showCopySuccess(btn, count, format);
-            } catch { fallbackCopy(finalText, btn, count, format); }
-        } else { fallbackCopy(finalText, btn, count, format); }
+            } catch { fallbackCopy(text, btn, count, format); }
+        } else { fallbackCopy(text, btn, count, format); }
     }
 
     function showCopySuccess(btn, count, format) {
@@ -732,8 +729,10 @@ function refreshTagClasses() {
                 const baseTags = data.tags || [];
                 const autoMeta = data.auto_meta || [];
                 const merged = baseTags.slice();
+                const currentYearTag = String(new Date().getFullYear());
                 autoMeta.forEach(t => {
                     if (!merged.find(x => x.tag === t)) {
+                        if (t === currentYearTag && !addCurrentYearTag) return;
                         merged.push({ tag: t, prob: 1.0, category: 'Meta' });
                     }
                 });
@@ -741,9 +740,6 @@ function refreshTagClasses() {
                 autoMetaTagSet = new Set(autoMeta);
                 addedTags.clear();
                 removedTags.clear();
-                includeCurrentYear = false;
-                const yearTagBtn = document.getElementById('yearTagBtn');
-                if (yearTagBtn) yearTagBtn.classList.remove('active');
                 hiddenCategories = new Set(alwaysHiddenCategories);
                 currentFormat = savedFormat;
                 updateLocalFormatUI();
@@ -880,13 +876,12 @@ function refreshTagClasses() {
             });
         });
 
-        const yearTagBtn = document.getElementById('yearTagBtn');
-        if (yearTagBtn) {
-            const hammer = new Hammer(yearTagBtn);
-            hammer.on('tap', (e) => {
-                e.stopPropagation();
-                includeCurrentYear = !includeCurrentYear;
-                yearTagBtn.classList.toggle('active', includeCurrentYear);
+        const yearTagToggle = document.getElementById('yearTagToggle');
+        if (yearTagToggle) {
+            yearTagToggle.addEventListener('change', () => {
+                addCurrentYearTag = yearTagToggle.checked;
+                saveSettings();
+                if (allTags.length) displayTags(allTags);
             });
         }
     }

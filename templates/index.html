@@ -126,6 +126,13 @@
             </div>
             
             <div class="settings-section">
+                <h2>Add current year</h2>
+                <label class="settings-toggle-label">
+                    <input type="checkbox" id="yearTagToggle" checked>
+                </label>
+            </div>
+
+            <div class="settings-section">
                 <button id="resetSettings" class="reset-btn">Reset to defaults</button>
             </div>
         </div>
@@ -160,10 +167,6 @@
                     </div>
                     <div class="rating-container">
                         <div class="rating-display" id="ratingDisplay"></div>
-                        <button type="button" class="tag year-tag-btn" id="yearTagBtn" data-year="2026">
-                            <svg class="year-tag-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                            <span class="year-tag-text">2026</span>
-                        </button>
                     </div>
                     <div class="categories-container" id="categoriesContainer"></div>
                 </div>
@@ -197,6 +200,9 @@
                 • <strong>Click ✕ on a category header</strong> to gray it out and exclude those tags from copying. Click ✓ to reveal. While hidden, tap "Always hide" to save permanently.</p>
 
                 <p><strong>💄 Pro Tip</strong>: Narrow down basic detection so that it is almost always correct, and then manually add or remove tags.</p>
+
+                <p><strong>📅 Current Year Tag</strong><br>
+                Automatically adds the current year (e.g., <code>2025</code>, <code>2026</code>) as a Meta tag with full confidence. Disable in Settings to exclude.</p>
                 
                 <p><strong>📋 Copying tags</strong><br>
                 • Use <strong>Copy Confident Tags</strong> or <strong>Copy All Tags</strong> buttons to copy all tags that meet the threshold. Tags are copied in category order presented on e621.</p>

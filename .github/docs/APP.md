@@ -345,6 +345,8 @@ def is_valid_image(file):
 | 1:1, 2:1, 16:9, etc. | Exact aspect ratios |
 | widescreen | 16:9 or ~16:10 |
 
+**Note:** The current year tag (e.g., `2025`, `2026`) is added separately in the `/predict` endpoint after calling this function. It is not part of `detect_meta_tags_for_image_path()`.
+
 ### save_upload(file, original_filename) -> str | None
 
 | Location | app.py:325-341 |
@@ -441,9 +443,11 @@ def is_valid_image(file):
     {"tag": "female", "prob": 0.95, "category": "General"},
     {"tag": "anthro", "prob": 0.89, "category": "Species"}
   ],
-  "auto_meta": ["hi_res", "16:9"]
+  "auto_meta": ["hi_res", "16:9", "2025"]
 }
 ```
+
+**Note:** The `auto_meta` array includes the current year (e.g., `2025`, `2026`) as a meta tag with 1.0 confidence. Frontend can filter this via the `addCurrentYearTag` setting (default: true).
 
 **Error Responses:**
 

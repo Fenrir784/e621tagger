@@ -275,6 +275,7 @@ Tags from category 7 (Meta) are automatically detected based on image properties
 | `4k` | 3840×2160, 2160×3840, 4096×2160, or 2160×4096 |
 | `long_image` | Aspect ratio ≥ 4:1 or ≤ 1:4 |
 | `tall_image` | Aspect ratio ≤ 1:4 (subset of long_image) |
+| `2025`, `2026`, ... | Current year (added server-side, configurable via frontend setting) |
 
 ### Aspect Ratio Tags
 
@@ -329,6 +330,10 @@ def detect_meta_tags_for_image_path(image_path):
         for tagname, a, b in ratios:
             if w * b == h * a:
                 tags.add(tagname)
+        
+        # Current year tag (added in /predict endpoint)
+        from datetime import datetime
+        tags.add(str(datetime.now().year))
 ```
 
 ---

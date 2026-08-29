@@ -393,6 +393,21 @@ h1 {
     filter: brightness(0.85);
 }
 
+.settings-toggle-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+.settings-toggle-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--confident-bg);
+    cursor: pointer;
+}
+
 #notification-container {
     position: fixed;
     top: 20px;
@@ -666,38 +681,6 @@ h1 {
 .tag[data-level="added"][data-original-level="confident"],
 .tag[data-level="removed"][data-original-level="confident"] { font-weight: 600; }
 
-.year-tag-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.2rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    line-height: 1.2;
-    cursor: pointer;
-    border: 1px solid transparent;
-    background-color: var(--low-bg);
-    color: var(--low-text);
-    opacity: 0.6;
-    touch-action: manipulation;
-    transition: background-color 0.2s, color 0.2s, opacity 0.2s, transform 0.1s;
-    min-height: 32px;
-}
-.year-tag-btn:active { transform: scale(0.97); }
-.year-tag-btn.active {
-    background-color: var(--added-bg);
-    color: var(--added-text);
-    border-color: var(--success-color);
-    opacity: 1;
-}
-.year-tag-icon {
-    flex-shrink: 0;
-    vertical-align: middle;
-}
-.year-tag-text {
-    white-space: nowrap;
-}
-
 .site-info {
     text-align: center;
     margin-top: 2rem;
@@ -934,7 +917,6 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     .global-buttons { flex-wrap: wrap; gap: 1rem; }
     .global-copy-btn { width: 100%; }
     .category-header { flex-wrap: wrap; }
-    .rating-container { flex-wrap: wrap; gap: 0.4rem; }
     .tag-popup { width: 300px; }
     .egg-container { width: 64px; height: 64px; } 
 }

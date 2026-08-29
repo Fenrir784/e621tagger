@@ -90,8 +90,6 @@ let addedTags = new Set();          // User-added tags
 let removedTags = new Set();        // User-removed tags
 let hiddenCategories = new Set();   // Session-hidden categories (per upload, non-persistent)
 let alwaysHiddenCategories = new Set(); // Persisted hidden categories (localStorage)
-let includeCurrentYear = false;    // Year tag inclusion toggle (per-upload, non-persistent)
-let currentYear = new Date().getFullYear(); // Current year for tag injection
 let maxTags = 200;                  // Max tags to request
 let autoMetaTagSet = new Set();     // Auto-detected meta tags
 let perTagAutoDisable = new Set();  // Per-tag auto disable
@@ -115,11 +113,10 @@ let isFullscreenActive = false;     // Fullscreen modal state
 | `removedTags` | Set | - | User-removed tags |
 | `hiddenCategories` | Set | - | Session-only hidden categories (per upload, non-persistent) |
 | `alwaysHiddenCategories` | Set | - | Persistently hidden categories from localStorage |
-| `includeCurrentYear` | boolean | false | Year tag inclusion (per-upload, resets on new upload) |
-| `currentYear` | int | current year | Current year for tag injection (e.g., 2026) |
 | `maxTags` | int | 200 | API top_k parameter |
 | `autoMetaTagSet` | Set | - | Auto meta tags |
 | `perTagAutoDisable` | Set | - | Disabled auto tags |
+| `addCurrentYearTag` | boolean | true | Whether to include current year meta tag |
 
 ### Threshold Presets
 
@@ -152,7 +149,6 @@ const presets = {
 | `notificationContainer` | `notification-container` | Toast notifications |
 | `categoriesContainer` | `categoriesContainer` | Category tag groups |
 | `ratingDisplay` | `ratingDisplay` | Rating badge |
-| `yearTagBtn` | `yearTagBtn` | Year tag toggle button (in rating-container) |
 | `copyGlobalAll` | `copyGlobalAll` | Copy all button |
 | `copyGlobalConfident` | `copyGlobalConfident` | Copy confident button |
 | `settingsToggle` | `settingsToggle` | Settings toggle button |
@@ -204,6 +200,7 @@ function loadSettings() {
             maxTags = settings.maxTags ?? 200;
             if (!ALLOWED_MAX_TAGS.includes(maxTags)) maxTags = 200;
             alwaysHiddenCategories = new Set(settings.alwaysHiddenCategories || []);
+            addCurrentYearTag = settings.addCurrentYearTag ?? true;
             
             document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.value === currentTheme);
@@ -212,6 +209,9 @@ function loadSettings() {
             document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.value === String(maxTags));
             });
+
+            const yearTagToggle = document.getElementById('yearTagToggle');
+            if (yearTagToggle) yearTagToggle.checked = addCurrentYearTag;
             
             updateTheme(currentTheme);
             updateThresholdUI();
@@ -237,6 +237,7 @@ function loadSettings() {
 | activePreset | activePreset |
 | maxTags | maxTags |
 | alwaysHiddenCategories | alwaysHiddenCategories |
+| addCurrentYearTag | addCurrentYearTag |
 
 ### saveSettings()
 
@@ -247,7 +248,8 @@ function saveSettings() {
     localStorage.setItem('e621tagger-settings', JSON.stringify({
         allThreshold, confidentThreshold, defaultFormat: savedFormat,
         theme: currentTheme, activePreset, maxTags,
-        alwaysHiddenCategories: [...alwaysHiddenCategories]
+        alwaysHiddenCategories: [...alwaysHiddenCategories],
+        addCurrentYearTag
     }));
 }
 ```
@@ -912,36 +914,29 @@ function formatTags(tags) {
 
 ### copyToClipboard(text, count, format, btn)
 
-Copies text to clipboard with auto-meta tags and optional year tag.
+Copies text to clipboard with auto-meta tags.
 
 ```javascript
 async function copyToClipboard(text, count, format, btn) {
-    let finalText = text;
-    if (autoMetaTagSet && autoMetaTagSet.size > 0) {
-        const extras = [];
-        autoMetaTagSet.forEach(t => {
-            if (perTagAutoDisable.has(t)) return;
-            if (text.includes(t) || text.includes(t.replace(/_/g, ' '))) return;
-            extras.push(t);
-        });
-        if (extras.length > 0) {
-            const joiner = (format === 'e621') ? ' ' : ', ';
-            finalText = finalText ? finalText + (joiner) + extras.join(joiner) : extras.join(joiner);
-        }
-    }
-    if (includeCurrentYear) {
-        const yearTag = String(currentYear);
-        if (!finalText.includes(yearTag)) {
-            const joiner = (format === 'e621') ? ' ' : ', ';
-            finalText = finalText ? finalText + joiner + yearTag : yearTag;
-        }
-    }
     if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
+            let finalText = text;
+            if (autoMetaTagSet && autoMetaTagSet.size > 0) {
+                const extras = [];
+                autoMetaTagSet.forEach(t => {
+                    if (perTagAutoDisable.has(t)) return;
+                    if (text.includes(t) || text.includes(t.replace(/_/g, ' '))) return;
+                    extras.push(t);
+                });
+                if (extras.length > 0) {
+                    const joiner = (format === 'e621') ? ' ' : ', ';
+                    finalText = finalText ? finalText + (joiner) + extras.join(joiner) : extras.join(joiner);
+                }
+            }
             await navigator.clipboard.writeText(finalText);
             showCopySuccess(btn, count, format);
-        } catch { fallbackCopy(finalText, btn, count, format); }
-    } else { fallbackCopy(finalText, btn, count, format); }
+        } catch { fallbackCopy(text, btn, count, format); }
+    } else { fallbackCopy(text, btn, count, format); }
 }
 ```
 
@@ -1043,8 +1038,10 @@ async function uploadImage(file) {
             const baseTags = data.tags || [];
             const autoMeta = data.auto_meta || [];
             const merged = baseTags.slice();
+            const currentYearTag = String(new Date().getFullYear());
             autoMeta.forEach(t => {
                 if (!merged.find(x => x.tag === t)) {
+                    if (t === currentYearTag && !addCurrentYearTag) return;
                     merged.push({ tag: t, prob: 1.0, category: 'Meta' });
                 }
             });
@@ -1052,9 +1049,6 @@ async function uploadImage(file) {
             autoMetaTagSet = new Set(autoMeta);
             addedTags.clear();
             removedTags.clear();
-            includeCurrentYear = false; // Reset year tag on new upload
-            const yearTagBtn = document.getElementById('yearTagBtn');
-            if (yearTagBtn) yearTagBtn.classList.remove('active');
             hiddenCategories = new Set(alwaysHiddenCategories); // Re-apply persistent hidden
             currentFormat = savedFormat;
             updateLocalFormatUI();
@@ -1312,6 +1306,15 @@ function initHammer() {
             saveSettings();
         });
     });
+
+    const yearTagToggle = document.getElementById('yearTagToggle');
+    if (yearTagToggle) {
+        yearTagToggle.addEventListener('change', () => {
+            addCurrentYearTag = yearTagToggle.checked;
+            saveSettings();
+            if (allTags.length) displayTags(allTags);
+        });
+    }
 }
 ```
 
