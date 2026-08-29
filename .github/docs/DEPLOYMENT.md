@@ -284,7 +284,7 @@ docker inspect e621tagger --format='{{.State.Health.Status}}'
 curl http://localhost:5000/health
 
 # Response:
-# {"status": "healthy", "model": "<model_name>", "tags_count": 8888, "version": "v123"}
+# {"status": "healthy", "model": "JTP-3 Hydra 3.5", "tags_count": 8888, "version": "v123"}
 ```
 
 ---
@@ -621,4 +621,4 @@ docker logs e621tagger
 ## Support
 
 - GitHub Issues: https://github.com/Fenrir784/e621tagger/issues
-- Telegram: https://telegram.me/fenrir784
+- Telegram: https://t.me/fenrir784

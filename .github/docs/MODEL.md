@@ -6,7 +6,7 @@ This document provides comprehensive documentation of the JTP-3 Hydra model arch
 
 | Attribute | Value |
 |-----------|-------|
-| **Architecture** | `naflexvit_so400m_patch16_siglip+rr_hydra` (NaFlexViT + HydraPool) |
+| **Architecture** | `naflexvit_so400m_patch16_siglip+rr_hydra2` (NaFlexViT + HydraPool + LinearHead) |
 | **Base Model** | SigLIP-400m (So400m) |
 | **Tags Supported** | 8,888 (Hydra 3.5) |
 | **Patch Size** | 16x16 pixels |
@@ -134,8 +134,6 @@ HydraPool
 ├── mid_blocks: ModuleList[n × _MidBlock]
     # Optional mid-level processing blocks
 ```
-
-The per-class output projection is handled by a separate **Head** module (SwiGLUHead or LinearHead), not by HydraPool itself.
 
 ### Forward Process
 
@@ -369,7 +367,7 @@ Extensions allow adding new classification tags to the model without retraining.
 
 - **File Format**: SAFETENSORS
 - **Required Metadata**:
-  - `modelspec.implementation`: `redrocket.extension.label.v1`
+  - `modelspec.implementation`: `redrocket.extension.label.v1` or `v2`
   - `modelspec.architecture`: Must match base model
   - `classifier.label`: Tag name
   - `classifier.label.category`: Category ID (0-8, 100-111)
@@ -404,47 +402,6 @@ extensions/
 ├── character_tag2.safetensors
 └── species_tag.safetensors
 ```
-
----
-
-### Output Formats
-**Text Captions** (default):
-
-```
-blue_eyes, anthro, female, furry, smile
-```
-
-**CSV** (-o output.csv):
-
-```csv
-filename,tag1,tag2,tag3,...
-image1.png,0.95,0.87,0.82,...
-image2.png,0.91,0.78,0.65,...
-```
-
----
-
-## Calibration
-
-Calibration files adjust per-tag thresholds for better precision/recall balance.
-
-### Format
-
-```csv
-tag,threshold
-female,0.55
-anthro,0.50
-furry,0.45
-```
-
-### Threshold Modes
-
-| Mode | Description |
-|------|-------------|
-| `-1.0 to 1.0` | Symmetric threshold (0 = 50% probability) |
-| `calibration.csv` | Per-tag thresholds |
-
-
 
 ---
 

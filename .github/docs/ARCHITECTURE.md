@@ -36,7 +36,7 @@ e621tagger is a Flask-based web application that provides automatic image taggin
 │  │           JTP-3 Hydra Model                      │  │
 │  │  ┌─────────────┐  ┌─────────────────────────┐  │  │
 │  │  │ NaFlexVit   │  │   HydraPool Head         │  │  │
-│  │  │ Backbone   │  │   (7,504 tags)           │  │  │
+│  │  │ Backbone   │  │   (8,888 tags)           │  │  │
 │  │  └─────────────┘  └─────────────────────────┘  │  │
 │  └─────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────┘
@@ -107,7 +107,7 @@ User Upload
 │  3. out_proj()│
 └────────┬───────┘
          │
-    logits (7504)
+    logits (8888)
          │
          ▼
 ┌────────────────┐
@@ -219,9 +219,9 @@ The model supports extension files for adding new classification tags. Extension
 ### Extension Format
 
 - Format: SAFETENSORS with metadata
-- Architecture: Must match base model (`naflexvit_so400m_patch16_siglip+rr_hydra`)
+- Architecture: Must match base model (`naflexvit_so400m_patch16_siglip+rr_hydra` or `naflexvit_so400m_patch16_siglip+rr_hydra2`)
 - Metadata required:
-  - `modelspec.implementation`: `redrocket.extension.label.v1`
+  - `modelspec.implementation`: `redrocket.extension.label.v1` or `redrocket.extension.label.v2`
   - `classifier.label`: Tag name
   - `classifier.label.category`: Category ID (0-8, 100-111)
   - `classifier.label.implies`: Space-separated implied tags
@@ -297,7 +297,7 @@ The same IP always maps to the same color, making it easy to trace user activity
 │                      │                          │
 │  ┌─────────────────────────────────────────────┐   │
 │  │  Docker (e621tagger:latest)            │   │
-│  │  - Gunicorn (1 worker)              │   │
+│  │  - Gunicorn (2 workers)              │   │
 │  │  - PyTorch + CUDA                   │   │
 │  │  - Model in memory                  │   │
 │  └─────────────────────────────────────────────┘   │
@@ -308,7 +308,7 @@ The same IP always maps to the same color, making it easy to trace user activity
 
 | Component | GPU | RAM | Notes |
 |-----------|-----|-----|-------|
-| Model (JTP-3 Hydra) | ~2GB | ~2GB | Single model load (bfloat16) |
+| Model (JTP-3 Hydra 3.5) | ~2GB | ~2GB | Single model load (bfloat16) |
 | Image patches (batch) | ~50MB | ~50MB | Per-request processing |
 | Flask/Gunicorn | - | ~100MB | Application overhead |
 | **Total (single worker, CUDA)** | ~2.1GB | ~2.2GB | |

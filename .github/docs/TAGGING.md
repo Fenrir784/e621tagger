@@ -6,49 +6,14 @@ This document provides comprehensive documentation of the tag classification sys
 
 e621tagger classifies images using **8,888 tags** (Hydra 3.5 model) organized into e621 categories. Tags are assigned confidence scores and can have implications (hierarchical relationships) that affect final output. Each `general`-category tag is further classified into one of **12 fine-grained subcategories** for better UI organization.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                 Tag Classification System                   │
-│                                                             │
-│  ┌─────────────────────────────────────────────────┐        │
-│  │  Raw Model Output (8,888 logits)                │        │
-│  └────────────────────────┬────────────────────────┘        │
-│                           │                                 │
-│                           ▼                                 │
-│  ┌─────────────────────────────────────────────────┐        │
-│  │  Sigmoid Activation (0.0 - 1.0)                 │        │
-│  └────────────────────────┬────────────────────────┘        │
-│                           │                                 │
-│                           ▼                                 │
-│  ┌─────────────────────────────────────────────────┐        │
-│  │  Implication Application                        │        │
-│  │  - Inherit, Constrain, Remove                   │        │
-│  └────────────────────────┬────────────────────────┘        │
-│                           │                                 │
-│                           ▼                                 │
-│  ┌─────────────────────────────────────────────────┐        │
-│  │  Threshold Filtering                            │        │
-│  │  - Category exclusion                           │        │
-│  │  - Per-tag thresholds                           │        │
-│  └────────────────────────┬────────────────────────┘        │
-│                           │                                 │
-│                           ▼                                 │
-│  ┌─────────────────────────────────────────────────┐        │
-│  │  Top-K Selection                                │        │
-│  └────────────────────────┬────────────────────────┘        │
-│                           │                                 │
-│                           ▼                                 │
-│  ┌──────────────────────────────────────────────────┐       │
-│  │  Subcategory Classification                     │       │
-│  │  - _SUBCATEGORY_MAP lookup                      │       │
-│  │  - Color prefix heuristic fallback              │       │
-│  └────────────────────────┬────────────────────────┘       │
-│                           │                                 │
-│                           ▼                                 │
-│  ┌──────────────────────────────────────────────────┐       │
-│  │  Category + Meta Tag Assignment                  │       │
-│  └──────────────────────────────────────────────────┘       │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    A[Raw Model Output (8,888 logits)] --> B[Sigmoid Activation (0.0 - 1.0)]
+    B --> C[Implication Application]
+    C --> D[Threshold Filtering]
+    D --> E[Top-K Selection]
+    E --> F[Subcategory Classification]
+    F --> G[Category + Meta Tag Assignment]
 ```
 
 ---
@@ -88,30 +53,19 @@ Tags are organized into e621 categories with numeric IDs:
 ### From Code
 
 ```python
-# app.py
-TAG_CATEGORIES = {
-    0: "General",
-    1: "Artist",
-    2: "Contributor",
-    3: "Copyright",
-    4: "Character",
-    5: "Species",
-    6: "Invalid",
-    7: "Meta",
-    8: "Lore",
-    100: "Accessories, Items, Clothing",
-    101: "Actions, Positions, State",
-    102: "Body Color",
-    103: "Body Features",
-    104: "Effects, Fluids",
-    105: "Fetishes, Specifics, Interactions",
-    106: "Genders, Demographics",
-    107: "Locations, Backgrounds, Setting",
-    108: "Poses, Scenarios, Situations",
-    109: "Style, Perspective",
-    110: "Text, Symbols, UI, Vocalization",
-    111: "Other",
-}
+# hydra/label.py
+TAG_CATEGORIES = [
+    "general",      # 0
+    "artist",       # 1
+    "contributor",  # 2
+    "copyright",    # 3
+    "character",    # 4
+    "species",      # 5
+    "invalid",      # 6
+    "meta",         # 7
+    "lore",         # 8
+]
+# Subcategories 100-111 are handled via _SUBCATEGORY_MAP and Label.subcategory
 ```
 
 ---
@@ -326,7 +280,7 @@ Tags from category 7 (Meta) are automatically detected based on image properties
 
 Standard aspect ratios are detected:
 
-```
+```text
 1:1, 2:1, 1:2, 3:1, 1:3, 3:2, 2:3,
 4:3, 3:4, 5:3, 3:5, 5:4, 4:5,
 6:5, 5:6, 7:4, 4:7, 7:3, 3:7,
@@ -334,7 +288,7 @@ Standard aspect ratios are detected:
 16:9, 9:16, 21:9, 9:21
 ```
 
-Additionally, `widescreen` is detected for 16:9 or 16:10 aspect ratios:
+Additionally, `widescreen` is detected for 16:9 or 16:10 aspect ratios.
 
 ### Implementation
 

@@ -30,6 +30,16 @@ This document provides comprehensive reference for all environment variables and
 | `GUNICORN_WORKERS` | `1` | No | Number of Gunicorn workers |
 | `GUNICORN_TIMEOUT` | `120` | No | Worker timeout in seconds |
 
+> **Important:** `GUNICORN_WORKERS` and `GUNICORN_TIMEOUT` are set as environment variables in the Docker container, but they are **NOT read by `app.py`**. Instead, they are passed to Gunicorn via shell substitution in the Docker CMD. The Dockerfile uses: `CMD ["sh", "-c", "gunicorn --workers ${GUNICORN_WORKERS} --timeout ${GUNICORN_TIMEOUT} app:app"]`
+>
+> When you set these in docker-compose.yml:
+> ```yaml
+> environment:
+>   - GUNICORN_WORKERS=2
+>   - GUNICORN_TIMEOUT=120
+> ```
+> These values are available to the shell which runs the Gunicorn command.
+
 ---
 
 ## Variable Details
@@ -163,7 +173,7 @@ USE_PROXY=true
 
 Number of Gunicorn worker processes.
 
-> **Important:** `GUNICORN_WORKERS` and `GUNICORN_TIMEOUT` are set as environment variables in the Docker container, but they are **NOT read by `app.py`**. Instead, they are passed to Gunicorn via shell substitution in the Docker CMD. The Dockerfile uses: `CMD ["sh", "-c", "gunicorn --workers ${GUNICORN_WORKERS} --timeout ${GUNICORN_TIMEOUT} app:app"]`
+> **Important:** `GUNICORN_WORKERS` and `GUNICORN_TIMEOUT` are set as environment variables in the Docker container, but they are **NOT read by `app.py`**. Instead, they are passed to Gunicorn via command-line arguments (not as environment variables). The default Docker image uses shell substitution to interpolate these values.
 
 When you set these in docker-compose.yml:
 ```yaml
@@ -221,7 +231,7 @@ GUNICORN_TIMEOUT=300
 GUNICORN_TIMEOUT=60
 ```
 
-> **Why this works:** The Dockerfile uses shell substitution: `CMD ["sh", "-c", "gunicorn ... --workers ${GUNICORN_WORKERS} --timeout ${GUNICORN_TIMEOUT} ...]`. The ENV variables are interpolated by the shell before being passed to Gunicorn.
+> **Why this works:** The Dockerfile uses shell substitution: `CMD ["sh", "-c", "gunicorn ... --workers ${GUNICORN_WORKERS} --timeout ${GUNICORN_TIMEOUT} ..."]`. The ENV variables are interpolated by the shell before being passed to Gunicorn.
 
 ---
 
@@ -460,8 +470,6 @@ def discover_extensions(paths):
                 if entry.is_file() and entry.name.endswith('.safetensors'):
                     yield entry.path
 ```
-
-
 
 ---
 
