@@ -165,6 +165,7 @@ const presets = {
 | `helpBtn` | `helpThresholdsBtn` | Help button |
 | `helpModal` | `helpModal` | Help modal |
 | `closeHelpModalBtn` | `.close-help-modal` | Close help modal button |
+| `yearTagToggle` | `yearTagToggle` | Year switch checkbox (Apple-style) |
 
 ---
 

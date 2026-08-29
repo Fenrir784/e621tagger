@@ -275,7 +275,7 @@ Tags from category 7 (Meta) are automatically detected based on image properties
 | `4k` | 3840×2160, 2160×3840, 4096×2160, or 2160×4096 |
 | `long_image` | Aspect ratio ≥ 4:1 or ≤ 1:4 |
 | `tall_image` | Aspect ratio ≤ 1:4 (subset of long_image) |
-| `2025`, `2026`, ... | Current year (added server-side, configurable via frontend setting) |
+| `2025`, `2026`, ... | Current year (added server-side in `/predict` via `str(datetime.now().year)` with `1.0` confidence, `Meta` category; frontend filters via Apple-style switch `addCurrentYearTag` in `localStorage` `e621tagger-settings`, default `true`) |
 
 ### Aspect Ratio Tags
 
@@ -331,9 +331,11 @@ def detect_meta_tags_for_image_path(image_path):
             if w * b == h * a:
                 tags.add(tagname)
         
-        # Current year tag (added in /predict endpoint)
+        # Current year tag (added in /predict endpoint, always; frontend may hide via switch)
         from datetime import datetime
         tags.add(str(datetime.now().year))
+        # Frontend: uploadImage() filters with `if (t === currentYearTag && !addCurrentYearTag) return`
+        # and copy uses perTagAutoDisable set toggled by switch change listener
 ```
 
 ---
