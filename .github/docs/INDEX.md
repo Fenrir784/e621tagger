@@ -77,6 +77,8 @@ ghcr.io/fenrir784/e621tagger:latest
 
 ### Tag Categories
 
+Tags are organized into e621 categories with numeric IDs:
+
 | ID | Category | Description |
 |----|----------|-------------|
 | 0 | General | General tags (includes sub-categories 100-111) |
@@ -100,6 +102,8 @@ ghcr.io/fenrir784/e621tagger:latest
 | 109 | Style, Perspective | Style and perspective tags |
 | 110 | Text, Symbols, UI, Vocalization | Text and UI tags |
 | 111 | Other | Tags from unrecognized categories |
+
+> **Note:** General tags are further classified into 12 fine-grained subcategories via the `_SUBCATEGORY_MAP` in `hydra/_subcat.py`. See [TAGGING.md](TAGGING.md) for details.
 
 ## Common Tasks
 
@@ -155,5 +159,5 @@ The application sets the following security headers on all responses:
 ## Support
 
 - GitHub: https://github.com/Fenrir784/e621tagger
-- Telegram: https://telegram.me/fenrir784
+- Telegram: https://t.me/fenrir784
 - Live Instance: https://tagger.fenrir784.app

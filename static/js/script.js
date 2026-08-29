@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let perTagAutoDisable = new Set();
     let hiddenCategories = new Set();
     let alwaysHiddenCategories = new Set();
+    let addCurrentYearTag = true;
 
     const tagDescriptionCache = new Map();
     let currentPopup = null;
@@ -85,19 +86,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 activePreset = settings.activePreset ?? 'standard';
                 maxTags = settings.maxTags ?? 200;
                 if (!ALLOWED_MAX_TAGS.includes(maxTags)) maxTags = 200;
-                alwaysHiddenCategories = new Set(settings.alwaysHiddenCategories || []);
-                
+alwaysHiddenCategories = new Set(settings.alwaysHiddenCategories || []);
+                addCurrentYearTag = settings.addCurrentYearTag ?? true;
+
                 document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.value === currentTheme);
-                });
-                
-                document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.value === savedFormat);
                 });
                 
                 document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.value === String(maxTags));
                 });
+
+                const yearTagToggle = document.getElementById('yearTagToggle');
+                if (yearTagToggle) yearTagToggle.checked = addCurrentYearTag;
                 
                 updateTheme(currentTheme);
                 updateThresholdUI();
@@ -115,7 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('e621tagger-settings', JSON.stringify({
             allThreshold, confidentThreshold, defaultFormat: savedFormat,
             theme: currentTheme, activePreset, maxTags,
-            alwaysHiddenCategories: [...alwaysHiddenCategories]
+            alwaysHiddenCategories: [...alwaysHiddenCategories],
+            addCurrentYearTag
         }));
     }
 
@@ -727,8 +729,10 @@ function refreshTagClasses() {
                 const baseTags = data.tags || [];
                 const autoMeta = data.auto_meta || [];
                 const merged = baseTags.slice();
+                const currentYearTag = String(new Date().getFullYear());
                 autoMeta.forEach(t => {
                     if (!merged.find(x => x.tag === t)) {
+                        if (t === currentYearTag && !addCurrentYearTag) return;
                         merged.push({ tag: t, prob: 1.0, category: 'Meta' });
                     }
                 });
@@ -812,9 +816,6 @@ function refreshTagClasses() {
             document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.value === 'system');
             });
-            document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.value === 'e621');
-            });
             document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.value === '200');
             });
@@ -856,21 +857,13 @@ function refreshTagClasses() {
             });
         });
 
-        document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
-            attachHammerTap(btn, () => {
-                document.querySelectorAll('#defaultFormatToggle .format-option').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                savedFormat = btn.dataset.value;
-                currentFormat = savedFormat;
-                saveSettings();
-            });
-        });
-
         document.querySelectorAll('#resultsFormatToggle .format-option').forEach(btn => {
             attachHammerTap(btn, () => {
                 document.querySelectorAll('#resultsFormatToggle .format-option').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentFormat = btn.dataset.value;
+                savedFormat = btn.dataset.value;
+                saveSettings();
             });
         });
 
@@ -882,6 +875,20 @@ function refreshTagClasses() {
                 saveSettings();
             });
         });
+
+        const yearTagToggle = document.getElementById('yearTagToggle');
+        if (yearTagToggle) {
+            yearTagToggle.addEventListener('change', () => {
+                addCurrentYearTag = yearTagToggle.checked;
+                const currentYearTag = String(new Date().getFullYear());
+                if (addCurrentYearTag) {
+                    perTagAutoDisable.delete(currentYearTag);
+                } else {
+                    perTagAutoDisable.add(currentYearTag);
+                }
+                saveSettings();
+            });
+        }
     }
 
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, preventDefaults, false));

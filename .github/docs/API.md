@@ -205,7 +205,7 @@ General tags are further split into 12 subcategories using the `_SUBCATEGORY_MAP
 | 110 | Text, Symbols, UI, Vocalization | Text and UI tags |
 | 111 | Other | Tags from unrecognized categories |
 
-> **Note:** When copying tags to clipboard, categories 100-111 are merged into "General" to maintain e621 compatibility. The subcategory mapping uses a multi-tier strategy (old CSV, renames, heuristic keywords, color prefix) and has been validated to 100% coverage (6,263/6,263 general tags). See [TAGGING.md](TAGGING.md) for details.
+> **Note:** When copying tags to clipboard, categories 100-111 are merged into "General" to maintain e621 compatibility. The subcategory mapping uses a multi-tier strategy (direct map lookup, color prefix heuristic) and has been validated to 100% coverage (6,263/6,263 general tags). See [TAGGING.md](TAGGING.md) for details.
 
 ### Auto-Generated Meta Tags
 
@@ -278,7 +278,7 @@ Content-Type: application/json
 
 {
   "status": "healthy",
-  "model": "hydra-3.5",
+  "model": "JTP-3 Hydra 3.5",
   "tags_count": 8888,
   "version": "v123"
 }
@@ -301,7 +301,7 @@ Content-Type: application/json
 | Field | Type | Description |
 |-------|------|-------------|
 | `status` | string | `healthy` or `unhealthy` |
-| `model` | string | Model name (e.g. `hydra-3.5`) |
+| `model` | string | Model name (e.g. `JTP-3 Hydra 3.5`) |
 | `tags_count` | integer | Number of tags in model (8,888 for Hydra 3.5) |
 | `version` | string | Application version |
 | `reason` | string | Error reason if unhealthy |
@@ -392,7 +392,6 @@ HTTP/1.1 200 OK
 Content-Type: text/plain
 
 User-agent: *
-Disallow: /static/
 Disallow: /predict
 Disallow: /health
 Disallow: /service-worker.js
@@ -573,8 +572,8 @@ The application uses `flask-limiter` for rate limiting.
 
 | Endpoint | Limit |
 |----------|-------|
-| `/predict` | 20 per minute, 500 per hour |
-| Default | Inherited |
+| `/predict` | 20 per minute |
+| Default | 500 per hour |
 
 ### Rate Limit Headers
 

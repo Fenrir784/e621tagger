@@ -1,6 +1,6 @@
 # app.py Reference Documentation
 
-This document provides a comprehensive reference for all methods, variables, and configurations in `app.py` (523 lines). It is designed for agent systems to understand and interact with the e621tagger Flask application.
+This document provides a comprehensive reference for all methods, variables, and configurations in `app.py` (540 lines). It is designed for agent systems to understand and interact with the e621tagger Flask application.
 
 ---
 
@@ -9,7 +9,7 @@ This document provides a comprehensive reference for all methods, variables, and
 | Attribute | Value |
 |-----------|-------|
 | Location | `app.py` |
-| Lines | 523 |
+| Lines | 540 |
 | Framework | Flask |
 | Purpose | Web application for e621 image tagging |
 | Dependencies | flask, flask-limiter, torch, PIL, ua-parser |
@@ -23,35 +23,36 @@ app.py
 │
 ├── 2. Global Constants (lines 20-83)
 │   ├── TAG_CATEGORIES - Tag ID to name mapping
+│   ├── SUBCATEGORY_DISPLAY_NAMES - Subcategory code to display name
 │   ├── APP_CONFIG - Version, logging, app setup
 │   ├── MODEL_CONFIG - Model paths and device settings
 │   ├── FILE_LIMITS - Upload and file type limits
 │   └── Flask + Limiter initialization
 │
-├── 3. Helper Functions (lines 85-163)
+├── 3. Helper Functions (lines 84-163)
 │   └── Logging and user agent utilities
 │
-├── 4. Request Hooks (lines 165-226)
+├── 4. Request Hooks (lines 165-227)
 │   ├── @before_request - Start timing
 │   └── @after_request - Security headers + logging
 │
-├── 5. Startup (lines 228-250)
+├── 5. Startup (lines 229-251)
 │   ├── Directory creation
 │   ├── Model loading
 │   └── Metadata loading
 │
-├── 6. Validation Functions (lines 252-264)
+├── 6. Validation Functions (lines 253-265)
 │   ├── is_valid_image() - Verify image
 │   └── is_allowed_file() - Check extension/MIME
 │
-├── 7. Processing Functions (lines 266-340)
+├── 7. Processing Functions (lines 267-341)
 │   ├── detect_meta_tags_for_image_path() - Auto tags
 │   └── save_upload() - File persistence
 │
-├── 8. Flask Routes (lines 342-520)
+├── 8. Flask Routes (lines 343-537)
 │   └── 10 endpoints (+ error handler)
 │
-└── 9. Main Entry (lines 522-523)
+└── 9. Main Entry (lines 539-540)
     └── Production run
 ```
 
@@ -75,6 +76,29 @@ TAG_CATEGORIES = {
 }
 ```
 | Usage | Map tag category string keys to e621 category display names |
+| ---- | ------------------------------------ |
+
+> **Note:** The Label class in `hydra/label.py` uses integer category IDs (0-8, 100-111). The TAG_CATEGORIES dict here maps string keys for the 9 base categories. Subcategories (100-111) are handled via SUBCATEGORY_DISPLAY_NAMES.
+
+### Subcategory Display Names
+
+```python
+SUBCATEGORY_DISPLAY_NAMES = {
+    "accessory": "Accessories, Items, Clothing",
+    "action": "Actions, Positions, State",
+    "color": "Body Color",
+    "body_feature": "Body Features",
+    "effect": "Effects, Fluids",
+    "fetish": "Fetishes, Specifics, Interactions",
+    "demographic": "Genders, Demographics",
+    "setting": "Locations, Backgrounds, Setting",
+    "pose": "Poses, Scenarios, Situations",
+    "style": "Style, Perspective",
+    "text": "Text, Symbols, UI, Vocalization",
+    "other": "Other",
+}
+```
+| Usage | Map internal subcategory codes to display names for the API response and UI |
 | ---- | ------------------------------------ |
 
 ### Application Configuration
@@ -128,28 +152,6 @@ PATCH_SIZE = 16
 | `MAX_SEQ_LEN` | 1024 | Max patches for input |
 | `PATCH_SIZE` | 16 | Patch size (pixels) |
 
-### Subcategory Display Names
-
-```python
-# app.py:32-45
-SUBCATEGORY_DISPLAY_NAMES = {
-    "accessory": "Accessories, Items, Clothing",
-    "action": "Actions, Positions, State",
-    "color": "Body Color",
-    "body_feature": "Body Features",
-    "effect": "Effects, Fluids",
-    "fetish": "Fetishes, Specifics, Interactions",
-    "demographic": "Genders, Demographics",
-    "setting": "Locations, Backgrounds, Setting",
-    "pose": "Poses, Scenarios, Situations",
-    "style": "Style, Perspective",
-    "text": "Text, Symbols, UI, Vocalization",
-    "other": "Other",
-}
-```
-| Usage | Map internal subcategory codes to display names for the API response and UI |
-| ---- | ------------------------------------ |
-
 ### Prediction Settings
 
 ```python
@@ -182,7 +184,7 @@ ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'ima
 
 ### secure_log(s: str | None) -> str
 
-| Location | app.py:85-90 |
+| Location | app.py:84-89 |
 |----------|-------------|
 | Input | `s: str | None` - Raw string |
 | Output | `str` - Sanitized string |
@@ -193,13 +195,13 @@ def secure_log(s: str | None) -> str:
     if not s:
         return ""
     s = s.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ')
-    s = re.sub(r'[\x00-\x1f\x7f]', '', s)
+    s = re.sub(r'[\x00-\x1f\x7f\u0080-\u009f\u200b\u202e\u2066-\u2069]', '', s)
     return s.strip()
 ```
 
 ### status_emoji(status_code) -> str
 
-| Location | app.py:92-98 |
+| Location | app.py:91-97 |
 |----------|---------------|
 | Input | `status_code: int` - HTTP status code |
 | Output | `str` - Emoji (🟢/🟡/🔴) |
@@ -213,7 +215,7 @@ def secure_log(s: str | None) -> str:
 
 ### get_country_flag(accept_lang) -> str
 
-| Location | app.py:100-108 |
+| Location | app.py:99-107 |
 |----------|----------------|
 | Input | `accept_lang: str` - Accept-Language header |
 | Output | `str` - Country flag emoji |
@@ -221,7 +223,7 @@ def secure_log(s: str | None) -> str:
 
 ### get_ip_identifier(ip: str | None) -> str
 
-| Location | app.py:110-119 |
+| Location | app.py:109-119 |
 |----------|----------------|
 | Input | `ip: str` - IP address string |
 | Output | `str` - Colored IP identifier (e.g., "🟪 192.168.1.1") |
@@ -250,7 +252,7 @@ The function uses a simple hash of the IP's octets to generate a consistent colo
 | Purpose | Parse User-Agent string into device type and short UA |
 
 | Device Type | Detection |
-|-----------|-----------|
+|-------------|-----------|
 | bot | spider, bot, crawler |
 | mobile | smartphone, or "mobile" in UA |
 | tablet | tablet |
@@ -269,7 +271,7 @@ The function uses a simple hash of the IP's octets to generate a consistent colo
 
 ### @app.after_request
 
-| Location | app.py:169-226 |
+| Location | app.py:169-227 |
 |----------|------------------|
 | Purpose | Add security headers and request logging |
 | Headers Added | HSTS, X-Frame-Options, CSP, etc. |
@@ -291,7 +293,7 @@ The function uses a simple hash of the IP's octets to generate a consistent colo
 
 ### is_valid_image(file) -> bool
 
-| Location | app.py:252-260 |
+| Location | app.py:253-261 |
 |----------|-----------------|
 | Input | `file` - File-like object |
 | Output | `bool` - True if valid image |
@@ -311,7 +313,7 @@ def is_valid_image(file):
 
 ### is_allowed_file(filename: str, content_type: str) -> bool
 
-| Location | app.py:262-264 |
+| Location | app.py:263-265 |
 |----------|-------------------|
 | Input | `filename: str`, `content_type: str` |
 | Output | `bool` - True if allowed |
@@ -323,7 +325,7 @@ def is_valid_image(file):
 
 ### detect_meta_tags_for_image_path(image_path: str) -> set[str]
 
-| Location | app.py:266-322 |
+| Location | app.py:267-323 |
 |--------------------|----------------------|
 | Input | `image_path: str` - Path to image file |
 | Output | `set[str]` - Auto-detected meta tags |
@@ -343,9 +345,11 @@ def is_valid_image(file):
 | 1:1, 2:1, 16:9, etc. | Exact aspect ratios |
 | widescreen | 16:9 or ~16:10 |
 
+**Note:** The current year tag (e.g., `2025`, `2026`) is added separately in the `/predict` endpoint after calling this function. It is not part of `detect_meta_tags_for_image_path()`.
+
 ### save_upload(file, original_filename) -> str | None
 
-| Location | app.py:324-340 |
+| Location | app.py:325-341 |
 |----------|--------------------|
 | Input | `file`, `original_filename: str` |
 | Output | `str` - Save path, or None on failure |
@@ -358,7 +362,7 @@ def is_valid_image(file):
 
 ### index() -> str
 
-| Location | app.py:348-349 |
+| Location | app.py:348-350 |
 |----------|----------------|
 | Route | `GET /` |
 | Output | HTML - Rendered `index.html` |
@@ -366,7 +370,7 @@ def is_valid_image(file):
 
 ### favicon() -> Response
 
-| Location | app.py:352-355 |
+| Location | app.py:352-356 |
 |----------|----------------|
 | Route | `GET /favicon.ico` |
 | Output | ICO file with 24h caching |
@@ -374,7 +378,7 @@ def is_valid_image(file):
 
 ### static_files(filename: str) -> Response
 
-| Location | app.py:358-361 |
+| Location | app.py:358-362 |
 |-------------------|----------------|
 | Route | `GET /static/<path>` |
 | Input | `filename: str` - File path |
@@ -383,7 +387,7 @@ def is_valid_image(file):
 
 ### service_worker() -> Response
 
-| Location | app.py:364-370 |
+| Location | app.py:364-371 |
 |----------|----------------|
 | Route | `GET /service-worker.js` |
 | Output | JS with no-cache headers |
@@ -391,7 +395,7 @@ def is_valid_image(file):
 
 ### health() -> tuple
 
-| Location | app.py:373-388 |
+| Location | app.py:373-389 |
 |----------|---------------|
 | Route | `GET /health` |
 | Output | JSON - Health status |
@@ -401,7 +405,7 @@ def is_valid_image(file):
 ```json
 {
   "status": "healthy",
-  "model": "hydra_model_name",
+  "model": "JTP-3 Hydra 3.5",
   "tags_count": 8888,
   "version": "APP_VERSION"
 }
@@ -417,7 +421,7 @@ def is_valid_image(file):
 
 ### predict() -> tuple
 
-| Location | app.py:392-494 |
+| Location | app.py:391-509 |
 |----------|----------------|
 | Route | `POST /predict` |
 | Rate Limit | 20/minute |
@@ -439,9 +443,11 @@ def is_valid_image(file):
     {"tag": "female", "prob": 0.95, "category": "General"},
     {"tag": "anthro", "prob": 0.89, "category": "Species"}
   ],
-  "auto_meta": ["hi_res", "16:9"]
+  "auto_meta": ["hi_res", "16:9", "2025"]
 }
 ```
+
+**Note:** The `auto_meta` array includes the current year (e.g., `2025`, `2026`) as a meta tag with 1.0 confidence. Frontend can filter this via the `addCurrentYearTag` setting (default: true).
 
 **Error Responses:**
 
@@ -456,7 +462,7 @@ def is_valid_image(file):
 
 ### robots() -> Response
 
-| Location | app.py:497-506 |
+| Location | app.py:514-523 |
 |----------|----------------|
 | Route | `GET /robots.txt` |
 | Output | Robots.txt content |
@@ -465,7 +471,6 @@ def is_valid_image(file):
 **Content:**
 ```
 User-agent: *
-Disallow: /static/
 Disallow: /predict
 Disallow: /health
 Disallow: /service-worker.js
@@ -475,7 +480,7 @@ Sitemap: https://www.tagger.fenrir784.app/sitemap.xml
 
 ### sitemap() -> Response
 
-| Location | app.py:509-520 |
+| Location | app.py:525-537 |
 |----------|----------------|
 | Route | `GET /sitemap.xml` |
 | Output | XML sitemap |
@@ -483,7 +488,7 @@ Sitemap: https://www.tagger.fenrir784.app/sitemap.xml
 
 ### handle_file_too_large(e) -> tuple
 
-| Location | app.py:342-345 |
+| Location | app.py:343-346 |
 |----------|-------------------|
 | Handler | 413 errors |
 | Purpose | Handle file too large |
@@ -492,7 +497,7 @@ Sitemap: https://www.tagger.fenrir784.app/sitemap.xml
 
 ## 7. Runtime Initialization
 
-These run at module load time (lines 228-250):
+These run at module load time (lines 229-251):
 
 ```python
 # 1. Create upload directory

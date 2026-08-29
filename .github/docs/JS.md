@@ -1,6 +1,6 @@
 # JavaScript Reference Documentation
 
-This document provides a comprehensive reference for all methods, variables, and configurations in `static/js/script.js` (901 lines). It is designed for agent systems to understand and interact with the e621tagger frontend.
+This document provides a comprehensive reference for all methods, variables, and configurations in `static/js/script.js` (935 lines). It is designed for agent systems to understand and interact with the e621tagger frontend.
 
 ---
 
@@ -9,7 +9,7 @@ This document provides a comprehensive reference for all methods, variables, and
 | Attribute | Value |
 |-----------|-------|
 | Location | `static/js/script.js` |
-| Lines | 901 |
+| Lines | 935 |
 | Framework | Vanilla JavaScript |
 | Purpose | Frontend UI functionality |
 | Dependencies | Hammer.js (touch events), escapeHtml/sanitizeHtml/XSS protection |
@@ -17,21 +17,23 @@ This document provides a comprehensive reference for all methods, variables, and
 ### File Structure Flow
 
 ```
-script.js (901 lines)
+script.js (935 lines)
 ├── 1. Constants (27-45)           - Configuration values
-├── 2. State Variables (47-66)     - Runtime application state
+├── 2. State Variables (47-68)     - Runtime application state
 ├── 3. DOM Cached (2-25)           - DOM element references
-├── 4. preloadCreatures (68-71)    - Preload easter egg images
-├── 5. loadSettings (73-109)       - Load from localStorage
+├── 4. preloadCreatures (70-73)    - Preload easter egg images
+├── 5. loadSettings (75-109)       - Load from localStorage
 ├── 6. saveSettings (111-116)      - Save to localStorage
-├── 7. UI Functions (118-192)      - Theme, notifications, popups
-├── 8. XSS Protection (237-291)    - escapeHtml, sanitizeHtml, parseDText
-├── 9. Tag Functions (392-621)     - Handle, display, filter tags
-├── 10. Copy Functions (441-517)   - Clipboard, format conversion
-├── 11. File Handling (625-701)    - Drag/drop, preview, validation
-├── 12. initHammer (730-836)       - Hammer.js touch setup
-├── 13. Event Listeners (838-881)  - Attach all listeners
-└── 14. Final Init (883-901)       - Final setup
+├── 7. UI Functions (118-195)      - Theme, notifications, popups
+├── 8. XSS Protection (240-294)    - escapeHtml, sanitizeHtml, parseDText
+├── 9. Tag Functions (395-623)     - Handle, display, filter tags
+├── 10. Copy Functions (444-520)   - Clipboard, format conversion
+├── 11. File Handling (627-706)    - Drag/drop, preview, validation
+├── 12. Fullscreen Image (194-235) - Fullscreen modal functions
+├── 13. Help Modal (745-765)       - Help modal functions
+├── 14. initHammer (772-870)       - Hammer.js touch setup
+├── 15. Event Listeners (872-915)  - Attach all listeners
+└── 16. Final Init (917-935)       - Final setup
 ```
 
 ---
@@ -58,6 +60,7 @@ const displayCategoryOrder = [
     'Text, Symbols, UI, Vocalization', 'Other',
     'Body Color', 'Lore'
 ];
+
 const tagDescriptionCache = new Map();  // Cache for e621 wiki tag descriptions
 ```
 
@@ -79,22 +82,22 @@ const tagDescriptionCache = new Map();  // Cache for e621 wiki tag descriptions
 let allTags = [];                    // Tag predictions from API
 let currentFormat = 'e621';         // 'e621' for danbooru format, any other for PostyBirb
 let savedFormat = 'e621';           // 'e621' for danbooru format, any other for PostyBirb
-    let allThreshold = 0.60;           // Lower threshold (include)
-    let confidentThreshold = 0.70;      // Upper threshold (confident)
-let currentTheme = 'system';          // 'system', 'light', 'dark'
-let activePreset = 'standard';        // 'conservative'/'standard'/'liberal'/'custom'
-let addedTags = new Set();           // User-added tags
-let removedTags = new Set();         // User-removed tags
-let hiddenCategories = new Set();    // Session-hidden categories (per upload)
+let allThreshold = 0.60;            // Lower threshold (include)
+let confidentThreshold = 0.70;      // Upper threshold (confident)
+let currentTheme = 'system';        // 'system', 'light', 'dark'
+let activePreset = 'standard';      // 'conservative'/'standard'/'liberal'/'custom'
+let addedTags = new Set();          // User-added tags
+let removedTags = new Set();        // User-removed tags
+let hiddenCategories = new Set();   // Session-hidden categories (per upload, non-persistent)
 let alwaysHiddenCategories = new Set(); // Persisted hidden categories (localStorage)
-let maxTags = 200;                 // Max tags to request
-let autoMetaTagSet = new Set();      // Auto-detected meta tags
-let perTagAutoDisable = new Set();   // Per-tag auto disable
+let maxTags = 200;                  // Max tags to request
+let autoMetaTagSet = new Set();     // Auto-detected meta tags
+let perTagAutoDisable = new Set();  // Per-tag auto disable
 let currentPopup = null;            // Active popup DOM element
-let activePopupTagElement = null;    // Popup trigger element
-let pressBlockTap = false;           // Press event blocking flag
-let fullscreenImageModal = null;     // Fullscreen modal DOM element
-let isFullscreenActive = false;      // Fullscreen modal state
+let activePopupTagElement = null;   // Popup trigger element
+let pressBlockTap = false;          // Press event blocking flag
+let fullscreenImageModal = null;    // Fullscreen modal DOM element
+let isFullscreenActive = false;     // Fullscreen modal state
 ```
 
 | Variable | Type | Default | Description |
@@ -113,6 +116,7 @@ let isFullscreenActive = false;      // Fullscreen modal state
 | `maxTags` | int | 200 | API top_k parameter |
 | `autoMetaTagSet` | Set | - | Auto meta tags |
 | `perTagAutoDisable` | Set | - | Disabled auto tags |
+| `addCurrentYearTag` | boolean | true | Whether to include current year meta tag |
 
 ### Threshold Presets
 
@@ -161,6 +165,7 @@ const presets = {
 | `helpBtn` | `helpThresholdsBtn` | Help button |
 | `helpModal` | `helpModal` | Help modal |
 | `closeHelpModalBtn` | `.close-help-modal` | Close help modal button |
+| `yearTagToggle` | `yearTagToggle` | Year switch checkbox (Apple-style) |
 
 ---
 
@@ -195,16 +200,19 @@ function loadSettings() {
             activePreset = settings.activePreset ?? 'standard';
             maxTags = settings.maxTags ?? 200;
             if (!ALLOWED_MAX_TAGS.includes(maxTags)) maxTags = 200;
+            alwaysHiddenCategories = new Set(settings.alwaysHiddenCategories || []);
+            addCurrentYearTag = settings.addCurrentYearTag ?? true;
             
             document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.value === currentTheme);
             });
-            document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.value === savedFormat);
-            });
+            
             document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.value === String(maxTags));
             });
+
+            const yearTagToggle = document.getElementById('yearTagToggle');
+            if (yearTagToggle) yearTagToggle.checked = addCurrentYearTag;
             
             updateTheme(currentTheme);
             updateThresholdUI();
@@ -229,6 +237,8 @@ function loadSettings() {
 | theme | currentTheme |
 | activePreset | activePreset |
 | maxTags | maxTags |
+| alwaysHiddenCategories | alwaysHiddenCategories |
+| addCurrentYearTag | addCurrentYearTag |
 
 ### saveSettings()
 
@@ -238,7 +248,9 @@ Persists settings to localStorage.
 function saveSettings() {
     localStorage.setItem('e621tagger-settings', JSON.stringify({
         allThreshold, confidentThreshold, defaultFormat: savedFormat,
-        theme: currentTheme, activePreset, maxTags
+        theme: currentTheme, activePreset, maxTags,
+        alwaysHiddenCategories: [...alwaysHiddenCategories],
+        addCurrentYearTag
     }));
 }
 ```
@@ -313,7 +325,7 @@ Escapes HTML entities for safe display.
 ```javascript
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
-    return unsafe.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    return unsafe.replace(/[&<>"']/g, m => m === '&' ? '&' : m === '<' ? '<' : m === '>' ? '>' : m === '"' ? '"' : ''');
 }
 ```
 
@@ -326,14 +338,12 @@ function sanitizeHtml(html) {
     if (!html) return '';
     const dangerousAttrs = /\s+(on\w+|style\s*=\s*["']?(?:javascript:|expression\()[^"']*)/gi;
     let previous;
-    // Remove disallowed tags
     do {
         previous = html;
         html = html.replace(/<(?!\/?(?:strong|em|u|sup|span|br)\b)[^>]*>/gi, (match) => {
-            return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return match.replace(/</g, '<').replace(/>/g, '>');
         });
     } while (html !== previous);
-    // Remove dangerous attributes
     do {
         previous = html;
         html = html.replace(dangerousAttrs, '');
@@ -350,7 +360,34 @@ Parses e621 wiki DText markup to HTML.
 function parseDText(dtext) {
     if (!dtext) return '';
     let text = escapeHtml(dtext.slice(0, 1000));
-    // ... complex transformations for wiki markup
+    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    text = text.replace(/thumb\s+#\d+\s*/g, '');
+    text = text.replace(/\[section[^\]]*\]([\s\S]*?)\[\/section\]/g, '$1');
+    text = text.replace(/\[quote[^\]]*\]([\s\S]*?)\[\/quote\]/g, '$1');
+    text = text.replace(/\[table[^\]]*\]([\s\S]*?)\[\/table\]/g, '$1');
+    text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '$1');
+    text = text.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: var(--confident-bg);">$2</span>');
+    text = text.replace(/"([^"]+)"\s*:\s*(\S+)/g, (match, linkText) => `<span style="color: var(--confident-bg);">${linkText}</span>`);
+    text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (match, target, display) => `<span style="color: var(--confident-bg);">${display}</span>`);
+    text = text.replace(/\[\[([^\]]+)\]\]/g, (match, p1) => `<span style="color: var(--confident-bg);">${p1}</span>`);
+    let lines = text.split('\n');
+    let processedLines = [];
+    for (let line of lines) {
+        let trimmed = line;
+        const headerMatch = trimmed.match(/^\s*h([1-6])(?:\.?\s*)(.*)$/i);
+        if (headerMatch) trimmed = `<strong style="color: var(--confident-bg);">${headerMatch[2]}</strong>`;
+        else trimmed = trimmed.replace(/^(\*+)\s+/, '');
+        if (trimmed.trim() !== '') processedLines.push(trimmed);
+    }
+    text = processedLines.join('\n');
+    text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
+    text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
+    text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
+    text = text.replace(/\[sup\]([\s\S]*?)\[\/sup\]/g, '<sup>$1</sup>');
+    text = text.replace(/\n/g, '<br>');
+    text = text.replace(/(<br>){3,}/g, '<br><br>');
+    text = text.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
+    if (dtext.length > 1000) text += '…';
     return text;
 }
 ```
@@ -394,13 +431,24 @@ Fetches tag description from e621 wiki API.
 async function fetchTagDescription(tagName) {
     if (tagDescriptionCache.has(tagName)) return tagDescriptionCache.get(tagName);
     const url = `https://e621.net/wiki_pages.json?search[title]=${encodeURIComponent(tagName)}&limit=1`;
-    const response = await fetch(url, { headers: { 'User-Agent': 'e621tagger/1.0 (https://tagger.fenrir784.app)' } });
-    const data = await response.json();
-    const result = data.length 
-        ? { exists: true, title: data[0].title, body: data[0].body }
-        : { exists: false, title: tagName, body: 'No description found on e621.' };
-    tagDescriptionCache.set(tagName, result);
-    return result;
+    try {
+        const response = await fetch(url, { headers: { 'User-Agent': 'e621tagger/1.0 (https://tagger.fenrir784.app)' } });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (data && data.length) {
+            const wiki = data[0];
+            const result = { exists: true, title: wiki.title || tagName, body: wiki.body || 'No description available.' };
+            tagDescriptionCache.set(tagName, result);
+            return result;
+        } else {
+            const result = { exists: false, title: tagName, body: 'No description found on e621.' };
+            tagDescriptionCache.set(tagName, result);
+            return result;
+        }
+    } catch (err) {
+        console.warn(`Failed to fetch description for ${tagName}:`, err);
+        return { exists: false, title: tagName, body: 'Failed to load description. Please check your internet connection.' };
+    }
 }
 ```
 
@@ -415,30 +463,40 @@ function showTagPopup(tagObj, targetElement) {
     if (currentPopup && activePopupTagElement === targetElement) return;
     if (currentPopup) closePopup();
     activePopupTagElement = targetElement;
-    
     const tagName = tagObj.tag;
     const popup = document.createElement('div');
     popup.className = 'tag-popup';
+    const wikiUrl = `https://e621.net/wiki_pages?title=${encodeURIComponent(tagName)}`;
     popup.innerHTML = `
         <div class="tag-popup-header">
             <button class="tag-popup-copy-btn" title="Copy tag name">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ...>
-                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-                </svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
             </button>
-            <a href="https://e621.net/wiki_pages?title=${escapeHtml(tagName)}" target="_blank">...</a>
+            <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--confident-bg);">
+                <span>${escapeHtml(tagName)}</span>
+                <span style="color: var(--low-text); font-size: 0.7rem; text-decoration: underline;">read more</span>
+            </a>
             <button class="close-popup">✕</button>
         </div>
         <div class="tag-popup-content"><div class="tag-popup-loading">Loading description...</div></div>
     `;
     document.body.appendChild(popup);
     currentPopup = popup;
-    
-    // Position popup
-    // ... positioning code ...
-    
-    // Copy button handler
+    const rect = targetElement.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    popup.style.visibility = 'hidden';
+    popup.style.position = 'absolute';
+    const popupRect = popup.getBoundingClientRect();
+    popup.style.visibility = '';
+    let top = rect.bottom + 8;
+    let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
+    if (top + popupRect.height > viewportHeight - 10) top = rect.top - popupRect.height - 8;
+    left = Math.max(10, Math.min(left, viewportWidth - popupRect.width - 10));
+    popup.style.top = `${top + window.scrollY}px`;
+    popup.style.left = `${left + window.scrollX}px`;
+    const closeBtn = popup.querySelector('.close-popup');
+    closeBtn.addEventListener('click', () => closePopup());
     const copyBtn = popup.querySelector('.tag-popup-copy-btn');
     copyBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -447,18 +505,25 @@ function showTagPopup(tagObj, targetElement) {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 await navigator.clipboard.writeText(tagName);
             } else {
-                // fallback using execCommand
+                const ta = document.createElement('textarea');
+                ta.value = tagName;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
             }
             copyBtn.classList.add('copied');
             copyBtn._copyTimeout = setTimeout(() => copyBtn.classList.remove('copied'), 1000);
         } catch {}
     });
-    
-    // Fetch description
     fetchTagDescription(tagName).then(desc => {
         const content = popup.querySelector('.tag-popup-content');
         if (desc.exists) content.innerHTML = `<div class="tag-popup-text">${sanitizeHtml(parseDText(desc.body))}</div>`;
         else content.innerHTML = `<div class="tag-popup-error">${escapeHtml(desc.body)}</div>`;
+    }).catch(() => {
+        popup.querySelector('.tag-popup-content').innerHTML = '<div class="tag-popup-error">Failed to load description.</div>';
     });
 }
 ```
@@ -494,7 +559,6 @@ function handleTagClick(tagObj) {
     const isAll = prob >= allThreshold;
     const wasAdded = addedTags.has(tag);
     const wasRemoved = removedTags.has(tag);
-    
     if (isConfident) {
         if (!wasAdded && !wasRemoved) removedTags.add(tag);
         else if (wasRemoved) removedTags.delete(tag);
@@ -508,8 +572,6 @@ function handleTagClick(tagObj) {
         else if (wasAdded) addedTags.delete(tag);
         else if (wasRemoved) removedTags.delete(tag);
     }
-    
-    // Update all matching tag elements
     document.querySelectorAll(`.tag[data-tag="${tag}"]`).forEach(el => updateTagElement(el, tagObj));
     refreshTagClasses();
 }
@@ -588,11 +650,7 @@ Filters tags by probability threshold and excludes tags from hidden categories.
 
 ```javascript
 function filterTags(threshold) {
-    return allTags.filter(t => {
-        if (ratingTags.has(t.tag)) return false;
-        if (hiddenCategories.has(t.category)) return false;
-        return isTagIncluded(t, threshold);
-    });
+    return allTags.filter(t => !ratingTags.has(t.tag) && !hiddenCategories.has(t.category) && isTagIncluded(t, threshold));
 }
 ```
 
@@ -637,11 +695,17 @@ function displayTags(tags) {
         return a.localeCompare(b);
     }).forEach(cat => {
         const catTags = grouped[cat];
+        const isHidden = hiddenCategories.has(cat);
+        const isAlways = alwaysHiddenCategories.has(cat);
         const catDiv = document.createElement('div');
-        catDiv.className = 'category-block';
+        catDiv.className = 'category-block' + (isHidden ? ' category-hidden' : '');
         catDiv.innerHTML = `
             <div class="category-header">
                 <span class="category-name">${escapeHtml(cat)}</span>
+                <div class="category-header-actions">
+                    <span class="category-always-hide${isAlways ? ' active' : ''}" style="display: ${isHidden ? 'inline' : 'none'}">Always hide</span>
+                    <button class="category-toggle-btn">${isHidden ? '✓' : '✕'}</button>
+                </div>
             </div>
             <div class="category-tags"></div>
         `;
@@ -662,8 +726,40 @@ function displayTags(tags) {
                 tagEl.setAttribute('data-level', 'all');
                 tagEl.setAttribute('data-original-level', 'all');
             }
+            
             attachTagEvents(tagEl, item);
             tagsContainer.appendChild(tagEl);
+        });
+        const toggleBtn = catDiv.querySelector('.category-toggle-btn');
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (hiddenCategories.has(cat)) {
+                hiddenCategories.delete(cat);
+                catDiv.classList.remove('category-hidden');
+                toggleBtn.textContent = '✕';
+                alwaysHideEl.style.display = 'none';
+            } else {
+                hiddenCategories.add(cat);
+                catDiv.classList.add('category-hidden');
+                toggleBtn.textContent = '✓';
+                alwaysHideEl.style.display = 'inline';
+            }
+        });
+        const alwaysHideEl = catDiv.querySelector('.category-always-hide');
+        alwaysHideEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (alwaysHiddenCategories.has(cat)) {
+                alwaysHiddenCategories.delete(cat);
+                alwaysHideEl.classList.remove('active');
+            } else {
+                alwaysHiddenCategories.add(cat);
+                hiddenCategories.add(cat);
+                catDiv.classList.add('category-hidden');
+                toggleBtn.textContent = '✓';
+                alwaysHideEl.style.display = 'inline';
+                alwaysHideEl.classList.add('active');
+            }
+            saveSettings();
         });
         categoriesContainer.appendChild(catDiv);
     });
@@ -826,7 +922,6 @@ async function copyToClipboard(text, count, format, btn) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
             let finalText = text;
-            // Add auto-meta tags
             if (autoMetaTagSet && autoMetaTagSet.size > 0) {
                 const extras = [];
                 autoMetaTagSet.forEach(t => {
@@ -836,7 +931,7 @@ async function copyToClipboard(text, count, format, btn) {
                 });
                 if (extras.length > 0) {
                     const joiner = (format === 'e621') ? ' ' : ', ';
-                    finalText = finalText ? finalText + joiner + extras.join(joiner) : extras.join(joiner);
+                    finalText = finalText ? finalText + (joiner) + extras.join(joiner) : extras.join(joiner);
                 }
             }
             await navigator.clipboard.writeText(finalText);
@@ -944,8 +1039,10 @@ async function uploadImage(file) {
             const baseTags = data.tags || [];
             const autoMeta = data.auto_meta || [];
             const merged = baseTags.slice();
+            const currentYearTag = String(new Date().getFullYear());
             autoMeta.forEach(t => {
                 if (!merged.find(x => x.tag === t)) {
+                    if (t === currentYearTag && !addCurrentYearTag) return;
                     merged.push({ tag: t, prob: 1.0, category: 'Meta' });
                 }
             });
@@ -966,7 +1063,130 @@ async function uploadImage(file) {
 
 ---
 
-## 12. Hammer.js Setup Functions
+## 12. Fullscreen Image Functions
+
+### State Variables
+
+```javascript
+let fullscreenImageModal = null;  // Modal DOM element (dynamically created)
+let isFullscreenActive = false;    // Current state
+```
+
+### createFullscreenModal()
+
+Creates the fullscreen modal DOM element dynamically. Called on first use.
+
+```javascript
+function createFullscreenModal() {
+    const modal = document.createElement('div');
+    modal.id = 'fullscreenImageModal';
+    modal.className = 'fullscreen-image-modal';
+    modal.innerHTML = `
+        <div class="fullscreen-image-modal-overlay"></div>
+        <div class="fullscreen-image-container" id="fullscreenImageContainer">
+            <img class="fullscreen-image" id="fullscreenImage" alt="Fullscreen preview">
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.addEventListener('click', hideFullscreenImage);
+
+    return modal;
+}
+```
+
+### showFullscreenImage(src)
+
+Shows the fullscreen modal with the provided image source.
+
+```javascript
+function showFullscreenImage(src) {
+    if (!fullscreenImageModal) {
+        fullscreenImageModal = createFullscreenModal();
+    }
+    fullscreenImageModal.style.display = 'flex';
+    const img = document.getElementById('fullscreenImage');
+    img.src = src;
+    document.body.classList.add('modal-open');
+    requestAnimationFrame(() => fullscreenImageModal.classList.add('show'));
+    isFullscreenActive = true;
+}
+```
+
+### hideFullscreenImage()
+
+Hides the fullscreen modal and resets state. Uses transition cleanup to properly hide the modal after fade animation completes.
+
+```javascript
+function hideFullscreenImage() {
+    if (!fullscreenImageModal) return;
+    fullscreenImageModal.classList.remove('show');
+    const cleanup = () => {
+        if (!fullscreenImageModal.classList.contains('show')) {
+            fullscreenImageModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+        fullscreenImageModal.removeEventListener('transitionend', cleanup);
+    };
+    fullscreenImageModal.addEventListener('transitionend', cleanup, { once: true });
+    isFullscreenActive = false;
+}
+```
+
+### Keyboard Shortcuts
+
+> **Note:** Uses `e.code` for layout-independent key detection (works on all keyboard layouts).
+
+| Key | Action |
+|-----|--------|
+| `F` (or `KeyF` position) | Toggle fullscreen (open/close) |
+| `ESC` | Close fullscreen |
+
+### Modal Click
+
+Clicking anywhere within the fullscreen modal (overlay or image) closes it.
+
+### LocalStorage
+
+None - fullscreen state is ephemeral and not persisted.
+
+---
+
+## 13. Help Modal Functions
+
+### openHelpModal()
+
+```javascript
+function openHelpModal() {
+    if (settingsMenu.classList.contains('show')) toggleSettings(false);
+    helpModal.style.display = 'flex';
+    document.body.classList.add('modal-open');
+    requestAnimationFrame(() => helpModal.classList.add('show'));
+}
+```
+
+### closeHelpModal()
+
+```javascript
+function closeHelpModal() {
+    helpModal.classList.remove('show');
+    const cleanup = () => {
+        if (!helpModal.classList.contains('show')) {
+            helpModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+        helpModal.removeEventListener('transitionend', cleanup);
+    };
+    helpModal.addEventListener('transitionend', cleanup, { once: true });
+    setTimeout(() => {
+        if (helpModal.style.display === 'flex') cleanup();
+    }, 500);
+}
+```
+
+---
+
+## 14. Hammer.js Setup Functions
 
 ### attachHammerTap(element, handler)
 
@@ -1015,18 +1235,19 @@ function initHammer() {
         allThreshold = 0.60; confidentThreshold = 0.70; savedFormat = 'e621';
         currentFormat = savedFormat; currentTheme = 'system'; activePreset = 'standard'; maxTags = 200;
         alwaysHiddenCategories.clear();
+        hiddenCategories.clear();
+        
         document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.value === 'system');
-        });
-        document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.value === 'e621');
         });
         document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.value === '200');
         });
+        
         updateTheme('system');
         applyThresholds();
         saveSettings();
+        if (allTags.length) displayTags(allTags);
     });
 
     presetBtns.forEach(btn => {
@@ -1086,12 +1307,26 @@ function initHammer() {
             saveSettings();
         });
     });
+
+    const yearTagToggle = document.getElementById('yearTagToggle');
+    if (yearTagToggle) {
+        yearTagToggle.addEventListener('change', () => {
+            addCurrentYearTag = yearTagToggle.checked;
+            const currentYearTag = String(new Date().getFullYear());
+            if (addCurrentYearTag) {
+                perTagAutoDisable.delete(currentYearTag);
+            } else {
+                perTagAutoDisable.add(currentYearTag);
+            }
+            saveSettings();
+        });
+    }
 }
 ```
 
 ---
 
-## 13. Results Display Functions
+## 15. Results Display Functions
 
 ### hideResults()
 
@@ -1102,11 +1337,7 @@ async function hideResults() {
     if (!results.classList.contains('visible')) return Promise.resolve();
     results.classList.remove('visible');
     return new Promise(resolve => {
-        const onTransitionEnd = () => {
-            results.style.display = 'none';
-            results.removeEventListener('transitionend', onTransitionEnd);
-            resolve();
-        };
+        const onTransitionEnd = () => { results.style.display = 'none'; results.removeEventListener('transitionend', onTransitionEnd); resolve(); };
         results.addEventListener('transitionend', onTransitionEnd, { once: true });
     });
 }
@@ -1120,9 +1351,9 @@ Shows results container.
 async function showResults() {
     if (results.classList.contains('visible')) return Promise.resolve();
     results.style.display = 'block';
-    // Force reflow
     results.offsetHeight;
     results.classList.add('visible');
+    return Promise.resolve();
 }
 ```
 
@@ -1142,28 +1373,17 @@ function applyThresholds() {
 
 ---
 
-## 14. Event Listeners
+## 16. Event Listeners
 
 ### File Input Events
 
 ```javascript
 // Prevent defaults
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => 
-    dropZone.addEventListener(eventName, preventDefaults, false));
-
-// Drag visual feedback
-['dragenter', 'dragover'].forEach(eventName => 
-    dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false));
-['dragleave', 'drop'].forEach(eventName => 
-    dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false));
-
-// Drop handler
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, preventDefaults, false));
+['dragenter', 'dragover'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false));
+['dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false));
 dropZone.addEventListener('drop', (e) => { const dt = e.dataTransfer; const files = dt.files; if (files.length) handleFiles(files); });
-
-// File input
 fileInput.addEventListener('change', () => handleFiles(fileInput.files));
-
-// Paste
 document.addEventListener('paste', (e) => {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -1175,8 +1395,6 @@ document.addEventListener('paste', (e) => {
         }
     }
 });
-
-// Click outside to close
 document.addEventListener('click', (e) => {
     if (currentPopup && !currentPopup.contains(e.target) && (!activePopupTagElement || !activePopupTagElement.contains(e.target))) closePopup();
     if (!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)) toggleSettings(false);
@@ -1185,8 +1403,9 @@ document.addEventListener('click', (e) => {
         if (e.target === helpModal || (helpModal.contains(e.target) && modalContent && !modalContent.contains(e.target))) closeHelpModal();
     }
 });
-
-// Escape key
+window.addEventListener('resize', () => { 
+    if (settingsMenu.classList.contains('show')) positionSettingsMenu(); 
+});
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         if (helpModal && helpModal.style.display === 'flex') closeHelpModal();
@@ -1204,100 +1423,36 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
-```
 
----
-
-## 15. Fullscreen Image Functions
-
-### State Variables
-
-```javascript
-let fullscreenImageModal = null;  // Modal DOM element (dynamically created)
-let isFullscreenActive = false;    // Current state
-```
-
-### createFullscreenModal()
-
-Creates the fullscreen modal DOM element dynamically. Called on first use.
-
-```javascript
-function createFullscreenModal() {
-    const modal = document.createElement('div');
-    modal.id = 'fullscreenImageModal';
-    modal.className = 'fullscreen-image-modal';
-    modal.innerHTML = `
-        <div class="fullscreen-image-modal-overlay"></div>
-        <div class="fullscreen-image-container" id="fullscreenImageContainer">
-            <img class="fullscreen-image" id="fullscreenImage" alt="Fullscreen preview">
-        </div>
-    `;
-    document.body.appendChild(modal);
-
-    modal.addEventListener('click', hideFullscreenImage);
-
-    return modal;
+if (helpBtn && helpModal) {
+    helpBtn.addEventListener('click', (e) => { e.stopPropagation(); openHelpModal(); });
+    if (closeHelpModalBtn) closeHelpModalBtn.addEventListener('click', closeHelpModal);
 }
-```
 
-### Modal Click
-
-Shows the fullscreen modal with the provided image source.
-
-```javascript
-function showFullscreenImage(src) {
-    if (!fullscreenImageModal) {
-        fullscreenImageModal = createFullscreenModal();
-    }
-    fullscreenImageModal.style.display = 'flex';
-    const img = document.getElementById('fullscreenImage');
-    img.src = src;
-    document.body.classList.add('modal-open');
-    requestAnimationFrame(() => fullscreenImageModal.classList.add('show'));
-    isFullscreenActive = true;
-}
-```
-
-### hideFullscreenImage()
-
-Hides the fullscreen modal and resets state. Uses transition cleanup to properly hide the modal after fade animation completes.
-
-```javascript
-function hideFullscreenImage() {
-    if (!fullscreenImageModal) return;
-    fullscreenImageModal.classList.remove('show');
-    const cleanup = () => {
-        if (!fullscreenImageModal.classList.contains('show')) {
-            fullscreenImageModal.style.display = 'none';
-            document.body.classList.remove('modal-open');
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data && event.data.action === 'offline') {
+            showNotification('You are offline. Check your network connection.', 'info', 5000);
         }
-        fullscreenImageModal.removeEventListener('transitionend', cleanup);
-    };
-    fullscreenImageModal.addEventListener('transitionend', cleanup, { once: true });
-    isFullscreenActive = false;
+    });
 }
 ```
 
-### Keyboard Shortcuts
+---
 
-> **Note:** Uses `e.code` for layout-independent key detection (works on all keyboard layouts).
+## 17. Final Initialization
 
-| Key | Action |
-|-----|--------|
-| `F` (or `KeyF` position) | Toggle fullscreen (open/close) |
-| `ESC` | Close fullscreen |
-
-### Modal Click
-
-Clicking anywhere within the fullscreen modal (overlay or image) closes it.
-
-### LocalStorage
-
-None - fullscreen state is ephemeral and not persisted.
+```javascript
+results.style.display = 'none';
+loadSettings();
+initHammer();
+setupGlobalCopyButton(copyGlobalConfident, () => confidentThreshold);
+setupGlobalCopyButton(copyGlobalAll, () => allThreshold);
+```
 
 ---
 
-## 16. API Reference
+## 18. API Reference
 
 ### /predict Endpoint
 
@@ -1340,7 +1495,7 @@ top_k: <number> (optional, default 200)
 
 ---
 
-## 17. Quick Reference for Agents
+## 19. Quick Reference for Agents
 
 ### LocalStorage
 
@@ -1380,5 +1535,3 @@ top_k: <number> (optional, default 200)
 | settingsMenu | Settings panel |
 | helpModal | Help overlay |
 | notification-container | Toast container |
-
-(End of file - total ~1300 lines)

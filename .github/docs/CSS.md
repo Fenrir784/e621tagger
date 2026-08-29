@@ -365,11 +365,12 @@ Animated easter egg feature with three layers that animate on open.
 
 ```css
 .settings-section {
-    margin-bottom: 1.2rem;
-    padding-bottom: 1rem;
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.6rem;
     border-bottom: 1px solid var(--border-color);
 }
 .settings-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.settings-section.no-divider { border-bottom: none; margin-bottom: 0.5rem; padding-bottom: 0.4rem; }
 .settings-section h2 {
     font-size: 0.9rem;
     margin-bottom: 0.8rem;
@@ -384,7 +385,10 @@ Animated easter egg feature with three layers that animate on open.
     align-items: center;
     margin-bottom: 0.8rem;
 }
+.settings-section-header h2 { margin-bottom: 0; }
 ```
+
+All `Settings` headers (`THRESHOLDS / Need help?`, `MAX TAGS`, `ADD CURRENT YEAR / switch`) use the uniform `.settings-section-header` — flex row with `space-between` + `align-items:center`, no custom `year-toggle-header` class.
 
 ---
 
@@ -482,6 +486,33 @@ Controls maximum tags to display
 ```css
 .max-tags-group { width: 100%; padding: 0.2rem; }
 ```
+
+### Year Switch (Add Current Year)
+
+Apple-style toggle inside the `ADD CURRENT YEAR` header. Uses uniform header flex, no custom header type.
+
+```html
+<div class="settings-section">
+  <div class="settings-section-header">
+    <h2>Add current year</h2>
+    <label class="year-switch" aria-label="Add current year">
+      <input type="checkbox" id="yearTagToggle" checked>
+      <span class="year-switch-track"></span>
+    </label>
+  </div>
+</div>
+```
+
+```css
+.year-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+.year-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.year-switch-track { position: absolute; inset: 0; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 24px; transition: background-color 0.2s, border-color 0.2s; }
+.year-switch-track::before { content: ""; position: absolute; height: 18px; width: 18px; left: 2px; top: 2px; background-color: var(--low-text); opacity: 0.45; border-radius: 50%; transition: transform 0.2s, background-color 0.2s, opacity 0.2s; }
+.year-switch input:checked + .year-switch-track { background-color: var(--confident-bg); border-color: var(--confident-bg); }
+.year-switch input:checked + .year-switch-track::before { transform: translateX(20px); background-color: var(--confident-text); opacity: 1; }
+```
+
+Off: `var(--bg-color)` + `var(--border-color)` track, `var(--low-text)` thumb at 45% opacity. On: `var(--confident-bg)` track, `var(--confident-text)` thumb. Works in light/dark themes and on mobile (`92vw` menu).
 
 ---
 

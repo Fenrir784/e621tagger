@@ -88,7 +88,7 @@
                 </div>
                 <button id="closeSettings" class="close-settings">✕</button>
             </div>
-            <div class="settings-section">
+            <div class="settings-section no-divider">
                 <div class="settings-section-header">
                     <h2>Thresholds</h2>
                     <button id="helpThresholdsBtn" class="help-btn">Need help?</button>
@@ -113,8 +113,10 @@
                     <button id="applyCustom" class="apply-btn">Apply</button>
                 </div>
             </div>
-            <div class="settings-section">
-                <h2>Max tags</h2>
+            <div class="settings-section no-divider">
+                <div class="settings-section-header">
+                    <h2>Max tags</h2>
+                </div>
                 <div class="max-tags-group" id="maxTagsToggle">
                     <button type="button" class="max-tag-option" data-value="50">50</button>
                     <button type="button" class="max-tag-option" data-value="75">75</button>
@@ -125,12 +127,15 @@
                 </div>
             </div>
             <div class="settings-section">
-                <h2>Default format</h2>
-                <div class="format-toggle-group" id="defaultFormatToggle">
-                    <button type="button" class="format-option active" data-value="e621">e621</button>
-                    <button type="button" class="format-option" data-value="posty">PostyBirb</button>
+                <div class="settings-section-header">
+                    <h2>Add current year</h2>
+                    <label class="year-switch" aria-label="Add current year">
+                        <input type="checkbox" id="yearTagToggle" checked>
+                        <span class="year-switch-track"></span>
+                    </label>
                 </div>
             </div>
+
             <div class="settings-section">
                 <button id="resetSettings" class="reset-btn">Reset to defaults</button>
             </div>
@@ -199,6 +204,9 @@
                 • <strong>Click ✕ on a category header</strong> to gray it out and exclude those tags from copying. Click ✓ to reveal. While hidden, tap "Always hide" to save permanently.</p>
 
                 <p><strong>💄 Pro Tip</strong>: Narrow down basic detection so that it is almost always correct, and then manually add or remove tags.</p>
+
+                <p><strong>📅 Current Year Tag</strong><br>
+                Adds the current year (e.g., <code>2025</code>, <code>2026</code>) as a Meta tag with full confidence. Can be disabled in Settings.</p>
                 
                 <p><strong>📋 Copying tags</strong><br>
                 • Use <strong>Copy Confident Tags</strong> or <strong>Copy All Tags</strong> buttons to copy all tags that meet the threshold. Tags are copied in category order presented on e621.</p>
@@ -206,7 +214,7 @@
                 <p><strong>⚙️ Settings</strong><br>
                 • <strong>Thresholds:</strong> Choose a preset or set custom values.<br>
                 • <strong>Max tags:</strong> Limit the number of returned tags from backend.<br>
-                • <strong>Default format:</strong> e621 (space-separated) or PostyBirb (comma-separated).</p>
+                • <strong>Format:</strong> Switch between e621 (space-separated) and PostyBirb (comma-separated) in the results header — your it's saved for future uploads.</p>
 
                 <p><strong>💡 Extra features</strong><br>
                 • <strong>PWA:</strong> Install the app via the browser's "Install" button for quick access.<br>
@@ -215,7 +223,7 @@
                 <div class="help-footer">
                     Made by space bird called <a href="https://fenrir784.app" target="_blank">Fenrir784</a><br>
                     Have problems or suggestions?<br>
-                    Contact me directly via <a href="https://telegram.me/fenrir784" target="_blank">Telegram</a>
+                    Contact me directly via <a href="https://t.me/fenrir784" target="_blank">Telegram</a>
                 </div>
             </div>
         </div>
