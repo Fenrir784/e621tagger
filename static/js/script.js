@@ -91,10 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.classList.toggle('active', btn.dataset.value === currentTheme);
                 });
                 
-                document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.value === savedFormat);
-                });
-                
                 document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.value === String(maxTags));
                 });
@@ -812,9 +808,6 @@ function refreshTagClasses() {
             document.querySelectorAll('#themeToggle .theme-option').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.value === 'system');
             });
-            document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.value === 'e621');
-            });
             document.querySelectorAll('#maxTagsToggle .max-tag-option').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.value === '200');
             });
@@ -856,21 +849,13 @@ function refreshTagClasses() {
             });
         });
 
-        document.querySelectorAll('#defaultFormatToggle .format-option').forEach(btn => {
-            attachHammerTap(btn, () => {
-                document.querySelectorAll('#defaultFormatToggle .format-option').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                savedFormat = btn.dataset.value;
-                currentFormat = savedFormat;
-                saveSettings();
-            });
-        });
-
         document.querySelectorAll('#resultsFormatToggle .format-option').forEach(btn => {
             attachHammerTap(btn, () => {
                 document.querySelectorAll('#resultsFormatToggle .format-option').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentFormat = btn.dataset.value;
+                savedFormat = btn.dataset.value;
+                saveSettings();
             });
         });
 
