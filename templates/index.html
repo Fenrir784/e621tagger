@@ -125,13 +125,13 @@
                 </div>
             </div>
             <div class="settings-section year-toggle-section">
-                <div class="settings-section-header year-toggle-header">
+                <label class="year-toggle-row">
                     <h2>Add current year</h2>
-                    <div class="format-toggle-group compact" id="yearTagToggle" title="Add current year as meta tag">
-                        <button type="button" class="format-option active" data-value="on">On</button>
-                        <button type="button" class="format-option" data-value="off">Off</button>
-                    </div>
-                </div>
+                    <span class="year-switch">
+                        <input type="checkbox" id="yearTagToggle" checked>
+                        <span class="year-switch-track"></span>
+                    </span>
+                </label>
             </div>
 
             <div class="settings-section">
@@ -204,7 +204,7 @@
                 <p><strong>💄 Pro Tip</strong>: Narrow down basic detection so that it is almost always correct, and then manually add or remove tags.</p>
 
                 <p><strong>📅 Current Year Tag</strong><br>
-                Automatically adds the current year (e.g., <code>2025</code>, <code>2026</code>) as a Meta tag with full confidence. Disable in Settings to exclude.</p>
+                Adds the current year (e.g., <code>2025</code>, <code>2026</code>) as a Meta tag with full confidence. Disable in Settings not add it.</p>
                 
                 <p><strong>📋 Copying tags</strong><br>
                 • Use <strong>Copy Confident Tags</strong> or <strong>Copy All Tags</strong> buttons to copy all tags that meet the threshold. Tags are copied in category order presented on e621.</p>
@@ -212,7 +212,7 @@
                 <p><strong>⚙️ Settings</strong><br>
                 • <strong>Thresholds:</strong> Choose a preset or set custom values.<br>
                 • <strong>Max tags:</strong> Limit the number of returned tags from backend.<br>
-                • <strong>Format:</strong> Switch between e621 (space-separated) and PostyBirb (comma-separated) in the results header — your choice is saved automatically for future uploads.</p>
+                • <strong>Format:</strong> Switch between e621 (space-separated) and PostyBirb (comma-separated) in the results header — your it's saved for future uploads.</p>
 
                 <p><strong>💡 Extra features</strong><br>
                 • <strong>PWA:</strong> Install the app via the browser's "Install" button for quick access.<br>

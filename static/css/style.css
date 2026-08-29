@@ -248,11 +248,17 @@ h1 {
 .theme-toggle-group { margin-left: 0.5rem; }
 .max-tags-group { width: 100%; padding: 0.2rem; }
 .format-toggle-group { padding: 0.2rem; gap: 0.1rem; }
-.format-toggle-group.compact { padding: 0.12rem; gap: 0.05rem; min-width: 86px; align-items: center; flex-shrink: 0; }
-.format-toggle-group.compact .format-option { padding: 0.28rem 0; font-size: 0.7rem; min-width: 40px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
 .year-toggle-section { margin-bottom: 0.7rem; padding-bottom: 0.6rem; }
-.year-toggle-header { margin-bottom: 0; align-items: center; gap: 0.75rem; flex-wrap: nowrap; }
-.year-toggle-header h2 { margin-bottom: 0; line-height: 1; display: flex; align-items: center; flex: 1; min-width: 0; }
+.year-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; cursor: pointer; user-select: none; }
+.year-toggle-row h2 { margin-bottom: 0; line-height: 1; flex: 1; min-width: 0; }
+.year-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+.year-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.year-switch-track { position: absolute; inset: 0; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 24px; transition: background-color 0.2s, border-color 0.2s; }
+.year-switch-track::before { content: ""; position: absolute; height: 18px; width: 18px; left: 2px; top: 2px; background-color: var(--low-text); opacity: 0.45; border-radius: 50%; transition: transform 0.2s, background-color 0.2s, opacity 0.2s; }
+.year-switch input:checked + .year-switch-track { background-color: var(--confident-bg); border-color: var(--confident-bg); }
+.year-switch input:checked + .year-switch-track::before { transform: translateX(20px); background-color: var(--confident-text); opacity: 1; }
+.year-switch input:active + .year-switch-track::before { transform: scale(0.95); }
+.year-switch input:checked:active + .year-switch-track::before { transform: translateX(20px) scale(0.95); }
 
 .theme-option, .format-option, .max-tag-option {
     border: none;
@@ -927,9 +933,7 @@ input[type="number"]:hover::-webkit-outer-spin-button {
     .tag-popup { width: 300px; }
     .egg-container { width: 64px; height: 64px; } 
     .settings-menu { width: 92vw; max-width: 300px; }
-    .year-toggle-header h2 { font-size: 0.82rem; }
-    .format-toggle-group.compact { min-width: 80px; }
-    .format-toggle-group.compact .format-option { min-width: 36px; font-size: 0.68rem; }
+    .year-toggle-row h2 { font-size: 0.82rem; }
 }
 
 .fullscreen-image-modal {
