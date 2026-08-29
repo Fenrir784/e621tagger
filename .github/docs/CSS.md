@@ -1079,6 +1079,74 @@ Tags default to low confidence state (opacity 0.6) before classification:
 
 ---
 
+## Year Tag Button
+
+### `.year-tag-btn`
+
+Button for toggling current year tag inclusion in copied output. Located in `.rating-container` next to the rating badge.
+
+```css
+.year-tag-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background-color: var(--low-bg);
+    color: var(--low-text);
+    opacity: 0.6;
+    touch-action: manipulation;
+    transition: background-color 0.2s, color 0.2s, opacity 0.2s, transform 0.1s;
+    min-height: 32px;
+}
+.year-tag-btn:active { transform: scale(0.97); }
+.year-tag-btn.active {
+    background-color: var(--added-bg);
+    color: var(--added-text);
+    border-color: var(--success-color);
+    opacity: 1;
+}
+.year-tag-icon {
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+.year-tag-text {
+    white-space: nowrap;
+}
+```
+
+### States
+
+| Class | Background | Text | Border | Opacity |
+|-------|------------|------|--------|---------|
+| `.year-tag-btn` (default) | var(--low-bg) | var(--low-text) | transparent | 0.6 |
+| `.year-tag-btn.active` | var(--added-bg) | var(--added-text) | var(--success-color) | 1 |
+
+### Behavior
+
+- **Default (inactive)**: Gray tag appearance matching low-confidence tags
+- **Active**: Green tag appearance matching user-added tags (`.tag[data-level="added"]`)
+- **No `data-level` attribute**: Does not inherit tag interaction logic (no wiki popup, no long-press)
+- **Touch target**: 32px minimum height for mobile accessibility
+- **Placement**: Inside `.rating-container`, right of rating badge
+- **Mobile**: `.rating-container` uses `flex-wrap: wrap; gap: 0.4rem;` for responsive stacking
+
+### Icon
+
+Inline SVG `+` (plus) icon, 12x12px, stroke-width 2.5:
+```html
+<svg class="year-tag-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"></line>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+</svg>
+```
+
+---
+
 ## Site Footer
 
 ```css

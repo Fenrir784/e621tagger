@@ -58,6 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let perTagAutoDisable = new Set();
     let hiddenCategories = new Set();
     let alwaysHiddenCategories = new Set();
+    let includeCurrentYear = false;
+    let currentYear = new Date().getFullYear();
 
     const tagDescriptionCache = new Map();
     let currentPopup = null;
@@ -473,25 +475,32 @@ function refreshTagClasses() {
     }
 
     async function copyToClipboard(text, count, format, btn) {
+        let finalText = text;
+        if (autoMetaTagSet && autoMetaTagSet.size > 0) {
+            const extras = [];
+            autoMetaTagSet.forEach(t => {
+                if (perTagAutoDisable.has(t)) return;
+                if (text.includes(t) || text.includes(t.replace(/_/g, ' '))) return;
+                extras.push(t);
+            });
+            if (extras.length > 0) {
+                const joiner = (format === 'e621') ? ' ' : ', ';
+                finalText = finalText ? finalText + (joiner) + extras.join(joiner) : extras.join(joiner);
+            }
+        }
+        if (includeCurrentYear) {
+            const yearTag = String(currentYear);
+            if (!finalText.includes(yearTag)) {
+                const joiner = (format === 'e621') ? ' ' : ', ';
+                finalText = finalText ? finalText + joiner + yearTag : yearTag;
+            }
+        }
         if (navigator.clipboard && navigator.clipboard.writeText) {
             try {
-                let finalText = text;
-                if (autoMetaTagSet && autoMetaTagSet.size > 0) {
-                    const extras = [];
-                    autoMetaTagSet.forEach(t => {
-                        if (perTagAutoDisable.has(t)) return;
-                        if (text.includes(t) || text.includes(t.replace(/_/g, ' '))) return;
-                        extras.push(t);
-                    });
-                    if (extras.length > 0) {
-                        const joiner = (format === 'e621') ? ' ' : ', ';
-                        finalText = finalText ? finalText + (joiner) + extras.join(joiner) : extras.join(joiner);
-                    }
-                }
                 await navigator.clipboard.writeText(finalText);
                 showCopySuccess(btn, count, format);
-            } catch { fallbackCopy(text, btn, count, format); }
-        } else { fallbackCopy(text, btn, count, format); }
+            } catch { fallbackCopy(finalText, btn, count, format); }
+        } else { fallbackCopy(finalText, btn, count, format); }
     }
 
     function showCopySuccess(btn, count, format) {
@@ -732,6 +741,9 @@ function refreshTagClasses() {
                 autoMetaTagSet = new Set(autoMeta);
                 addedTags.clear();
                 removedTags.clear();
+                includeCurrentYear = false;
+                const yearTagBtn = document.getElementById('yearTagBtn');
+                if (yearTagBtn) yearTagBtn.classList.remove('active');
                 hiddenCategories = new Set(alwaysHiddenCategories);
                 currentFormat = savedFormat;
                 updateLocalFormatUI();
@@ -867,6 +879,16 @@ function refreshTagClasses() {
                 saveSettings();
             });
         });
+
+        const yearTagBtn = document.getElementById('yearTagBtn');
+        if (yearTagBtn) {
+            const hammer = new Hammer(yearTagBtn);
+            hammer.on('tap', (e) => {
+                e.stopPropagation();
+                includeCurrentYear = !includeCurrentYear;
+                yearTagBtn.classList.toggle('active', includeCurrentYear);
+            });
+        }
     }
 
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, preventDefaults, false));
