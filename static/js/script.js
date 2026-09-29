@@ -486,6 +486,7 @@ function refreshTagClasses() {
                     const extras = [];
                     autoMetaTagSet.forEach(t => {
                         if (perTagAutoDisable.has(t)) return;
+                        if (removedTags.has(t)) return;
                         if (text.includes(t) || text.includes(t.replace(/_/g, ' '))) return;
                         extras.push(t);
                     });
@@ -880,12 +881,6 @@ function refreshTagClasses() {
         if (yearTagToggle) {
             yearTagToggle.addEventListener('change', () => {
                 addCurrentYearTag = yearTagToggle.checked;
-                const currentYearTag = String(new Date().getFullYear());
-                if (addCurrentYearTag) {
-                    perTagAutoDisable.delete(currentYearTag);
-                } else {
-                    perTagAutoDisable.add(currentYearTag);
-                }
                 saveSettings();
             });
         }
