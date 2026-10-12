@@ -666,3 +666,33 @@ Stored as `alwaysHiddenCategories` array inside the `e621tagger-settings` JSON o
 ### Reset
 
 The **Reset** button in settings clears both `alwaysHiddenCategories` and removes it from `localStorage`.
+
+---
+
+## Server-Side Tag Blocking
+
+Tags can be excluded at the API level via the `BLOCKED_TAGS` set in `app.py`. This prevents tags from ever being returned to clients, unlike frontend hiding which only affects display.
+
+### Configuration
+
+```python
+# app.py
+BLOCKED_TAGS = {'mature'}  # Add more tags as needed
+```
+
+### Behavior
+
+- **Complete exclusion**: Blocked tags are filtered during `/predict` response building — they never appear in the JSON response
+- **No frontend workaround**: Clients cannot access blocked tags since they're not in the response
+- **Easy maintenance**: Add/remove tags from the set without code changes elsewhere
+- **Precedence**: Runs before threshold filtering and top-k selection
+
+### Use Cases
+
+- Deprecated tags (e.g., `mature` on e621)
+- Policy-violating tags
+- Internal/utility tags not meant for public API
+
+### LocalStorage Key
+
+None — this is server-side only. No client-side configuration.
