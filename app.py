@@ -480,6 +480,8 @@ def predict():
         tags_with_probs = []
         for idx, val in zip(indices, values):
             label = model.labels[int(idx.item())]
+            if label.label == 'mature':
+                continue
             prob = val.item()
             if label.subcategory and label.subcategory in SUBCATEGORY_DISPLAY_NAMES:
                 category_name = SUBCATEGORY_DISPLAY_NAMES[label.subcategory]
