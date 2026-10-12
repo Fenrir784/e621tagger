@@ -178,6 +178,15 @@ ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'ima
 | `ALLOWED_EXTENSIONS` | 7 formats | Valid file extensions |
 | `ALLOWED_MIME_TYPES` | 7 MIME types | Valid MIME types |
 
+### Blocked Tags
+
+```python
+BLOCKED_TAGS = {'mature'}
+```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BLOCKED_TAGS` | `{'mature'}` | Set of tag names to exclude from API response. Add deprecated/undesired tags here to prevent them from being returned to clients. |
+
 ---
 
 ## 2. Helper Functions

@@ -81,6 +81,8 @@ UPLOAD_DIR = os.getenv('UPLOAD_DIR', '/app/uploads')
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff'}
 ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/tiff'}
 
+BLOCKED_TAGS = {'mature'}
+
 def secure_log(s: str | None) -> str:
     if not s:
         return ""
@@ -480,7 +482,7 @@ def predict():
         tags_with_probs = []
         for idx, val in zip(indices, values):
             label = model.labels[int(idx.item())]
-            if label.label == 'mature':
+            if label.label in BLOCKED_TAGS:
                 continue
             prob = val.item()
             if label.subcategory and label.subcategory in SUBCATEGORY_DISPLAY_NAMES:
