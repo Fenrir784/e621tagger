@@ -78,7 +78,7 @@ ALLOWED_TOP_K = {50, 75, 100, 150, 200, 300}
 
 SAVE_UPLOADS = os.getenv('SAVE_UPLOADS', 'false').lower() == 'true'
 UPLOAD_DIR = os.getenv('UPLOAD_DIR', '/app/uploads')
-ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff'}
+ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.jfif', '.png', '.gif', '.webp', '.bmp', '.tiff'}
 ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/tiff'}
 
 BLOCKED_TAGS = {'mature'}
